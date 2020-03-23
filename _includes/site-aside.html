@@ -1,0 +1,22 @@
+<aside class="aside  typeset  aside--{{ include.align | default: 'right' }}">
+
+  {% if page.layout == "post" %}
+    <section class="section  section--related-posts">
+      {% include post-related.html %}
+    </section>
+
+  {% elsif page.layout == "page" or page.layout == "home" or page.layout == "blog" %}
+    <section class="section  section--description">
+      <h3>About this site</h3>
+      <p>{{ site.description }}</p>
+      <script type="text/javascript" src="//rf.revolvermaps.com/0/0/1.js?i=58hp9pjozut&amp;s=350&amp;m=6&amp;v=true&amp;r=false&amp;b=000000&amp;n=false&amp;c=ff0000" async="async"></script>
+      {% include nav-social.html %}
+  {% elsif page.layout == "categories" %}
+    <section class="section  section--category-index">
+      <h3>Index</h3>
+      {% include nav-categories.html %}
+    </section>
+
+  {% endif %}
+
+</aside>

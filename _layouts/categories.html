@@ -1,0 +1,27 @@
+---
+layout: default
+---
+
+{% include site-header.html %}
+
+<main class="main  container">
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+  <div class="content">
+
+    <article class="article  article--page  typeset">
+
+      <h1>{{ page.title }}</h1>
+
+      {{ content }}
+
+    </article>
+
+    {% include post-categories.html %}
+
+  </div>
+
+  {% if page.aside == true %}{% include site-aside.html align="left" %}{% endif %}
+
+</main>
+
+{% include site-footer.html %}
