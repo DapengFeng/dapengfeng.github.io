@@ -126,4 +126,4 @@ sharing_links: # Appear at the bottom of single blog posts, add as desired. The 
   Weibo: "#0077B5"
   Email: true
 
-theme: alembic-jekyll-theme
+theme: jekyll-theme-hacker
