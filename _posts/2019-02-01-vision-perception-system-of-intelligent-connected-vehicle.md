@@ -2,7 +2,6 @@
 title: Vision Perception System of Intelligent Connected Vehicle
 categories:
 - Project
-- Intelligent Connected Vehicle
 ---
 
 From Setempber 1st, 2018 to January 31st, 2019, I participated in our college project of Intelligent Connected Vehicle (ICV). In this project, I took charge of the vision perception system of the ICV. I finished the whole perception system setup and calibration of multi-sensors. Our recording platform is an electric vehicle, which has been modified with actuators for pedals (acceleration and brake) and steering wheel. We use the following sensors:
