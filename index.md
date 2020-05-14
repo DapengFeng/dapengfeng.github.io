@@ -9,7 +9,7 @@ aside: true
 Dapeng Feng, a graduate student at the School of Intelligent Systems Engineering, Sun Yat-sen University, works on computer vision and machine learning.Currently, the research topics Feng has focused on are **visual perception for autonomous driving** and **intelligence decision supporting system**.
 
 ## Education
-- M.S., Sun Yat-sen University, Pattern Recognition and Intelligent Systems, 2018 - present, advised by [Associate Professor Xiaodan Liang](https://lemondan.github.io/) and [Associate Professor Xiaojun Tan](http://ise.sysu.edu.cn/teacher/teacher02/106486.htm)
+- M.S., Sun Yat-sen University, Pattern Recognition and Intelligent Systems, 2018 - present, advised by [Associate Professor Xiaodan Liang](https://lemondan.github.io/) and [Associate Professor Xiaojun Tan](http://ise.sysu.edu.cn/teacher/teacher02/1372644.htm)
 - B.S., Guangdong University of Foreign Studies, Computer Science and Technology, 2014 - 2018
 
 ## Research
