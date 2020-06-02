@@ -15,7 +15,7 @@ Dapeng Feng, a graduate student at the School of Intelligent Systems Engineering
 ## Research
 I'm interested in algorithms for **visual perception** (object recognition, localization, segmentation, pose estimation, ...) and **visual reasoning** (answering complex queries, often in natural lanuage, about images). My work explores topics in computer vision and machine/deep/statistical learning.
 
-## [Paper List](/assets/pdf-js/web/viewer.html?file=/assets/references.pdf)
+## [Paper List](/assets/references.pdf)
 
 <!-- {% include map.html id="1x-nqIbuaL_6vbzxepFjZA_dB8PNN8p9N" 
 z="12"
