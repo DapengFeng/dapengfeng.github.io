@@ -17,6 +17,9 @@ I'm interested in algorithms for **visual perception** (object recognition, loca
 
 ## [Paper List](/assets/references.pdf)
 
+## Honors & Awards
+1. 3rd place – 2D Detection of [Waymo Open Dataset Challenge](https://waymo.com/open/challenges/2d-detection/#)
+
 <!-- {% include map.html id="1x-nqIbuaL_6vbzxepFjZA_dB8PNN8p9N" 
 z="12"
 title="Sun Yat-sen University" %} -->
