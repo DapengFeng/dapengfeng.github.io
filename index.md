@@ -15,11 +15,12 @@ Dapeng Feng, a graduate student at the School of Intelligent Systems Engineering
 ## Research
 I'm interested in algorithms for **visual perception** (object recognition, localization, segmentation, pose estimation, ...) and **visual reasoning** (answering complex queries, often in natural lanuage, about images). My work explores topics in computer vision and machine/deep/statistical learning.
 
+## Honors & Awards
+- 3rd place –- 2D Detection of [Waymo Open Dataset Challenge](https://waymo.com/open/challenges/2d-detection/#)
+
 ## [Paper List](/assets/references.pdf)
 
-## Honors & Awards
-1. 3rd place – 2D Detection of [Waymo Open Dataset Challenge](https://waymo.com/open/challenges/2d-detection/#)
 
-<!-- {% include map.html id="1x-nqIbuaL_6vbzxepFjZA_dB8PNN8p9N" 
+<!-- {% include map.html id="1x-nqIbuaL_6vbzxepFjZA_dB8PNN8p9N"
 z="12"
 title="Sun Yat-sen University" %} -->
