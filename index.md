@@ -6,7 +6,7 @@ feature_text: |
 feature_image: "https://picsum.photos/1300/400?image=989"
 aside: true
 ---
-Dapeng Feng, a graduate student at the School of Intelligent Systems Engineering, Sun Yat-sen University, works on computer vision and machine learning.Currently, the research topics Feng has focused on are **visual perception for autonomous driving** and **intelligence decision supporting system**.
+Dapeng Feng, a first-year PhD student at the School of Systems Science and Engineering, Sun Yat-sen University, works on computer vision and machine learning.Currently, the research topics Feng has focused on are **visual perception for autonomous driving** and **intelligence decision supporting system**.
 
 ## Education
 - Ph.D., Sun Yat-sen University, Computer Science and Technology, 2021 - Exp. 2025
