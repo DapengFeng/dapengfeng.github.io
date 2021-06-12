@@ -19,7 +19,7 @@ I'm interested in algorithms for **visual perception** (object recognition, loca
 <!-- ## [Paper List](/assets/references.pdf) -->
 
 ## Honors & Awards
-1. 3rd place – 2D Detection of [Waymo Open Dataset Challenge](https://waymo.com/open/challenges/2d-detection/#), 2020
+1. 3rd place – 2D Detection of [Waymo Open Dataset Challenge](https://sites.google.com/view/cvpr20-scalability/wod-reports?authuser=0), CVPR 2020 Workshop, Scalability In Autonomous Driving.
 
 <!-- {% include map.html id="1x-nqIbuaL_6vbzxepFjZA_dB8PNN8p9N" 
 z="12"
