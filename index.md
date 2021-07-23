@@ -10,7 +10,7 @@ Dapeng Feng, a first-year PhD student at the School of Systems Science and Engin
 
 ## Education
 - Ph.D., Sun Yat-sen University, Computer Science and Technology, 2021 - Exp. 2025
-- M.S., Sun Yat-sen University, Pattern Recognition and Intelligent Systems, 2018 - 2021
+- M.Eng., Sun Yat-sen University, Pattern Recognition and Intelligent Systems, 2018 - 2021
 - B.Eng., Guangdong University of Foreign Studies, Computer Science and Technology, 2014 - 2018
 
 ## Research
