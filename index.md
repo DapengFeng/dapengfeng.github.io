@@ -10,7 +10,7 @@ Dapeng Feng, a first-year PhD student at the School of Systems Science and Engin
 
 ## Education
 - Ph.D., Sun Yat-sen University, Computer Science and Technology, 2021 - Exp. 2025
-- M.S., Sun Yat-sen University, Pattern Recognition and Intelligent Systems, 2018 - 2021, advised by [Associate Professor Xiaodan Liang](https://lemondan.github.io/) and [Associate Professor Xiaojun Tan](http://ise.sysu.edu.cn/teacher/teacher02/1372644.htm)
+- M.S., Sun Yat-sen University, Pattern Recognition and Intelligent Systems, 2018 - 2021
 - B.Eng., Guangdong University of Foreign Studies, Computer Science and Technology, 2014 - 2018
 
 ## Research
