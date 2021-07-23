@@ -8,7 +8,7 @@ excerpt: "Publications"
 
 ## 2021
 - Exploring Geometry-aware Contrast and Clustering Harmonization for Self-supervised 3D Object Detection\\
-<small>Hanxue Liang(\*), **Dapeng Feng(\*)**, ChenHan Jiang, Xin Chen, Hang Xu, Xiaodan Liang, Zhenguo Li, Wei Zhang, and Luc Van Gool.\\
+<small>Hanxue Liang(\*), **Dapeng Feng(\*)**, Chenhan Jiang, Xin Chen, Hang Xu, Xiaodan Liang, Zhenguo Li, Wei Zhang, and Luc Van Gool.\\
 International Conference on Computer Vision(ICCV), 2021</small>
 - Point-Guided Contrastive Learning for Monocular 3D Object Detection\\
 <small>**Dapeng Feng**, Songfang Han, Hang Xu, Xiaodan Liang, and Xiaojun Tan.\\
