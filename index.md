@@ -2,7 +2,7 @@
 title: Home
 feature_text: |
   ## 冯大鹏 
-  **Dapeng Feng**\\ 
+  ### Dapeng Feng
   A graduate student based in Guangzhou, China
 feature_image: "https://picsum.photos/1300/400?image=989"
 aside: true
