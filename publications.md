@@ -6,11 +6,11 @@ excerpt: "Publications"
 
 <!-- <small>(\* indicates equal contribution)</small> -->
 
-- CoLRIO: LiDAR-Ranging-Inertial Centralized State Estimation for Robotic Swarms
+- CoLRIO: LiDAR-Ranging-Inertial Centralized State Estimation for Robotic Swarms\\
 <small>Shipeng Zhong, Hongbo Chen, Yuhua Qi, <b>Dapeng Feng</b>, Zhiqiang Chen, Jin Wu, Weisong Wen, and Ming Liu.\\
 International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
 
-- RELEAD: Resilient Localization with Enhanced LiDAR Odometry in Adverse Environments
+- RELEAD: Resilient Localization with Enhanced LiDAR Odometry in Adverse Environments\\
 <small>Zhiqiang Chen, Hongbo Chen, Yuhua Qi, Shipeng Zhong, <b>Dapeng Feng</b>, Jin Wu, Weisong Wen and Ming Liu.\\
 International Conference on Robotics and Automation (<b>ICRA</b>), 2024</smal>
 
