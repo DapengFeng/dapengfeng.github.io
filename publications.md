@@ -12,7 +12,7 @@ International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
 
 - RELEAD: Resilient Localization with Enhanced LiDAR Odometry in Adverse Environments\\
 <small>Zhiqiang Chen, Hongbo Chen, Yuhua Qi, Shipeng Zhong, <b>Dapeng Feng</b>, Jin Wu, Weisong Wen and Ming Liu.\\
-International Conference on Robotics and Automation (<b>ICRA</b>), 2024</smal>
+International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
 
 - Exploring Geometry-aware Contrast and Clustering Harmonization for Self-supervised 3D Object Detection\\
 <small>Hanxue Liang, Chenhan Jiang, <b>Dapeng Feng</b>, Xin Chen, Hang Xu, Xiaodan Liang, Wei Zhang, Zhenguo Li, and Luc Van Gool.\\
