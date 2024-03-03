@@ -6,6 +6,14 @@ excerpt: "Publications"
 
 <!-- <small>(\* indicates equal contribution)</small> -->
 
+- CoLRIO: LiDAR-Ranging-Inertial Centralized State Estimation for Robotic Swarms
+<small>Shipeng Zhong, Hongbo Chen, Yuhua Qi, <b>Dapeng Feng</b>, Zhiqiang Chen, Jin Wu, Weisong Wen, and Ming Liu.\\
+International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
+
+- RELEAD: Resilient Localization with Enhanced LiDAR Odometry in Adverse Environments
+<small>Zhiqiang Chen, Hongbo Chen, Yuhua Qi, Shipeng Zhong, <b>Dapeng Feng</b>, Jin Wu, Weisong Wen and Ming Liu.\\
+International Conference on Robotics and Automation (<b>ICRA</b>), 2024</smal>
+
 - Exploring Geometry-aware Contrast and Clustering Harmonization for Self-supervised 3D Object Detection\\
 <small>Hanxue Liang, Chenhan Jiang, <b>Dapeng Feng</b>, Xin Chen, Hang Xu, Xiaodan Liang, Wei Zhang, Zhenguo Li, and Luc Van Gool.\\
 International Conference on Computer Vision (<b>ICCV</b>), 2021</small>
