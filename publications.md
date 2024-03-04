@@ -14,6 +14,10 @@ International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
 <small>Zhiqiang Chen, Hongbo Chen, Yuhua Qi, Shipeng Zhong, <b>Dapeng Feng</b>, Jin Wu, Weisong Wen and Ming Liu.\\
 International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
 
+- S3E: A Large-scale Multimodal Dataset for Collaborative SLAM\\
+<small><b>Dapeng Feng</b>, Yuhua Qi, Shipeng Zhong, Zhiqiang Chen, Yudu Jiao, Qiming Chen, Tao Jiang, Hongbo Chen.\\
+ArXiv, 2022</small>
+
 - Exploring Geometry-aware Contrast and Clustering Harmonization for Self-supervised 3D Object Detection\\
 <small>Hanxue Liang, Chenhan Jiang, <b>Dapeng Feng</b>, Xin Chen, Hang Xu, Xiaodan Liang, Wei Zhang, Zhenguo Li, and Luc Van Gool.\\
 International Conference on Computer Vision (<b>ICCV</b>), 2021</small>
