@@ -11,11 +11,11 @@ excerpt: "Publications"
 International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
 
 - RELEAD: Resilient Localization with Enhanced LiDAR Odometry in Adverse Environments\\
-<small>Zhiqiang Chen, Hongbo Chen, Yuhua Qi, Shipeng Zhong, <b>Dapeng Feng</b>, Jin Wu, Weisong Wen and Ming Liu.\\
+<small>Zhiqiang Chen, Hongbo Chen, Yuhua Qi, Shipeng Zhong, <b>Dapeng Feng</b>, Jin Wu, Weisong Wen, and Ming Liu.\\
 International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
 
 - S3E: A Large-scale Multimodal Dataset for Collaborative SLAM\\
-<small><b>Dapeng Feng</b>, Yuhua Qi, Shipeng Zhong, Zhiqiang Chen, Yudu Jiao, Qiming Chen, Tao Jiang, Hongbo Chen.\\
+<small><b>Dapeng Feng</b>, Yuhua Qi, Shipeng Zhong, Zhiqiang Chen, Yudu Jiao, Qiming Chen, Tao Jiang, and Hongbo Chen.\\
 ArXiv, 2022</small>
 
 - Exploring Geometry-aware Contrast and Clustering Harmonization for Self-supervised 3D Object Detection\\
