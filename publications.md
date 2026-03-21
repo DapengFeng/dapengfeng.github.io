@@ -6,6 +6,10 @@ excerpt: "Publications"
 
 <!-- <small>(\* indicates equal contribution)</small> -->
 
+- CaRtGS: Computational Alignment for Real-Time Gaussian Splatting SLAM\\
+<small><b>Dapeng Feng</b>, Zhiqiang Chen, Shipeng Zhong, Yuhua Qi, and Hongbo Chen.\\
+IEEE Robotics and Automation Letters (<b>RA-L</b>), 2025</small>
+
 - CoLRIO: LiDAR-Ranging-Inertial Centralized State Estimation for Robotic Swarms\\
 <small>Shipeng Zhong, Hongbo Chen, Yuhua Qi, <b>Dapeng Feng</b>, Zhiqiang Chen, Jin Wu, Weisong Wen, and Ming Liu.\\
 International Conference on Robotics and Automation (<b>ICRA</b>), 2024</small>
