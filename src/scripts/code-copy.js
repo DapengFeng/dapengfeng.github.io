@@ -11,14 +11,25 @@
   const rows=[...copy.querySelectorAll('.code-line')];
   return rows.length?rows.map(n=>n.textContent).join('\n'):copy.textContent;
  }
+ function languageOf(target){
+  const node=target.querySelector('.compiler-editor')||target.querySelector('code')||target;
+  const language=node.dataset.language||node.dataset.godbolt||[...node.classList,...target.classList].find(c=>c.startsWith('language-'))?.slice(9);
+  if(language)return language.toLowerCase();
+  return target.closest('.compiler-assembly')?'assembly':'text';
+ }
+ const languageNames={'c++':'C++',cpp:'C++',c:'C',rust:'Rust',rs:'Rust',python:'Python',py:'Python',yaml:'YAML',yml:'YAML',bash:'Bash',sh:'Shell',shell:'Shell',javascript:'JavaScript',js:'JavaScript',typescript:'TypeScript',ts:'TypeScript',json:'JSON',html:'HTML',css:'CSS',sql:'SQL',cuda:'CUDA',cmake:'CMake'};
  function mount(target,source){
   if(mounted.has(target))return;mounted.add(target);
   const block=document.createElement('div');block.className='code-copy-block';
   const tools=document.createElement('div');tools.className='code-copy-tools';
+  const language=languageOf(target),badge=document.createElement('span');badge.className='code-language';badge.dataset.codeLanguage=language;
+  if(['text','plaintext','plain','none'].includes(language))badge.innerHTML=pair('Text','文本');
+  else if(['assembly','asm'].includes(language))badge.innerHTML=pair('Assembly','汇编');
+  else badge.textContent=languageNames[language]||language;
   const status=document.createElement('span');status.className='code-copy-status sr-only';status.setAttribute('role','status');
   const button=document.createElement('button');button.type='button';button.className='code-copy';
   button.innerHTML=icon+'<span class="code-copy-label sr-only"></span>';
-  tools.append(status,button);target.before(block);block.append(tools,target);
+  tools.append(badge,status,button);target.before(block);block.append(tools,target);
   let timer;
   function feedback(copied=false){
    button.dataset.copied=String(copied);

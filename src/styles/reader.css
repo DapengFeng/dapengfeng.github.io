@@ -218,21 +218,21 @@ html[data-language=zh] #article-content :is(h2,h3,h4).parallel-text>[data-lang=z
 #article-content .formula-inline mjx-container{font-size:1.05em}
 #article-content :is(.formula-inline,.formula-scroll) svg{display:inline-block;max-width:none}
 #article-content .formula-block{display:block;position:relative;min-width:0;max-width:100%;margin-block:32px;padding:0;border:1px solid #465345;border-left:3px solid #a6d971;border-radius:10px;background:#151e14;color:#e8eddf;font-size:18px;line-height:1.8;text-align:left;overflow:visible}
-#article-content .formula-tools{display:flex;align-items:center;justify-content:flex-end;gap:16px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid #35422e}
-#article-content .formula-tools .eq-number{position:static;inset:auto;transform:none;flex:0 0 auto;margin:0 auto 0 0;color:#bdc7b5;font:16px/1.6 var(--mono)}
-#article-content :is(.formula-copy,.code-copy){display:inline-flex;justify-content:center;align-items:center;width:44px;height:44px;min-height:44px;padding:10px;border:1px solid #526446;border-radius:6px;background:#24351c;color:#d3efb0;font:16px/1.5 var(--font);white-space:normal}
+#article-content .formula-tools{position:absolute;top:6px;right:8px;display:flex;align-items:center;gap:8px;padding:0;z-index:1}
+#article-content .formula-body{min-width:0;padding:42px 20px 20px}
+#article-content :is(.formula-copy,.code-copy){display:inline-flex;justify-content:center;align-items:center;width:32px;height:32px;min-height:32px;padding:6px;border:1px solid #526446;border-radius:5px;background:#24351c;color:#d3efb0;font:16px/1.5 var(--font);white-space:normal}
 #article-content :is(.formula-copy,.code-copy):hover{background:#304724}
-#article-content .formula-scroll{display:block;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;padding:24px;scrollbar-width:thin;text-align:center}
+#article-content .formula-scroll{display:block;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;padding:0;scrollbar-width:thin;text-align:center}
 #article-content .formula-scroll>.math-display{display:block;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit}
 #article-content .formula-scroll mjx-container[display="true"]{display:block;width:max-content;min-width:100%;margin:0;padding:0;font-size:1.15em;text-align:center}
 #article-content .formula-scroll:focus-visible{outline:2px solid var(--lime);outline-offset:-4px}
 #article-content .formula-manual{padding:0 20px 20px}
 #article-content .formula-manual label{display:block;font-size:16px}
 #article-content .formula-manual textarea{display:block;box-sizing:border-box;width:100%;min-width:0;margin-top:12px;padding:12px;border:1px solid #526446;border-radius:6px;background:#10191e;color:#e6edf3;font:16px/1.7 var(--mono);resize:vertical}
-@media(max-width:600px){#article-content .formula-tools{padding:12px 16px}#article-content .formula-scroll{padding:20px 16px}#article-content .formula-manual{padding:0 16px 20px}}
+@media(max-width:600px){#article-content .formula-body{padding:42px 14px 18px}#article-content .formula-manual{padding:0 16px 20px}}
 @media print{#article-content .formula-tools{border:0;padding-bottom:0}#article-content :is(.formula-copy,.code-copy),#article-content .formula-status,#article-content .formula-manual{display:none}#article-content .formula-block{background:white;color:#111;border-color:#aaa;break-inside:avoid}#article-content .formula-scroll{overflow:visible}}
 
-#article-content :is(.formula-copy,.code-copy) svg{display:block;width:20px;height:20px;flex:none}
+#article-content :is(.formula-copy,.code-copy) svg{display:block;width:18px;height:18px;flex:none}
 #article-content :is(.formula-copy,.code-copy) .copied-symbol{display:none}
 #article-content :is(.formula-copy,.code-copy)[data-copied=true] .copy-symbol{display:none}
 #article-content :is(.formula-copy,.code-copy)[data-copied=true] .copied-symbol{display:block}
@@ -247,11 +247,13 @@ html[data-language=zh] #article-content :is(h2,h3,h4).parallel-text>[data-lang=z
 
 /* Code controls share the formula icon, outside the scrollable source text. */
 #article-content .code-copy-block{display:block;min-width:0;max-width:100%;margin-block:32px;border:1px solid #46575b;border-radius:10px;background:#10191e;overflow:hidden}
-#article-content .code-copy-tools{display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:12px 20px;border-bottom:1px solid #46575b}
+#article-content .code-language{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-right:auto;color:#bdcddd;font:16px/1.5 var(--mono);overflow-wrap:anywhere;min-width:0}
+#article-content .code-copy-tools{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:3px 10px;border-bottom:1px solid #46575b}
 #article-content .code-copy-block>pre,#article-content .code-copy-block>.compiler-editor-surface{margin:0;border:0;border-radius:0}
 #article-content .code-copy-block>.compiler-editor-surface .compiler-editor{border-radius:0}
 #article-content .code-copy-manual{display:block;padding:16px 20px;color:#e6edf3;font:16px/1.8 var(--font)}
 #article-content .code-copy-manual>[data-lang]{display:block}
 #article-content .code-copy-manual textarea{display:block;box-sizing:border-box;width:100%;min-width:0;margin-top:12px;padding:12px;border:1px solid #526446;border-radius:6px;background:#10191e;color:#e6edf3;font:16px/1.7 var(--mono);resize:vertical}
-@media(max-width:600px){#article-content .code-copy-tools{padding:12px 16px}}
+/* Keep touch targets generous while the desktop toolbar stays compact. */
+@media(any-pointer:coarse){#article-content :is(.formula-copy,.code-copy){width:44px;height:44px;min-height:44px;padding:12px}#article-content .formula-body{padding-top:54px}}
 @media print{#article-content .code-copy-tools,#article-content .code-copy-manual{display:none}#article-content .code-copy-block{border:0;background:white;overflow:visible}}

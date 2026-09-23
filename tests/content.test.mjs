@@ -109,7 +109,7 @@ test('Spike display numbers are contiguous within each numbered chapter',()=>{
   const node=$(el);
   if(node.is('h2')){section=chapters.indexOf(node.attr('id'))+1;sequence=0;return;}
   assert.ok(section>0,'a display equation belongs to a numbered chapter');
-  assert.equal(node.find('.eq-number').text(),`${section}.${++sequence}`);
+  assert.equal(node.attr('data-equation-number'),`${section}.${++sequence}`);
   total++;
  });
  assert.equal(total,72);
@@ -126,7 +126,7 @@ test('Spike contents, body chapters, and equation prefixes share one-based numbe
   assert.equal(node.find('.chapter-no').first().text(),number);
   assert.equal(toc.eq(i).children('span').first().text(),number);
   assert.equal(toc.eq(i).attr('href'),'#'+node.find('h2').first().attr('id'));
-  node.find('.eq-number').each((j,formula)=>assert.equal($(formula).text(),`${i+1}.${j+1}`));
+  node.find('.formula-block[data-equation-number]').each((j,formula)=>assert.equal($(formula).attr('data-equation-number'),`${i+1}.${j+1}`));
  });
 });
 

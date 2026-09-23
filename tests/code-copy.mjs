@@ -17,11 +17,15 @@ try{
   assert.equal(await page.locator('#article-content pre:not(.compiler-highlight)').evaluateAll(nodes=>nodes.filter(n=>!n.hidden&&!n.closest('[aria-hidden="true"]')&&!n.parentElement.matches('.code-copy-block')).length),0,file);
   assert.equal(await page.locator('.compiler-editor-surface .code-copy').count(),0,'no duplicate overlay controls');
   assert.equal(await page.locator('#article-content button[data-copy]:visible').count(),0);
+  assert.equal(await page.locator('.code-copy-block').count(),await page.locator('.code-language').count(),file+' language labels');
  }
  await page.goto('http://localhost:4197/blog/pytorch-01-what-is-pytorch.html');
  const source=page.locator('#pt-python-main');
  const block=source.locator('xpath=ancestor::div[contains(@class,"code-copy-block")][1]'),button=block.locator('.code-copy');
  const expected=await source.textContent();
+ assert.equal(await block.locator('.code-language').textContent(),'Python');
+ assert.equal(await page.locator('.compiler-editor-surface').locator('..').locator('.code-language').textContent(),'C++');
+ assert.ok(await page.locator('.code-language[data-code-language=yaml]').count()>0);
  for(const mode of ['en','zh','both']){
   await page.locator(`[data-language-choice=${mode}]`).click();
   await button.focus();await page.keyboard.press('Enter');
@@ -42,6 +46,7 @@ try{
   document.getElementById('article-content').append(pre);
  });
  const dynamic=page.locator('#dynamic-copy-test').locator('..');await dynamic.locator('.code-copy').click();assert.equal(await page.evaluate(()=>window.copiedCode),'int x = 1;\n  x += 2;');
+ assert.equal(await dynamic.locator('.code-language').getAttribute('data-code-language'),'text');
  await page.locator('#dynamic-copy-test').evaluate(n=>n.textContent='new output\n  <raw>');
  await dynamic.locator('.code-copy').click();assert.equal(await page.evaluate(()=>window.copiedCode),'new output\n  <raw>');
  for(const width of [1440,768,390,320]){

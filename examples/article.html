@@ -72,8 +72,8 @@
        TeX 反斜杠直接书写；HTML 属性中的 & 和 < 分别转义为 &amp; 和 &lt;。 -->
   <div class="shared-equation" id="eq-length" data-math="\begin{aligned} \lVert x\rVert_2^2 &amp;= x_1^2+x_2^2 \\ \lVert (2,3)\rVert_2^2 &amp;= 4+9=13 \end{aligned}"></div>
   <p class="parallel-text">
-    <span lang="en" data-lang="en">MathJax with AMS renders formulas during the build. Each display block gets an automatic number and one copy icon; clicking it copies the original LaTeX. Inline formulas have neither. Long equations scroll inside their block. Do not add dollar delimiters, usepackage commands, or hand-built copy buttons.</span>
-    <span lang="zh-CN" data-lang="zh">构建时使用 MathJax 的 AMS 扩展排版。每个独立公式块自动编号，并显示一个复制图标，点击即可复制原始 LaTeX。行内公式不编号、不加按钮。长公式在块内滚动。不要添加美元分隔符、usepackage 命令或手写复制按钮。</span>
+    <span lang="en" data-lang="en">MathJax with AMS renders formulas during the build and advances its own equation counter; do not write tag commands for automatic numbers. Each display block gets an AMS-generated equation number rendered inside the formula at the right, and one compact copy icon; clicking it copies the original LaTeX. Inline formulas have neither. Long equations scroll inside their block. Do not add dollar delimiters, usepackage commands, or hand-built copy buttons.</span>
+    <span lang="zh-CN" data-lang="zh">构建时使用 MathJax 的 AMS 扩展排版并自动递增计数器，无需手写 tag 命令。每个独立公式块自动编号，编号由 AMS 自动计数，在公式 SVG 内排版，带圆括号并位于右侧，同时显示一个紧凑的复制图标，点击即可复制原始 LaTeX。行内公式不编号、不加按钮。长公式在块内滚动。不要添加美元分隔符、usepackage 命令或手写复制按钮。</span>
   </p>
   <p class="parallel-text">
     <span lang="en" data-lang="en">Use aligned for a multi-line derivation, pmatrix for a matrix, and cases for a piecewise definition. Use automatic numbering for the entire article; do not mix in hand-written eq-number labels. Automatic numbers follow the h2 section and equation order (1.1, 1.2, 2.1), matching spike_notes; a multi-line derivation in one block shares one number.</span>
@@ -87,8 +87,8 @@
     <span lang="zh-CN" data-lang="zh">带语法配色的代码</span>
   </h2>
   <p class="parallel-text">
-    <span lang="en" data-lang="en">Use pre and code with class language-cpp for a C++ fragment. The site adds syntax colors and one copy icon, styled like the equation control. Copying preserves source text and indentation, omits line numbers, and uses the current edited code in runnable examples. Do not add your own copy button. Escape HTML characters in code, but do not insert highlighting spans or wrap the same code in two language versions.</span>
-    <span lang="zh-CN" data-lang="zh">C++ 片段使用 pre 和带 language-cpp 类的 code，站点会自动配色，并添加一个与公式块样式一致的复制图标。复制保留源码与缩进、不含行号；可运行示例复制当前编辑的代码。不要手写复制按钮。代码中的 HTML 特殊字符需要转义，但不要插入高亮用的 span，也不要为中英文重复放置同一段代码。</span>
+    <span lang="en" data-lang="en">Use pre and code with class language-cpp for a C++ fragment. The site adds syntax colors and a compact toolbar with the code language on the left and a copy icon on the right. Copying preserves source text and indentation, omits line numbers, and uses the current edited code in runnable examples. Do not add your own copy button. Escape HTML characters in code, but do not insert highlighting spans or wrap the same code in two language versions.</span>
+    <span lang="zh-CN" data-lang="zh">C++ 片段使用 pre 和带 language-cpp 类的 code，站点会自动配色，并添加紧凑工具栏：左侧标识代码语言，右侧显示复制图标。复制保留源码与缩进、不含行号；可运行示例复制当前编辑的代码。不要手写复制按钮。代码中的 HTML 特殊字符需要转义，但不要插入高亮用的 span，也不要为中英文重复放置同一段代码。</span>
   </p>
   <pre><code class="language-cpp">double squared_length(double x, double y) {
     return x * x + y * y;

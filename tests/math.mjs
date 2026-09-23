@@ -37,6 +37,14 @@ try{
    await page.evaluate(()=>new Promise(requestAnimationFrame));
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${slug}/${width}: page overflow`);
    assert.ok(await page.locator('.formula-scroll').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).overflowX==='auto')));
+   assert.deepEqual(await page.locator('.formula-block').evaluateAll(nodes=>nodes.filter(n=>n.getBoundingClientRect().height>0).flatMap(block=>{
+    const number=block.querySelector('svg[data-labels] g[id]');if(!number)return [{missingTag:true}];
+    const n=number.getBoundingClientRect(),f=block.querySelector('g[data-mml-node=mlabeledtr]').getBoundingClientRect(),svg=block.querySelector('mjx-container>svg').getBoundingClientRect(),copy=block.querySelector('.formula-copy').getBoundingClientRect();
+    // AMS aligns tags on the mathematical baseline, which need not be the ink-box midpoint.
+    const contained=n.top>=svg.top-1&&n.bottom<=svg.bottom+1;
+    return contained&&n.left>=f.right-1&&n.top>=copy.bottom&&block.querySelectorAll('.eq-number').length===0?[]:[{number:number.id,contained,right:n.left>=f.right-1,copyClear:n.top>=copy.bottom}];
+   })),[],`${slug}/${width}: native AMS tags must stay inside the formula and clear of the copy button`);
+
    if([1440,390].includes(width)){
     await formula.scrollIntoViewIfNeeded();
     await page.screenshot({path:`/tmp/feng-math-${slug}-${width}.png`});

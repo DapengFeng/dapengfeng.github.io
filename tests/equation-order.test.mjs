@@ -20,13 +20,18 @@ function audit(html, name) {
   if(chapters.has(id))chapter=chapters.get(id);
   if(!node.hasClass('formula-block'))return;
   assert.ok(chapter>0,`${name}: display formula must belong to a contents chapter`);
-  const labels=node.find('.formula-tools .eq-number');
-  assert.equal(labels.length,1,`${name}: exactly one display number`);
-  const sequence=(counts.get(chapter)||0)+1,expected=`${chapter}.${sequence}`,actual=labels.text();
-  assert.equal(actual,expected,`${name}: formula order must follow contents and reading order`);
-  assert.ok(!seen.has(actual),`${name}: duplicate ${actual}`);
+  const labels=node.find('svg[data-labels] g[id^="mjx-eqn:"]');
+  assert.ok(labels.length>=1,`${name}: native AMS display numbers`);
+  const actualNumbers=labels.map((_,el)=>$(el).attr('id').slice(8)).get();
+  assert.deepEqual(JSON.parse(node.attr('data-equation-numbers')),actualNumbers);
+  assert.equal(node.attr('data-equation-number'),actualNumbers[0]);
+  for(const actual of actualNumbers){
+   const sequence=(counts.get(chapter)||0)+1,expected=`${chapter}.${sequence}`;
+   assert.equal(actual,expected,`${name}: formula order must follow contents and reading order`);
+   assert.ok(!seen.has(actual),`${name}: duplicate ${actual}`);
+   counts.set(chapter,sequence);seen.add(actual);total++;
+  }
   assert.equal(node.parents('[data-lang]').length,0,`${name}: share display formulas across languages`);
-  counts.set(chapter,sequence);seen.add(actual);total++;
  });
  assert.equal(root.find('.formula-inline .eq-number').length,0,`${name}: inline formulas have no numbers`);
  return total;
@@ -47,6 +52,6 @@ test('the authoring example uses the same equation numbering rules as published 
 test('separate English and Chinese headings count as one chapter',async()=>{
  const post=await parseContent('content/posts/waves-and-phase.html');
  const $=load(post.html);
- assert.deepEqual($('.eq-number').map((_,el)=>$(el).text()).get(),['1.1','3.1']);
+ assert.deepEqual($('.formula-block[data-equation-number]').map((_,el)=>$(el).attr('data-equation-number')).get(),['1.1','3.1']);
  assert.equal(audit(article(post,[post]),post.slug),2);
 });

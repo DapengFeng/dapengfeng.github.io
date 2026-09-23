@@ -23,7 +23,7 @@ test('AMS environments and commands render to standalone SVG with exact copy sou
    assert.equal($(`[id="${href.slice(1)}"]`).length,1,'every glyph resolves inside this page');
   });
   assert.equal($('mjx-container svg:not([aria-hidden="true"])').length,0);
-  assert.equal($('mjx-container[role="math"]').attr('aria-label'),latex);
+  assert.ok($('mjx-container[role="math"]').attr('aria-label').startsWith(latex));
  }
 });
 test('inline math flows without a display block or copy toolbar',()=>{
@@ -31,11 +31,13 @@ test('inline math flows without a display block or copy toolbar',()=>{
  assert.equal($('.formula-inline mjx-container:not([display])').length,1);
  assert.equal($('.formula-block,.formula-copy').length,0);
 });
-test('imported equations retain their anchor, number, and TeX',()=>{
+test('imported equations retain anchors and TeX while AMS regenerates their numbers',()=>{
  const $=load('<div class="equation" id="eq-42"><span class="eq-number">(42)</span><span class="math-display" role="math" aria-label="x &lt; y"><svg></svg></span></div>');
  renderMath($);
  assert.equal($('#eq-42.formula-block').length,1);
- assert.equal($('#eq-42 .eq-number').text(),'(42)');
+ assert.equal($('#eq-42').attr('data-equation-number'),'1.1');
+ assert.equal($('#eq-42 svg[data-labels] g[id]').attr('id'),'mjx-eqn:1.1');
+ assert.equal($('#eq-42 .eq-number').length,0);
  assert.equal($('#eq-42').attr('data-latex'),'x < y');
  assert.equal($('#eq-42 mjx-container > svg').length,1);
 });
@@ -43,29 +45,29 @@ test('invalid LaTeX fails the build instead of silently publishing broken formul
  assert.throws(()=>render(String.raw`\unknownCommand{x}`),/Invalid LaTeX/);
 });
 
-test('display numbers restart per article, skip reserved numbers, and exclude inline math',()=>{
+test('AMS counters restart per article, replace old labels, and exclude inline math',()=>{
  const $=load('<div data-math="a=b"></div><span data-display="inline" data-math="x"></span><div class="equation"><span class="eq-number">1.1</span><span data-math="c=d"></span></div><div data-math="e=f"></div>');
  renderMath($);
- assert.deepEqual($('.eq-number').map((_,el)=>$(el).text()).get(),['1.2','1.1','1.3']);
- assert.equal(render('x=y')('.eq-number').text(),'1.1');
+ assert.deepEqual($('.formula-block[data-equation-number]').map((_,el)=>$(el).attr('data-equation-number')).get(),['1.1','1.2','1.3']);
+ assert.equal(render('x=y')('.formula-block').attr('data-equation-number'),'1.1');
  assert.equal($('.formula-inline .eq-number').length,0);
 });
 test('explicit AMS tags are not numbered twice',()=>{
  const $=render(String.raw`x=y\tag{A}`);
  assert.equal($('[data-mml-node="mlabeledtr"]').length,1);
- assert.equal($('.formula-tools .eq-number').length,0);
+ assert.equal($('.eq-number').length,0);
 });
 
 test('automatic display numbering follows h2 sections and ignores h3 subheadings',()=>{
  const $=load('<h2>First</h2><div data-math="a=b"></div><h3>Details</h3><div data-math="c=d"></div><h2>Second</h2><span data-display="inline" data-math="x"></span><div data-math="e=f"></div>');
  renderMath($);
- assert.deepEqual($('.eq-number').map((_,el)=>$(el).text()).get(),['1.1','1.2','2.1']);
+ assert.deepEqual($('.formula-block[data-equation-number]').map((_,el)=>$(el).attr('data-equation-number')).get(),['1.1','1.2','2.1']);
 });
 
 test('an overview counts as chapter one even without display equations',()=>{
  const $=load('<h2>Overview</h2><h2>First</h2><div data-math="a=b"></div><div data-math="c=d"></div><h2>Second</h2><div data-math="e=f"></div>');
  renderMath($);
- assert.deepEqual($('.eq-number').map((_,el)=>$(el).text()).get(),['2.1','2.2','3.1']);
+ assert.deepEqual($('.formula-block[data-equation-number]').map((_,el)=>$(el).attr('data-equation-number')).get(),['2.1','2.2','3.1']);
 });
 
 test('repeated formulas share glyphs without adding duplicate IDs or external font requests',()=>{
@@ -74,7 +76,17 @@ test('repeated formulas share glyphs without adding duplicate IDs or external fo
  const ids=$('[id]').map((_,el)=>$(el).attr('id')).get();
  assert.equal(ids.length,new Set(ids).size);
  assert.equal($('.math-font-cache').length,1);
- assert.equal($('.math-font-cache path').length,2);
- assert.equal($('mjx-container use').length,6);
+ assert.equal($('.math-font-cache path[id$="-1D465"]').length,1);
+ assert.equal($('mjx-container use[data-c="1D465"]').length,4);
  assert.equal($('mjx-container path').length,0);
+});
+
+test('AMS numbers rows and advances the next equation without injecting tag commands',()=>{
+ const $=load('<h2>Chapter</h2><div id="rows"></div><div id="next" data-math="x=y"></div>');
+ $('#rows').attr('data-math',String.raw`\begin{align}a&=b\\c&=d\end{align}`);
+ renderMath($);
+ assert.deepEqual(JSON.parse($('#rows').attr('data-equation-numbers')),['1.1','1.2']);
+ assert.equal($('#next').attr('data-equation-number'),'1.3');
+ assert.equal($('#rows').attr('data-latex').includes(String.raw`\tag`),false);
+ assert.equal($('[data-latex]').toArray().some(el=>($(el).attr('data-latex')||'').includes(String.raw`\tag`)),false);
 });
