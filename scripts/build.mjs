@@ -6,13 +6,18 @@ import {loadContent} from './content.mjs';
 import {site,categories,escape as e} from './config.mjs';
 import * as templates from './templates.mjs';
 import {localizePage,dictionary} from './i18n.mjs';
+import {optimizePage,renderSharingImage,sharingImage} from './seo.mjs';
 export async function build(){
  const posts=await loadContent();
  await fs.rm('dist',{recursive:true,force:true});await fs.mkdir('dist/assets',{recursive:true});
  async function write(file,content){await fs.mkdir(path.dirname('dist/'+file),{recursive:true});await fs.writeFile('dist/'+file,content);}
  const pages=[['index.html',templates.home(posts)],['blog/index.html',templates.library(posts)],['categories/index.html',templates.categoryPage(posts)],['archive/index.html',templates.archive(posts)],['about/index.html',templates.about()],['404.html',templates.shell({title:'未找到页面',body:'<main id="main" class="site-width page-heading"><span class="overline">404 / UNCHARTED TERRITORY</span><h1>这里还没有留下笔记。</h1><a class="lime-button" href="/">返回首页 →</a></main>'})]];
  for(const p of posts)pages.push([p.url.slice(1),templates.article(p,posts)]);
- for(const [file,html]of pages)await write(file,localizePage(html,posts));
+ for(const [file,html]of pages){
+  const url=file==='index.html'?'/':'/'+file.replace(/index\.html$/, '');
+  await write(file,optimizePage(localizePage(html,posts),url,posts.find(post=>post.url===url)));
+ }
+ for(const post of [null,...posts])await write(sharingImage(post).slice(1),await renderSharingImage(post));
  for(const name of ['site','legacy','reader'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
  for(const name of ['site','surface','article','labs','benchmark-worker','paired','syntax','compiler'])await fs.copyFile(`src/scripts/${name}.js`,`dist/assets/${name}.js`);
  // MathJax + AMS renders self-contained SVGs at build time, with no browser runtime.
@@ -20,7 +25,6 @@ export async function build(){
  await fs.copyFile('node_modules/@mathjax/src/LICENSE','dist/assets/mathjax-LICENSE');
  await write('assets/math-NOTICE','MathJax and MathJax-Newcm font, version 4.1.3.\nCopyright MathJax Consortium. Licensed under Apache-2.0; see mathjax-LICENSE.\nhttps://github.com/mathjax/MathJax-src\nhttps://github.com/mathjax/MathJax-fonts\n');
  await write('assets/favicon.svg','<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#c0f47b"/><text x="19" y="48" font-family="Georgia" font-style="italic" font-size="53" font-weight="bold" fill="#101310">f.</text></svg>');
- await write('assets/og-card.svg','<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#101310"/><path d="M80 500H1120M80 90H1120" stroke="#35422c"/><text x="80" y="160" font-family="Arial" font-size="24" fill="#a4b19b">FENG / KNOWLEDGE LAB</text><text x="80" y="285" font-family="Arial" font-size="90" fill="#f0f2ea">Ideas, made</text><text x="80" y="390" font-family="Arial" font-size="100" fill="#c0f47b">visible.</text><text x="80" y="560" font-family="Arial" font-size="20" fill="#a4b19b">MATHEMATICS / PHYSICS / SYSTEMS / BENCHMARK</text></svg>');
  const index=posts.map(({html,styles,headings,isHtml,source,...p})=>({...p,categoryEn:categories.find(c=>c.id===p.category).en,categoryZh:categories.find(c=>c.id===p.category).name,tags:[...p.tags,...p.tags.map(t=>dictionary[t]||t)]}));
  await write('search-index.json',JSON.stringify(index));
  const items=posts.map(p=>`<item><title>${e(p.titleEn||p.title)} / ${e(p.title)}</title><link>${site.url}${p.url}</link><guid isPermaLink="true">${site.url}${p.url}</guid><pubDate>${new Date(p.date+'T12:00:00+08:00').toUTCString()}</pubDate><description>${e(p.descriptionEn||p.description)}</description><category>${e(p.category)}</category></item>`).join('');
