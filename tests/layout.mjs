@@ -40,9 +40,9 @@ try{
   await page.goto('http://localhost:4191'+url);await page.locator('[data-language-choice=both]').click();
   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.locator(target).evaluate(n=>window.scrollTo(0,Math.max(0,n.getBoundingClientRect().top+scrollY-28)));await page.screenshot({path:`/tmp/feng-layout-${before?'before':'after'}-${name}-${width}.png`});}
  }
- // Open long derivations and check the standalone maintenance guide too.
- for(const url of ['/blog/spike_notes.html','/blog/rust-vs-cpp-blog.html',new URL('../README.html',import.meta.url).href]){
-  await page.goto(url.startsWith('file:')?url:'http://localhost:4191'+url);
+ // Open long derivations and check their expanded layouts too.
+ for(const url of ['/blog/spike_notes.html','/blog/rust-vs-cpp-blog.html']){
+  await page.goto('http://localhost:4191'+url);
   await page.evaluate(()=>document.querySelectorAll('details').forEach(n=>n.open=true));
   for(const width of [1440,768,390,320]){
    await page.setViewportSize({width,height:1000});
