@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Symmetric Storage GAXPY</title>
+<script type="application/json" id="article-metadata">
+{
+  "title": "对称矩阵的压缩存储",
+  "titleEn": "Symmetric Storage GAXPY",
+  "description": "追踪镜像元素如何共用压缩槽位，用 C++ 校验两路更新，区分存储节省与算术成本。",
+  "descriptionEn": "Trace mirrored entries into one packed array and verify both output updates with C++.",
+  "date": "2021-07-19",
+  "dateKind": "published",
+  "category": "systems",
+  "tags": [
+    "存储布局",
+    "线性代数"
+  ],
+  "art": "matrix",
+  "updated": "2026-09-23"
+}
+</script>
+</head><body>
+<div class="lesson">
+<span id="topic-1" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-1"><span class="parallel-en" data-lang="en" lang="en">One value, two positions</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">一个数，对应两个位置</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">A symmetric matrix is a mirror about its main diagonal. If a spring links objects i and j with the same coupling in both directions, the two matrix entries repeat one piece of information. We can store it once and use it twice. This saves matrix storage; it does not remove either contribution to the product.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">对称矩阵就像沿主对角线放了一面镜子。如果一根弹簧连接物体 i 和 j，两个方向具有相同的耦合系数，那么矩阵里的两个位置重复记录了同一条信息。我们可以只存一次、使用两次。这省下的是矩阵存储，不是把乘积里的一份贡献删掉。</span></p>
+<div class="shared-equation" data-math="A=A^T,\qquad y\leftarrow y+Ax"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The discussion and C++ implementation below concern real symmetric matrices. For Hermitian matrices the reflected entry must be conjugated; for skew-symmetric matrices it changes sign and the diagonal is zero. Those cases cannot all use the same real-symmetric update unchanged.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">下文讲解和 C++ 实现针对实对称矩阵。Hermitian 矩阵的镜像元素需要取共轭；反对称矩阵的镜像元素需要变号，且对角线为零。不能把这些情况都直接套进同一份实对称更新代码。</span></p>
+<h2 class="parallel-text" id="storage-lab"><span class="parallel-en" data-lang="en" lang="en">Follow an entry into the packed array</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">跟着一个元素走进压缩数组</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Select any position in the 4 × 4 matrix. Its mirror and its unique packed slot light up together. We store the lower triangle by columns: first four values, then three, then two, then one. Equal colors mean shared storage, not an extra copy.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">选择 4 × 4 矩阵中的任意位置，它的镜像位置和唯一的压缩槽位会一起亮起。这里按列存下三角：先存四个数，再存三个、两个、一个。同色表示共用存储，不是多存一份。</span></p>
+<div class="interactive-lab lesson-lab" id="symmetric-lab"><div class="lesson-controls"><label for="sym-i"><span class="parallel-en" data-lang="en" lang="en">Row i</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">行 i</span><input id="sym-i" type="range" min="0" max="3" value="1" step="1"><output for="sym-i">1</output></label><label for="sym-j"><span class="parallel-en" data-lang="en" lang="en">Column j</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">列 j</span><input id="sym-j" type="range" min="0" max="3" value="2" step="1"><output for="sym-j">2</output></label></div><figure><figcaption><span class="parallel-en" data-lang="en" lang="en">Symmetric A · select either half</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">对称矩阵 A · 两侧均可选择</span></figcaption><div class="lesson-scroll" tabindex="0" role="region" aria-label="Scrollable data table / 可横向滚动的数据表格" id="sym-dense"></div></figure><figure><figcaption><span class="parallel-en" data-lang="en" lang="en">Packed lower triangle · offsets 0–9</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">按列压缩的下三角 · 偏移 0–9</span></figcaption><div id="sym-packed" class="lesson-slots"></div></figure><div id="sym-result" class="lesson-readout" role="status" aria-live="polite"></div></div>
+<h2 class="parallel-text" id="mapping"><span class="parallel-en" data-lang="en" lang="en">Count the columns before computing the address</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">先数前面有多少列，再算地址</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For zero-based column j, the previous columns contain n + (n−1) + … + (n−j+1) values. Within column j, row i is i−j steps from the diagonal. Adding these two counts gives an integer offset; no floating-point arithmetic belongs in this index calculation.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">对从 0 开始的列号 j，前面的列一共存了 n + (n−1) + … + (n−j+1) 个数。在第 j 列内，第 i 行距离对角线 i−j 步。两者相加就得到整数偏移，索引计算不需要浮点运算。</span></p>
+<div class="shared-equation" data-math="\mathrm{base}(j)=\frac{j(2n-j+1)}2,\qquad \mathrm{offset}(i,j)=\mathrm{base}(j)+(i-j),\quad i\ge j"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">If i &lt; j, swap the indices before using this formula. For n = 4, A(1,2) is read as A(2,1): base(1) = 4 and offset = 5. Ten slots replace sixteen, and the fraction stored approaches one half as n grows.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">若 i &lt; j，先交换行列再套公式。例如 n = 4 时，A(1,2) 转为读取 A(2,1)：base(1) = 4，最终偏移是 5。十个槽位代替十六个；随着 n 增大，所需存储比例趋近一半。</span></p>
+<h2 class="parallel-text" id="updates"><span class="parallel-en" data-lang="en" lang="en">Read once, update both outputs</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">读一次，同时更新两个输出</span></h2>
+<div class="shared-equation" data-math="i&gt;j:\quad y_i\mathrel{+}=A_{ij}x_j,\qquad y_j\mathrel{+}=A_{ij}x_i"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For an off-diagonal entry, the mirrored matrix position multiplies a different input component, so both updates are necessary. On the diagonal, there is only one contribution. Accidentally applying the two-update rule there doubles the diagonal term.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">对于非对角元素，镜像位置乘的是另一个输入分量，因此两次更新都不能省。对角线上只有一份贡献，如果把两次更新的规则也用于对角线，就会把该项翻倍。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">With A = [[2,1,0],[1,3,2],[0,2,4]], x = [1,2,3], and initial y = [10,20,30], the contribution A(2,1) = 2 adds 4 to y₂ and 6 to y₁. The full result is [14,33,46]. Use this small case to reason about the code before running larger checks.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">取 A = [[2,1,0],[1,3,2],[0,2,4]]、x = [1,2,3]、初始 y = [10,20,30]。其中 A(2,1) = 2 会给 y₂ 加 4、给 y₁ 加 6。完整结果为 [14,33,46]。先用这个小例子想清楚代码，再做更大的校验。</span></p>
+<h2 class="parallel-text" id="cpp"><span class="parallel-en" data-lang="en" lang="en">Run and modify the C++ implementation</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">运行并修改 C++ 实现</span></h2>
+<pre><code class="language-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;vector&gt;
+using Vec = std::vector&lt;double&gt;;
+
+// Lower triangle, packed by columns. Requires 0 &lt;= j &lt;= i &lt; n.
+std::size_t offset(std::size_t i, std::size_t j, std::size_t n) {
+    return j*(2*n-j+1)/2 + (i-j);
+}
+Vec pack_lower(const Vec&amp; a, std::size_t n) {
+    if (a.size()!=n*n) throw std::invalid_argument(&quot;matrix size&quot;);
+    Vec ap(n*(n+1)/2);
+    for (std::size_t j=0; j&lt;n; ++j)
+        for (std::size_t i=j; i&lt;n; ++i) {
+            if (a[i*n+j]!=a[j*n+i]) throw std::invalid_argument(&quot;not symmetric&quot;);
+            ap[offset(i,j,n)]=a[i*n+j];
+        }
+    return ap;
+}
+void symmetric_gaxpy(const Vec&amp; ap, const Vec&amp; x, Vec&amp; y) {
+    const std::size_t n=x.size();
+    if (y.size()!=n || ap.size()!=n*(n+1)/2)
+        throw std::invalid_argument(&quot;incompatible dimensions&quot;);
+    for (std::size_t j=0; j&lt;n; ++j) {
+        y[j]+=ap[offset(j,j,n)]*x[j]; // The diagonal contributes once.
+        for (std::size_t i=j+1; i&lt;n; ++i) {
+            const double a=ap[offset(i,j,n)];
+            y[i]+=a*x[j];
+            y[j]+=a*x[i]; // Mirror contribution; no second matrix load.
+        }
+    }
+}
+int main() {
+    const Vec a={2,1,0, 1,3,2, 0,2,4}, x={1,2,3};
+    Vec y={10,20,30};
+    symmetric_gaxpy(pack_lower(a,3),x,y);
+    std::cout &lt;&lt; &quot;y:&quot;;
+    for (double v:y) std::cout &lt;&lt; &#x27; &#x27; &lt;&lt; v;
+    std::cout &lt;&lt; &#x27;\n&#x27;;
+    double max_error=0;
+    for (std::size_t n : {1u,4u,7u}) {
+        Vec dense(n*n), input(n), actual(n,2.0), expected=actual;
+        for (std::size_t i=0; i&lt;n; ++i) {
+            input[i]=double(i)-2.0;
+            for (std::size_t j=0; j&lt;n; ++j)
+                dense[i*n+j]=double(i+j+1)+(i==j?2.0:0.0);
+        }
+        for (std::size_t i=0; i&lt;n; ++i)
+            for (std::size_t j=0; j&lt;n; ++j) expected[i]+=dense[i*n+j]*input[j];
+        symmetric_gaxpy(pack_lower(dense,n),input,actual);
+        for (std::size_t i=0; i&lt;n; ++i)
+            max_error=std::max(max_error,std::abs(actual[i]-expected[i]));
+    }
+    std::cout &lt;&lt; &quot;max_error=&quot; &lt;&lt; max_error &lt;&lt; &#x27;\n&#x27;;
+    return y==Vec{14,33,46} &amp;&amp; max_error&lt;1e-12 ? 0 : 1;
+}
+</code></pre>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The program checks symmetry when packing, validates buffer sizes, and compares packed multiplication against a dense reference for n = 1, 4, and 7. It should print y: 14 33 46 and max_error=0. Try deleting the mirror update; the result will no longer match.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">程序打包时检查对称性，验证缓冲区大小，并在 n = 1、4、7 时比较压缩乘法与稠密参考结果。应输出 y: 14 33 46 和 max_error=0。试着删掉镜像更新，结果就无法通过对照校验。</span></p>
+<h2 class="parallel-text" id="cost"><span class="parallel-en" data-lang="en" lang="en">Half the storage is not half the work</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">存储近乎减半，算术量并未减半</span></h2>
+<div class="shared-equation" data-math="\text{stored values}=\frac{n(n+1)}2,\qquad\text{FLOPs}=2n+4\frac{n(n-1)}2=2n^2"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Each diagonal entry costs one multiply-add pair; every stored off-diagonal entry costs two. The arithmetic count is therefore the same as dense GAXPY under the usual two-FLOP counting convention. Reading fewer matrix values can still help when memory traffic dominates.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">每个对角元素做一对乘加，每个已存的非对角元素做两对。按一次乘法加一次加法算两次 FLOP 的约定，算术量与稠密 GAXPY 相同。当访存占主导时，少读取一份矩阵值仍可能有帮助。</span></p>
+<aside class="lesson-note"><p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Packed storage has trade-offs: column lengths vary, index calculation is less regular, and the two-output update complicates parallel writes. A tuned dense or symmetric BLAS routine may outperform this educational loop. Measure rather than infer elapsed time from the byte count. The small examples assume distinct input/output buffers and dimensions whose products fit size_t.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">压缩存储也有代价：列长不一致，索引更不规则，两路输出更新也让并行写入更复杂。经过调优的稠密或对称 BLAS 例程可能更快，应实测而不是用字节数推断耗时。这些小例子假设输入输出缓冲区独立，尺寸乘积能被 size_t 表示。</span></p>
+</aside>
+<h2 class="parallel-text" id="references"><span class="parallel-en" data-lang="en" lang="en">Read further</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">继续阅读</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://www.netlib.org/lapack/lug/node123.html">LAPACK Users’ Guide: packed storage conventions</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://www.netlib.org/lapack/lug/node123.html">LAPACK 用户指南：压缩存储约定</a></span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="/blog/band-storage-gaxpy.html">Compare with banded storage: exploiting zeros</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="/blog/band-storage-gaxpy.html">对比带状存储：利用零元素结构</a></span></p>
+</div>
+<script>
+(()=>{
+
+const root=document.querySelector('.lesson');
+const $=id=>document.getElementById(id);
+const pair=(en,zh)=>`<span class="i18n"><span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span></span>`;
+function table(rows,active=()=>false){return '<table class="lesson-matrix"><tbody>'+rows.map((row,i)=>'<tr>'+row.map((v,j)=>`<td class="${active(i,j)?'selected':''}">${v}</td>`).join('')+'</tr>').join('')+'</tbody></table>';}
+function sliders(update){root.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{input.nextElementSibling.value=input.value;update();}));}
+
+function update(){const n=4,i=+$('sym-i').value,j=+$('sym-j').value,r=Math.max(i,j),c=Math.min(i,j),offset=c*(2*n-c+1)/2+r-c,value=(i,j)=>10*Math.max(i,j)+Math.min(i,j)+1;
+ $('sym-dense').innerHTML=table(Array.from({length:n},(_,r)=>Array.from({length:n},(_,c)=>value(r,c))),(r,c)=>(r===i&&c===j)||(r===j&&c===i));
+ let slots='',k=0;for(let col=0;col<n;col++)for(let row=col;row<n;row++,k++)slots+=`<div class="lesson-slot ${k===offset?'selected':''}"><span>${k}</span><strong>${value(row,col)}</strong></div>`;
+ $('sym-packed').innerHTML=slots;$('sym-result').innerHTML=pair(`A(${i},${j}) → lower (${r},${c}) → offset ${offset}; value ${value(i,j)}. 10 stored values instead of 16.`,`A(${i},${j}) → 下三角 (${r},${c}) → 偏移 ${offset}；值为 ${value(i,j)}。存储 10 个数，替代 16 个。`);
+}sliders(update);update();
+
+})();
+</script>
+</body></html>

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Matrix Multiplication</title>
+<script type="application/json" id="article-metadata">
+{
+  "title": "矩阵乘法：结构与效率",
+  "titleEn": "Matrix Multiplication",
+  "description": "把访存步长画出来，对比循环顺序与分块，再编译带校验的 C++ 内核并测量真实耗时。",
+  "descriptionEn": "See memory strides, compare loop orders and blocking, then compile checked C++ kernels and measure real timings.",
+  "date": "2019-01-07",
+  "dateKind": "published",
+  "category": "systems",
+  "tags": [
+    "BLAS",
+    "矩阵计算",
+    "性能优化"
+  ],
+  "art": "matrix",
+  "updated": "2026-09-23"
+}
+</script>
+</head><body>
+<div class="lesson">
+<span id="topic-1" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-1"><span class="parallel-en" data-lang="en" lang="en">The arithmetic is only half the story</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">算得一样多，为什么速度不同？</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Think of a cook who needs ingredients from a pantry. Two recipes may use the same number of cuts and stirs, yet one walks to the pantry for every pinch while the other brings a tray. Matrix performance has the same tension: arithmetic matters, but so does how often data must travel.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">想象厨师从储物间取食材。两份菜谱切、炒的次数一样，一份却每取一撮盐都要走一趟，另一份先把食材装成一盘。矩阵性能也有这样的差别：计算次数重要，数据来回搬运多少次同样重要。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">This note follows one operation: update C by AB. A has m rows and k columns, B has k rows and n columns, and C has m rows and n columns. We use row-major C++ arrays throughout; the final section explains how the conclusion changes for column-major storage.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">本文围绕一个操作：把 AB 加到 C 上。A 是 m 行 k 列，B 是 k 行 n 列，C 是 m 行 n 列。C++ 示例统一采用行优先数组，后面会说明列优先存储会怎样改变结论。</span></p>
+<div class="shared-equation" data-math="C\leftarrow C+AB,\qquad C_{ij}\leftarrow C_{ij}+\sum_{t=0}^{k-1}A_{it}B_{tj}"></div>
+<span id="topic-2" class="lesson-anchor" aria-hidden="true"></span><span id="section-2" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="blas"><span class="parallel-en" data-lang="en" lang="en">BLAS levels: opportunities to reuse data</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">BLAS 层级：数据复用的机会</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">A level describes the shapes involved, not a speed ranking. Level 1 works mainly with vectors, level 2 with a matrix and vectors, and level 3 with matrices. For square dense problems, the following rough counts explain why matrix multiplication can reuse each loaded value more often.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">层级描述参与运算的数据形状，不是速度排行榜。Level 1 主要处理向量，Level 2 处理矩阵和向量，Level 3 处理矩阵。对稠密方阵问题，下面的量级说明矩阵乘法为何有机会更充分地复用每次载入的数据。</span></p>
+<div class="lesson-scroll" tabindex="0" role="region" aria-label="Scrollable data table / 可横向滚动的数据表格"><table><thead><tr><th><span class="parallel-en" data-lang="en" lang="en">Level / example</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">层级 / 示例</span></th><th><span class="parallel-en" data-lang="en" lang="en">Stored data</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">存储数据量</span></th><th><span class="parallel-en" data-lang="en" lang="en">Arithmetic</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">算术量</span></th></tr></thead><tbody><tr><td>1 · xᵀy</td><td>O(n)</td><td>O(n)</td></tr><tr><td>2 · y ← y + Ax</td><td>O(n²)</td><td>O(n²)</td></tr><tr><td>3 · C ← C + AB</td><td>O(n²)</td><td>O(n³)</td></tr></tbody></table></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">These counts are not memory-traffic measurements. A poorly ordered matrix product can load the same values repeatedly. Structure also changes the problem: diagonal matrices skip most entries, banded matrices skip distant interactions, and symmetric matrices avoid storing both halves. Exploit a valid structural property before optimizing a dense loop.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这些量级不是实际内存流量。循环安排不当的矩阵乘法可能反复载入同一批数。矩阵结构还会改变问题本身：对角矩阵跳过大多数元素，带状矩阵跳过远距离作用，对称矩阵不必保存两份镜像。先利用确实成立的结构，再优化稠密循环。</span></p>
+<span id="topic-3" class="lesson-anchor" aria-hidden="true"></span><span id="section-3" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="locality"><span class="parallel-en" data-lang="en" lang="en">Read addresses before reading timings</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">先看访问地址，再看计时</span></h2>
+<span id="section-6" class="lesson-anchor" aria-hidden="true"></span><h3 class="parallel-text" id="stride"><span class="parallel-en" data-lang="en" lang="en">1. Stride: follow the inner loop</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">1. 步长：跟着最内层循环走</span></h3>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">In row-major storage, moving across a row advances one element; moving down a column jumps by the row length. With i-j-t order, the innermost loop reads B(t,j) down a column. With i-t-j order, it reads B(t,j) across a row while reusing one value A(i,t). C also becomes a contiguous row update.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">行优先存储中，横着走一列只前进一个元素，竖着走一行却要跳过整行长度。按 i-j-t 顺序循环，最内层沿 B(t,j) 的一列读取；按 i-t-j 顺序循环，则沿一行读取，并反复使用同一个 A(i,t)。C 也变成连续的行更新。</span></p>
+<div class="shared-equation" data-math="\mathrm{offset}(B_{tj})=tn+j,\qquad \mathrm{stride}_{t}=n,\quad\mathrm{stride}_{j}=1"></div>
+<div class="interactive-lab lesson-lab" id="matrix-lab"><div class="lesson-buttons"><button type="button" id="matrix-column" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">i-j-t · column walk</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">i-j-t · 纵向访问</span></button><button type="button" id="matrix-row" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">i-t-j · row walk</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">i-t-j · 横向访问</span></button></div><div class="lesson-controls"><label for="matrix-step"><span class="parallel-en" data-lang="en" lang="en">Inner-loop step</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">内层循环步数</span><input id="matrix-step" type="range" min="0" max="7" value="0" step="1"><output for="matrix-step">0</output></label></div><figure><figcaption><span class="parallel-en" data-lang="en" lang="en">B · numbers are flat element offsets, not matrix values</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">B · 数字是线性元素偏移，不是矩阵数值</span></figcaption><div id="matrix-addresses" class="lesson-scroll" tabindex="0" role="region" aria-label="Scrollable data table / 可横向滚动的数据表格"></div></figure><div id="matrix-result" class="lesson-readout" role="status" aria-live="polite"></div></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The display assumes eight doubles per aligned 64-byte cache line and an 8 × 8 row-major B. Eight row reads fall in one line; eight column reads touch eight different lines. This counts distinct lines in a toy access trace, not actual cache misses or a measured speedup. Cache capacity, prior accesses, prefetching, and alignment all matter.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">图中假设一个对齐的 64 字节缓存行容纳八个 double，B 为 8 × 8 行优先矩阵。横向读八次落在同一缓存行，纵向读八次涉及八个不同缓存行。这只是简化访问序列中涉及的缓存行计数，不是真实缓存未命中次数，也不是实测加速比；容量、历史访问、预取与对齐都会影响结果。</span></p>
+<span id="section-4" class="lesson-anchor" aria-hidden="true"></span><h3 class="parallel-text" id="vector-processing"><span class="parallel-en" data-lang="en" lang="en">2. Chunking is not a promise of SIMD</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">2. 分段循环不等于保证 SIMD</span></h3>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Split a long vector into fixed-size chunks and handle the final short chunk explicitly. That explains tail processing without depending on a CPU-specific intrinsic. A compiler may vectorize the inner loop, but source-level chunking alone proves nothing about the generated instructions; inspect the assembly or a vectorization report.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">把长向量切成固定大小的小段，并显式处理最后不足一段的尾部，就能理解尾部处理，而不依赖某种 CPU 的专用指令。编译器可能向量化内层循环，但仅凭源码分段不能证明实际生成了 SIMD 指令，应查看汇编或向量化报告。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">An older vector-pipeline model assigns a startup cost τ_add to a vector add and τ_data to each load or store, followed by one element per cycle. If n is divisible by vector length v, its arithmetic and data-motion counts give the ratio below. The denominator must use τ_data. On modern processors, overlap and cache behavior make this a teaching model rather than a timing predictor.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">旧式向量流水线模型给向量加法分配启动代价 τ_add，给每次载入或存储分配 τ_data，随后每周期处理一个元素。若 n 能被向量长度 v 整除，就能得到下面的算术与数据搬运周期比，分母必须使用 τ_data。现代处理器存在执行重叠和复杂缓存行为，因此这只是教学模型，不能直接预测耗时。</span></p>
+<div class="shared-equation" data-math="N_{\rm arith}=\frac nv(\tau_{\rm add}+v),\quad N_{\rm data}=\frac{3n}{v}(\tau_{\rm data}+v),\quad \frac{N_{\rm arith}}{N_{\rm data}}=\frac{\tau_{\rm add}+v}{3(\tau_{\rm data}+v)}"></div>
+<span id="section-5" class="lesson-anchor" aria-hidden="true"></span><h3 class="parallel-text" id="gaxpy-outer"><span class="parallel-en" data-lang="en" lang="en">3. GAXPY and outer products move different data</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">3. GAXPY 与外积，搬的是不同的数据</span></h3>
+<div class="shared-equation" data-math="y\leftarrow y+Ax\qquad\text{versus}\qquad A\leftarrow A+uv^T"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For square n × n data, both do about 2n² FLOPs. GAXPY reads A and updates a vector, whereas an outer-product update reads and writes A itself. In a simplified model where whole vectors fit in registers and x and y remain resident, GAXPY needs n+3 vector transfers and an outer update 2n+2. The ratio approaches two; it is not exactly two for finite n and says nothing by itself about elapsed time.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">对 n × n 方阵，两者都约做 2n² 次 FLOP。GAXPY 读取 A、更新向量；外积更新却要读写矩阵 A 本身。在整条向量能装入寄存器、且 x、y 驻留其中的简化模型里，GAXPY 需要 n+3 次整向量传输，外积更新需要 2n+2 次。两者比值趋近二，但有限 n 时并不恰好为二，也不能单凭这个比值判断耗时。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The small program below makes both operations and the vector tail concrete. The vector has five elements and a chunk size of four. Output checks prevent a missing tail or an accidental overwrite from looking like a successful optimization.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">下面的小程序把这两种运算和向量尾部都写成可运行的例子。向量长度为五，分段长度为四。输出校验会防止漏掉尾部或误把累加写成覆盖，却仍被当作成功的优化。</span></p>
+<pre><code class="language-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using Vec=std::vector&lt;double&gt;;
+int main() {
+    const Vec x={1,2,3,4,5},y={5,4,3,2,1};
+    Vec z(x.size());
+    constexpr std::size_t chunk=4;
+    for(std::size_t first=0;first&lt;x.size();first+=chunk)
+        for(std::size_t i=first;i&lt;std::min(first+chunk,x.size());++i)
+            z[i]=x[i]+y[i]; // The final chunk contains just one element.
+    std::cout &lt;&lt; &quot;chunked sum:&quot;;
+    for(double v:z) std::cout &lt;&lt; &#x27; &#x27; &lt;&lt; v;
+    // Row-major 2x2 examples with nonzero initial outputs.
+    Vec a={1,2,3,4},v={2,3},out={10,20},outer=a;
+    for(int i=0;i&lt;2;++i) for(int j=0;j&lt;2;++j) out[i]+=a[i*2+j]*v[j];
+    for(int i=0;i&lt;2;++i) for(int j=0;j&lt;2;++j) outer[i*2+j]+=v[i]*v[j];
+    std::cout &lt;&lt; &quot;\ngaxpy: &quot; &lt;&lt; out[0] &lt;&lt; &#x27; &#x27; &lt;&lt; out[1] &lt;&lt; &quot;\nouter:&quot;;
+    for(double value:outer) std::cout &lt;&lt; &#x27; &#x27; &lt;&lt; value;
+    std::cout &lt;&lt; &#x27;\n&#x27;;
+    return z==Vec(5,6) &amp;&amp; out==Vec{18,38} &amp;&amp; outer==Vec{5,8,9,13} ? 0 : 1;
+}
+</code></pre>
+<span id="section-7" class="lesson-anchor" aria-hidden="true"></span><h3 class="parallel-text" id="blocking"><span class="parallel-en" data-lang="en" lang="en">4. Blocking: keep a working set nearby</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">4. 分块：把一盘食材留在手边</span></h3>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Divide A, B, and C into tiles. For one C tile, walk through the matching A and B tiles and accumulate partial products. For three square b × b tiles of doubles, the nominal footprint is 24b² bytes. Choose b with room for other working data; nominal capacity alone does not account for associativity, registers, packing, or multiple threads.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">把 A、B、C 划成小块。固定一块 C，依次取对应的 A、B 小块累加部分乘积。三个 b × b 的 double 方块名义上占 24b² 字节。选择 b 时还要给其他工作数据留空间；只看缓存标称容量，并没有考虑组相联、寄存器、打包和多线程的影响。</span></p>
+<div class="shared-equation" data-math="C_{IJ}\leftarrow C_{IJ}+\sum_T A_{IT}B_{TJ}"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Our blocked example still uses row-major storage; it does not magically change the physical layout into tiles. Every tile-end loop uses min to handle rectangular matrices and dimensions that are not multiples of the tile size. Production matrix multiplication adds microkernels, packing, vector instructions, and often threading.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">下方分块示例仍然采用行优先存储，并没有自动把物理布局改成块布局。每个块末尾都用 min 裁剪，以支持长方形矩阵和不能整除块长的尺寸。生产级矩阵乘法还会使用微内核、打包、向量指令，并经常配合多线程。</span></p>
+<h2 class="parallel-text" id="cpp"><span class="parallel-en" data-lang="en" lang="en">Compile, check, then measure</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">先编译校验，再做计时</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The complete C++17 program compares i-j-t, i-t-j, and a 16 × 16 blocked traversal. First it checks small rectangular cases with nonzero initial C. Then it warms up each kernel twice and records nine samples in rotating order, reporting median and quartiles. Initialization, copying, and result checks stay outside each timed interval.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这个完整 C++17 程序对比 i-j-t、i-t-j 和 16 × 16 分块遍历。先用非零初始 C 检查小型长方形案例，再对每个内核预热两次，按轮换顺序收集九次采样，并报告中位数和四分位数。初始化、复制和结果校验都在计时区间之外。</span></p>
+<pre><code class="language-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;array&gt;
+#include &lt;chrono&gt;
+#include &lt;cmath&gt;
+#include &lt;iomanip&gt;
+#include &lt;iostream&gt;
+#include &lt;numeric&gt;
+#include &lt;vector&gt;
+using Vec=std::vector&lt;double&gt;;
+// Row-major A(m,k), B(k,n), C(m,n). C is UPDATED, not overwritten.
+void ijk(const Vec&amp; a,const Vec&amp; b,Vec&amp; c,int m,int n,int k) {
+    for(int i=0;i&lt;m;++i) for(int j=0;j&lt;n;++j) for(int t=0;t&lt;k;++t)
+        c[i*n+j]+=a[i*k+t]*b[t*n+j];
+}
+void ikj(const Vec&amp; a,const Vec&amp; b,Vec&amp; c,int m,int n,int k) {
+    for(int i=0;i&lt;m;++i) for(int t=0;t&lt;k;++t) {
+        const double value=a[i*k+t];
+        for(int j=0;j&lt;n;++j) c[i*n+j]+=value*b[t*n+j];
+    }
+}
+void blocked(const Vec&amp; a,const Vec&amp; b,Vec&amp; c,int m,int n,int k) {
+    constexpr int tile=16;
+    for(int ii=0;ii&lt;m;ii+=tile) for(int jj=0;jj&lt;n;jj+=tile)
+        for(int tt=0;tt&lt;k;tt+=tile)
+            for(int i=ii;i&lt;std::min(ii+tile,m);++i)
+                for(int t=tt;t&lt;std::min(tt+tile,k);++t) {
+                    const double value=a[i*k+t];
+                    for(int j=jj;j&lt;std::min(jj+tile,n);++j)
+                        c[i*n+j]+=value*b[t*n+j];
+                }
+}
+double error(const Vec&amp; a,const Vec&amp; b) {
+    double result=0;
+    for(std::size_t i=0;i&lt;a.size();++i) result=std::max(result,std::abs(a[i]-b[i]));
+    return result;
+}
+int main() {
+    using Kernel=void(*)(const Vec&amp;,const Vec&amp;,Vec&amp;,int,int,int);
+    const std::array&lt;Kernel,3&gt; kernels={ijk,ikj,blocked};
+    const std::array&lt;const char*,3&gt; names={&quot;ijk&quot;,&quot;ikj&quot;,&quot;blocked&quot;};
+    double max_error=0;
+    // Rectangular sizes and partial tiles catch loop-bound mistakes.
+    for(auto shape : {std::array&lt;int,3&gt;{1,1,1},{3,5,2},{17,19,13}}) {
+        const auto [m,n,k]=shape;
+        Vec a(m*k),b(k*n),reference(m*n,1.0);
+        for(int i=0;i&lt;m*k;++i) a[i]=(i%7)-3;
+        for(int i=0;i&lt;k*n;++i) b[i]=(i%5)-2;
+        ijk(a,b,reference,m,n,k);
+        for(auto kernel:kernels) {
+            Vec actual(m*n,1.0);kernel(a,b,actual,m,n,k);
+            max_error=std::max(max_error,error(actual,reference));
+        }
+    }
+    // Teaching microbenchmark. Not a claim about all matrices or computers.
+    const int m=127,n=113,k=95;
+    Vec a(m*k),b(k*n),initial(m*n,1.0),reference=initial,c=initial;
+    for(int i=0;i&lt;m*k;++i) a[i]=std::sin(0.01*i);
+    for(int i=0;i&lt;k*n;++i) b[i]=std::cos(0.02*i);
+    ijk(a,b,reference,m,n,k);
+    std::array&lt;std::vector&lt;double&gt;,3&gt; samples;
+    for(int warmup=0;warmup&lt;2;++warmup) for(auto kernel:kernels) {
+        c=initial;kernel(a,b,c,m,n,k);
+        max_error=std::max(max_error,error(c,reference));
+    }
+    double checksum=0;
+    for(int round=0;round&lt;9;++round) for(int offset=0;offset&lt;3;++offset) {
+        const int which=(round+offset)%3;
+        c=initial; // Reset and allocation are outside the timed interval.
+        const auto start=std::chrono::steady_clock::now();
+        kernels[which](a,b,c,m,n,k);
+        const auto stop=std::chrono::steady_clock::now();
+        samples[which].push_back(std::chrono::duration&lt;double,std::milli&gt;(stop-start).count());
+        max_error=std::max(max_error,error(c,reference));
+        checksum+=std::accumulate(c.begin(),c.end(),0.0);
+    }
+    std::cout &lt;&lt; std::setprecision(8) &lt;&lt; &quot;shape=&quot; &lt;&lt; m &lt;&lt; &#x27;,&#x27; &lt;&lt; n &lt;&lt; &#x27;,&#x27; &lt;&lt; k
+              &lt;&lt; &quot; max_error=&quot; &lt;&lt; max_error &lt;&lt; &quot; checksum=&quot; &lt;&lt; checksum &lt;&lt; &#x27;\n&#x27;;
+    for(int i=0;i&lt;3;++i) {
+        auto&amp; s=samples[i];std::sort(s.begin(),s.end());
+        std::cout &lt;&lt; names[i] &lt;&lt; &quot; median_ms=&quot; &lt;&lt; s[4]
+                  &lt;&lt; &quot; Q1=&quot; &lt;&lt; s[2] &lt;&lt; &quot; Q3=&quot; &lt;&lt; s[6] &lt;&lt; &#x27;\n&#x27;;
+    }
+    return max_error&lt;1e-9 &amp;&amp; std::isfinite(checksum) ? 0 : 1;
+}
+</code></pre>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Read max_error before comparing the timings. It should be below 10⁻⁹ for these inputs. The checksum makes computed values observable. No fixed speedup is promised: try tile sizes 8, 16, and 32, or change the matrix shape. A slower blocked result is a valid observation, not a broken experiment.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">比较计时前先看 max_error：这组输入应小于 10⁻⁹。checksum 让计算结果可被外部观察。这里不承诺固定加速比：可以把块长改为 8、16、32，或改变矩阵形状。分块版本更慢也是有效观测，不代表实验坏了。</span></p>
+<aside class="lesson-note"><p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Godbolt runs this program on its servers, not on your device. These tiny timings are sensitive to server load, compiler decisions, and timer overhead. To make a performance claim, repeat locally across representative shapes, report the compiler flags and hardware, and compare with a tuned BLAS. Floating-point reassociation can change low-order bits even when the mathematical operation is the same.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">Godbolt 在它的服务器上运行程序，不是在你的设备上。这些小规模计时会受到服务器负载、编译器决策和计时开销影响。要提出性能结论，应在本地覆盖有代表性的矩阵形状、重复运行、报告编译参数与硬件，并与调优后的 BLAS 对比。即使数学运算相同，浮点重排也可能改变低位结果。</span></p>
+</aside>
+<h2 class="parallel-text" id="summary"><span class="parallel-en" data-lang="en" lang="en">Take the rule back to the layout</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">把规则还给具体的存储布局</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For column-major arrays, the first index is contiguous instead, and j-t-i is a natural update order. The transferable rule is to follow contiguous data and preserve useful reuse, not to memorize one universally best loop order. Faster arithmetic cannot rescue an invalid index, a missing tail, or a changed mathematical operation.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">若数组采用列优先，连续的是第一个索引，j-t-i 就是自然的更新顺序。真正可以迁移的规则是顺着连续数据访问、保留有用的复用，而不是背下某一种永远最快的循环顺序。再快的算术也救不了错误索引、遗漏尾部或被改变的数学运算。</span></p>
+<h2 class="parallel-text" id="references"><span class="parallel-en" data-lang="en" lang="en">Read further</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">继续阅读</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://www.netlib.org/blas/">Netlib BLAS: operation levels and reference routines</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://www.netlib.org/blas/">Netlib BLAS：运算层级与参考例程</a></span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="/blog/benchmark-with-evidence.html">Benchmark with evidence: repeat, verify, report conditions</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="/blog/benchmark-with-evidence.html">可信基准测试：重复、校验、记录条件</a></span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="/blog/band-storage-gaxpy.html">Exploit a narrow band before optimizing dense work</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="/blog/band-storage-gaxpy.html">优化稠密运算前，先利用窄带结构</a></span></p>
+</div>
+<script>
+(()=>{
+
+const root=document.querySelector('.lesson');
+const $=id=>document.getElementById(id);
+const pair=(en,zh)=>`<span class="i18n"><span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span></span>`;
+function table(rows,active=()=>false){return '<table class="lesson-matrix"><tbody>'+rows.map((row,i)=>'<tr>'+row.map((v,j)=>`<td class="${active(i,j)?'selected':''}">${v}</td>`).join('')+'</tr>').join('')+'</tbody></table>';}
+function sliders(update){root.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{input.nextElementSibling.value=input.value;update();}));}
+
+let mode='column';
+function update(){const step=+$('matrix-step').value,reads=Array.from({length:step+1},(_,i)=>mode==='column'?8*i:i),current=reads.at(-1),lineCount=new Set(reads.map(i=>Math.floor(i/8))).size;
+ $('matrix-addresses').innerHTML='<table class="lesson-matrix"><tbody>'+Array.from({length:8},(_,i)=>'<tr>'+Array.from({length:8},(_,j)=>{const offset=i*8+j;return `<td class="${offset===current?'selected':reads.includes(offset)?'visited':''}">${offset}</td>`;}).join('')+'</tr>').join('')+'</tbody></table>';
+ $('matrix-result').innerHTML=pair('Read offsets: ','已读偏移：')+reads.join(' → ')+'<br>'+pair(`Distinct 64-byte lines in this trace: ${lineCount}. Stride: ${mode==='column'?8:1} doubles.`,`这段访问涉及 ${lineCount} 个不同的 64 字节缓存行。步长：${mode==='column'?8:1} 个 double。`);
+ $('matrix-column').setAttribute('aria-pressed',String(mode==='column'));$('matrix-row').setAttribute('aria-pressed',String(mode==='row'));
+}for(const value of ['column','row'])$('matrix-'+value).addEventListener('click',()=>{mode=value;update();});sliders(update);update();
+
+})();
+</script>
+</body></html>

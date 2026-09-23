@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waves, phase &amp; superposition</title>
+<script type="application/json" id="article-metadata">
+{
+  "title": "波、相位与叠加：让公式动起来",
+  "titleEn": "Waves, phase & superposition",
+  "description": "拖动相位与频率，观察两列波如何相长或相消，把三角函数与物理直觉联系起来。",
+  "descriptionEn": "Change the phase and frequency to see two waves reinforce or cancel. Connect trigonometry with physical intuition.",
+  "date": "2026-09-23",
+  "dateKind": "published",
+  "category": "physics",
+  "tags": [
+    "波动",
+    "相位",
+    "交互实验"
+  ],
+  "art": "wave",
+  "lab": "waves"
+}
+</script>
+
+</head>
+<body>
+<section class="bilingual-chapter" id="topic-1"><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><h2 id="en-section-1">Seeing a wave in space and time</h2></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><h2 id="section-1">从一个位置，看到一列波</h2></div></div><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><p>A sinusoidal wave traveling in the positive x direction can be written as:</p></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><p>一列沿 x 轴正方向传播的简谐波可以写成：</p></div></div><div class="article-edition prose shared-equation"><span data-math="y(x,t)=A\sin(kx-\omega t+\phi)" data-display="block"></span></div><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><p>A is the amplitude, k the wave number, ω the angular frequency, and φ the initial phase. Wavelength λ = 2π/k, period T = 2π/ω, and phase speed v = ω/k. Freeze time to see a sinusoidal shape across space; fix a location to see an oscillation over time.</p></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><p>A 是振幅，k 是波数，ω 是角频率，φ 是初相位。波长 λ = 2π/k，周期 T = 2π/ω，相速度 v = ω/k。固定时间看空间，是一条正弦曲线；固定位置看时间，则是一个振动。</p></div></div><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><p>The vertical displacement does not mean that particles move along the propagation direction. In a transverse wave on a string, particles oscillate vertically as the wave travels horizontally.</p></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><p>图中的纵向位移不是质点沿传播方向的运动。对于绳上的横波，绳上质点上下振动，而波形沿水平方向传播。</p></div></div></section><section class="bilingual-chapter" id="topic-2"><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><h2 id="en-section-2">Phase: one rhythm, different starting points</h2></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><h2 id="section-2">相位：同一个节奏，不同的起点</h2></div></div><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><p>A phase difference tells us how far two equal-frequency waves are offset within a cycle. At zero, crests meet crests. At π, crests meet troughs.</p></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><p>相位差描述两列同频波在一个周期里错开了多少。相差 0 时，波峰对波峰；相差 π 时，波峰对波谷。</p></div></div><div class="article-edition prose"><div class="interactive-lab" data-wave-lab="">
+<canvas role="img" aria-label="Two sinusoidal waves and their superposition" data-label-en="Two sinusoidal waves and their superposition" data-label-zh="两列简谐波和它们的叠加曲线"></canvas>
+<div class="lab-inputs"><label><span class="i18n"><span data-lang="en" lang="en">Phase difference</span><span data-lang="zh" lang="zh-CN">相位差</span></span><input data-wave-phase="" type="range" min="0" max="6.283185" step="0.01" value="1.57"><output data-wave-phase-value="">1.57 rad</output></label><label><span class="i18n"><span data-lang="en" lang="en">Wave number</span><span data-lang="zh" lang="zh-CN">波数</span></span><input data-wave-k="" type="range" min="0.5" max="3" step="0.1" value="1.5"></label><button class="outline-button" data-wave-pause=""><span class="i18n"><span data-lang="en" lang="en">Pause</span><span data-lang="zh" lang="zh-CN">暂停</span></span></button></div>
+<p class="lab-caption"><span class="i18n"><span data-lang="en" lang="en">Blue and pale green: two waves of equal amplitude and frequency. Bright green: their combined displacement. Coordinates are dimensionless.</span><span data-lang="zh" lang="zh-CN">蓝色与浅绿色：两列等振幅、同频波；亮绿色：叠加后的位移。采用无量纲坐标。</span></span></p>
+</div></div></section><section class="bilingual-chapter" id="topic-3"><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><h2 id="en-section-3">Superposition: adding two displacements</h2></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><h2 id="section-3">叠加：把两个位移相加</h2></div></div><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><p>In a linear model, the two displacements add. For waves of equal amplitude and frequency traveling in the same direction:</p></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><p>在线性模型中，两列波的位移可以相加。对等振幅、同频、同向传播的波：</p></div></div><div class="article-edition prose shared-equation"><span data-math="A\sin(\alpha)+A\sin(\alpha+\Delta\phi)=2A\cos\left(\frac{\Delta\phi}{2}\right)\sin\left(\alpha+\frac{\Delta\phi}{2}\right)" data-display="block"></span></div><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><p>The resulting amplitude is 2A |cos(Δφ/2)|. A phase difference of zero gives 2A; a difference of π gives complete cancellation. Move the slider to approximately 3.14 and watch the bright green curve flatten.</p></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><p>合成振幅为 2A |cos(Δφ/2)|。相位差为 0 时，合成振幅是 2A；相位差为 π 时，两者完全相消。把滑块拉到约 3.14，观察亮绿色曲线靠近零线。</p></div></div></section><section class="bilingual-chapter" id="topic-4"><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><h2 id="en-section-4">Where the model stops</h2></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><h2 id="section-4">模型的边界</h2></div></div><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><p>This experiment illustrates ideal linear superposition. It does not model damping, dispersion, reflection, or nonlinear media. The wave-number control changes the spatial period while temporal angular frequency remains fixed, so it also changes phase speed. This toy model is not the dispersion relation of a particular fixed medium.</p></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><p>本实验演示理想线性叠加，未模拟阻尼、色散、反射或介质的非线性。调节波数改变空间周期；演示中的时间角频率固定，因此同时改变了相速度。这个玩具模型不能直接当作某一种固定介质的色散关系。</p></div></div></section><section class="bilingual-chapter" id="topic-5"><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><h2 id="en-section-5">Further reading</h2></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><h2 id="section-5">继续阅读</h2></div></div><div class="paragraph-pair"><div class="article-edition prose" data-lang="en" lang="en"><p><a href="https://openstax.org/books/university-physics-volume-1/pages/16-2-mathematics-of-waves">OpenStax · University Physics, 16.2 Mathematics of Waves</a> introduces traveling waves, wavelength, period, and wave speed.</p></div><div class="article-edition prose" data-lang="zh" lang="zh-CN"><p><a href="https://openstax.org/books/university-physics-volume-1/pages/16-2-mathematics-of-waves">OpenStax · University Physics, 16.2 Mathematics of Waves</a> 介绍行波表达式、波长、周期和波速之间的关系。</p></div></div></section><div class="legacy-support prose">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div><div class="legacy-support prose">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+</body></html>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Band Storage GAXPY</title>
+<script type="application/json" id="article-metadata">
+{
+  "title": "带状矩阵的紧凑存储",
+  "titleEn": "Band Storage GAXPY",
+  "description": "把稠密矩阵元素搬进带状存储，用交互映射与 C++ 校验理解索引、边界和运算成本。",
+  "descriptionEn": "Move entries between a dense matrix and its band storage, then verify a C++ GAXPY implementation.",
+  "date": "2021-07-19",
+  "dateKind": "published",
+  "category": "systems",
+  "tags": [
+    "存储布局",
+    "矩阵计算"
+  ],
+  "art": "matrix",
+  "updated": "2026-09-23"
+}
+</script>
+</head><body>
+<div class="lesson">
+<span id="topic-1" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-1"><span class="parallel-en" data-lang="en" lang="en">Store the road, not the empty landscape</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">只存道路，不存两旁的空地</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Imagine a row of rooms exchanging heat only with their immediate neighbors. The coupling matrix has entries near the diagonal and zeros far away. Keeping every zero is like reserving a parking space for every place a car cannot go. A banded layout keeps the useful diagonal strip.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">想象一排房间只和左右邻居交换热量：对应矩阵的非零元素集中在对角线附近，远处都是零。把所有零也存下来，就像给车根本开不到的地方分配停车位。带状存储只保留有用的那条“道路”。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Our operation is GAXPY: add a matrix–vector product to an existing vector. The initial y matters: replacing it with zero silently changes the problem. All indices below start at zero; the compact array is stored column by column.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这里计算 GAXPY：把矩阵向量积加到已有向量上。初始 y 不能忽略，把它清零就改变了问题。下文全部采用从 0 开始的索引，紧凑数组按列存放。</span></p>
+<div class="shared-equation" data-math="y\leftarrow y+Ax,\qquad A_{ij}=0\ \text{if}\ i-j&gt;p\ \text{or}\ j-i&gt;q"></div>
+<h2 class="parallel-text" id="storage-lab"><span class="parallel-en" data-lang="en" lang="en">See where each entry goes</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">亲手看一个元素搬到哪里</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Choose the lower and upper bandwidths, then select a row and column. The highlighted dense entry and compact slot represent the same value. A dash in the compact array is unused padding, not another matrix entry.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">调整上下带宽，再选择行和列。高亮的稠密矩阵元素和紧凑槽位代表同一个数。紧凑数组里的短横线是未使用的填充位置，不是额外的矩阵元素。</span></p>
+<div class="interactive-lab lesson-lab" id="band-lab"><div class="lesson-controls"><label for="band-p"><span class="parallel-en" data-lang="en" lang="en">Lower bandwidth p</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">下带宽 p</span><input id="band-p" type="range" min="0" max="5" value="1" step="1"><output for="band-p">1</output></label><label for="band-q"><span class="parallel-en" data-lang="en" lang="en">Upper bandwidth q</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">上带宽 q</span><input id="band-q" type="range" min="0" max="5" value="1" step="1"><output for="band-q">1</output></label><label for="band-i"><span class="parallel-en" data-lang="en" lang="en">Row i</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">行 i</span><input id="band-i" type="range" min="0" max="5" value="2" step="1"><output for="band-i">2</output></label><label for="band-j"><span class="parallel-en" data-lang="en" lang="en">Column j</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">列 j</span><input id="band-j" type="range" min="0" max="5" value="1" step="1"><output for="band-j">1</output></label></div><div class="lesson-duo"><figure><figcaption><span class="parallel-en" data-lang="en" lang="en">Dense A · 6 × 6</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">稠密 A · 6 × 6</span></figcaption><div class="lesson-scroll" tabindex="0" role="region" aria-label="Scrollable data table / 可横向滚动的数据表格" id="band-dense"></div></figure><figure><figcaption><span class="parallel-en" data-lang="en" lang="en">Compact band · rows × columns</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">紧凑带状数组 · 行 × 列</span></figcaption><div class="lesson-scroll" tabindex="0" role="region" aria-label="Scrollable data table / 可横向滚动的数据表格" id="band-packed"></div></figure></div><div class="lesson-readout" id="band-result" role="status" aria-live="polite"></div></div>
+<h2 class="parallel-text" id="mapping"><span class="parallel-en" data-lang="en" lang="en">Turn a diagonal into a row</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">把斜着的对角线摆成一行</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The main diagonal has i − j = 0, so it belongs to compact row q. Moving one step below the diagonal increases the compact row by one. Moving above decreases it. A compact column has h = p + q + 1 slots, so the flat offset combines the column start with that row.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">主对角线上 i − j = 0，因此位于紧凑数组的第 q 行。向下偏一条对角线，紧凑行号加一；向上偏则减一。每个紧凑列占 h = p + q + 1 个槽位，线性地址就是列起点再加行号。</span></p>
+<div class="shared-equation" data-math="h=p+q+1,\qquad r=q+i-j,\qquad \mathrm{offset}(i,j)=jh+r"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For n = 6, p = 2, q = 1, entry A(3,2) goes to row 2 of compact column 2, hence offset 10. The dense row-major offset would be 20. Never reuse a row-major offset formula for this column-packed array.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">例如 n = 6、p = 2、q = 1 时，A(3,2) 被放到紧凑数组第 2 列、第 2 行，线性偏移是 10；它在行优先稠密数组中的偏移却是 20。不要把行优先的地址公式直接套到按列压缩的数组上。</span></p>
+<div class="shared-equation" data-math="\max(0,j-q)\le i\le\min(n-1,j+p)"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">These limits clip the band at the matrix edges. They also prevent reading the padding slots. For a tridiagonal matrix, an interior column touches three rows, while the first and last columns touch only two.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这组边界把带状区域裁剪到矩阵内部，也避免读取填充槽位。三对角矩阵的内部列涉及三行，第一列和最后一列则只涉及两行。</span></p>
+<h2 class="parallel-text" id="cpp"><span class="parallel-en" data-lang="en" lang="en">Run a checked C++ implementation</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">运行带校验的 C++ 实现</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">This complete C++17 program tests diagonal, asymmetric-band, and full-band cases, including n = 1. It compares against a separately indexed dense product with a nonzero initial y. The packing step deliberately inspects the whole dense matrix; only the subsequent band update has band-linear cost.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这个完整 C++17 程序覆盖对角、上下带宽不等和满带等情况，也包含 n = 1。它用不同索引方式的稠密乘法作对照，并保留非零初始 y。转换函数会特意检查整个稠密矩阵；只有转换完成后的带状更新才具有按带宽线性增长的成本。</span></p>
+<pre><code class="language-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;vector&gt;
+using Vec = std::vector&lt;double&gt;;
+
+// Zero-based indices. Each packed column occupies p+q+1 slots.
+Vec pack_band(const Vec&amp; a, int n, int p, int q) {
+    if (n &lt;= 0 || p &lt; 0 || q &lt; 0 || p &gt;= n || q &gt;= n ||
+        a.size() != std::size_t(n) * n)
+        throw std::invalid_argument(&quot;invalid band dimensions&quot;);
+    const int h = p + q + 1;
+    Vec band(std::size_t(h) * n, 0.0);
+    for (int j = 0; j &lt; n; ++j)
+        for (int i = 0; i &lt; n; ++i) {
+            const bool inside = i &gt;= j-q &amp;&amp; i &lt;= j+p;
+            if (!inside &amp;&amp; a[i*n+j] != 0.0)
+                throw std::invalid_argument(&quot;nonzero outside band&quot;);
+            if (inside) band[j*h + q+i-j] = a[i*n+j];
+        }
+    return band;
+}
+
+void band_gaxpy(const Vec&amp; band, const Vec&amp; x, Vec&amp; y,
+                int n, int p, int q) {
+    if (n &lt;= 0 || p &lt; 0 || q &lt; 0 || p &gt;= n || q &gt;= n ||
+        x.size() != std::size_t(n) || y.size() != std::size_t(n) ||
+        band.size() != std::size_t(n) * (p+q+1))
+        throw std::invalid_argument(&quot;incompatible dimensions&quot;);
+    const int h = p+q+1;
+    for (int j = 0; j &lt; n; ++j)
+        for (int i = std::max(0,j-q); i &lt;= std::min(n-1,j+p); ++i)
+            y[i] += band[j*h + q+i-j] * x[j];
+}
+
+int main() {
+    double max_error = 0;
+    int cases = 0;
+    for (int n : {1, 2, 5, 9})
+        for (int p = 0; p &lt; n; ++p)
+            for (int q = 0; q &lt; n; ++q) {
+                Vec a(n*n,0.0), x(n), y(n,1.0), expected=y;
+                for (int i=0; i&lt;n; ++i) {
+                    x[i]=i+1;
+                    for (int j=0; j&lt;n; ++j)
+                        if (i&gt;=j-q &amp;&amp; i&lt;=j+p) a[i*n+j]=(i==j?2.0:-1.0);
+                }
+                for (int i=0; i&lt;n; ++i)
+                    for (int j=0; j&lt;n; ++j) expected[i]+=a[i*n+j]*x[j];
+                auto band=pack_band(a,n,p,q);
+                band_gaxpy(band,x,y,n,p,q);
+                for (int i=0; i&lt;n; ++i)
+                    max_error=std::max(max_error,std::abs(y[i]-expected[i]));
+                ++cases;
+                if (n==5 &amp;&amp; p==1 &amp;&amp; q==1) {
+                    std::cout &lt;&lt; &quot;tridiagonal y:&quot;;
+                    for (double v:y) std::cout &lt;&lt; &#x27; &#x27; &lt;&lt; v;
+                    std::cout &lt;&lt; &#x27;\n&#x27;;
+                }
+            }
+    std::cout &lt;&lt; &quot;cases=&quot; &lt;&lt; cases &lt;&lt; &quot; max_error=&quot; &lt;&lt; max_error &lt;&lt; &#x27;\n&#x27;;
+    return max_error &lt; 1e-12 ? 0 : 1;
+}
+</code></pre>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Expected checks: the tridiagonal example prints y = 1, 1, 1, 1, 7; all 111 cases should have zero error for these small integer-valued inputs. Try swapping p and q or removing an edge bound and observe which checks fail.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">预期结果：三对角示例输出 y = 1、1、1、1、7；这组小整数输入的 111 个测试应全部误差为零。可以尝试交换 p、q，或删去边界裁剪，看看哪些测试会失败。</span></p>
+<h2 class="parallel-text" id="cost"><span class="parallel-en" data-lang="en" lang="en">What is actually saved?</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">到底省下了什么？</span></h2>
+<div class="shared-equation" data-math="N_{\mathrm{band}}=n(p+q+1)-\frac{p(p+1)}2-\frac{q(q+1)}2"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For 0 ≤ p,q &lt; n, this is the number of positions inside the band, including any numerical zeros there. The update performs one multiply and one add per position: 2N_band FLOPs. Allocated storage is n(p+q+1) values, slightly larger because of padding. With fixed bandwidth, both grow linearly with n.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">当 0 ≤ p,q &lt; n 时，这是带内位置的准确个数，带内恰好为零的数也算在内。每个位置做一次乘法和一次加法，合计 2N_band 次浮点运算。分配的存储为 n(p+q+1) 个数，因为填充而稍大。带宽固定时，两者都随 n 线性增长。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For n = 1000 and p = q = 1, dense storage needs 1,000,000 doubles, compact storage 3,000, and the update visits 2,998 positions. These are element counts, not measured speedups. A wide band can erase the benefit; irregular sparsity often needs a different format such as CSR.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">当 n = 1000、p = q = 1 时，稠密存储需要 1,000,000 个 double，带状存储分配 3,000 个，更新只遍历 2,998 个位置。这些是元素数量，不是实测加速比。带宽很大时优势会消失；不规则稀疏结构通常更适合 CSR 等格式。</span></p>
+<aside class="lesson-note"><p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The multiply-only layout here is not automatically the workspace layout for banded LU factorization: pivoting can require extra rows for fill-in. Inputs and output are separate arrays in this example; overlapping x and y would change later reads.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这里用于乘法的存储布局，不能直接当作带状 LU 分解的工作区布局：选主元造成的填充可能需要额外行。本例的输入和输出使用独立数组；若 x 与 y 重叠，后续读取会被先前写入改变。</span></p>
+</aside>
+<h2 class="parallel-text" id="references"><span class="parallel-en" data-lang="en" lang="en">Read further</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">继续阅读</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://www.netlib.org/lapack/lug/node124.html">LAPACK Users’ Guide: band storage and factorization padding</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://www.netlib.org/lapack/lug/node124.html">LAPACK 用户指南：带状存储与分解时的填充</a></span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="/blog/symmetric-storage-gaxpy.html">Next: reuse symmetry instead of storing both halves</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="/blog/symmetric-storage-gaxpy.html">下一篇：利用对称性，不存两份镜像</a></span></p>
+</div>
+<script>
+(()=>{
+
+const root=document.querySelector('.lesson');
+const $=id=>document.getElementById(id);
+const pair=(en,zh)=>`<span class="i18n"><span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span></span>`;
+function table(rows,active=()=>false){return '<table class="lesson-matrix"><tbody>'+rows.map((row,i)=>'<tr>'+row.map((v,j)=>`<td class="${active(i,j)?'selected':''}">${v}</td>`).join('')+'</tr>').join('')+'</tbody></table>';}
+function sliders(update){root.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{input.nextElementSibling.value=input.value;update();}));}
+
+function update(){const n=6,p=+$('band-p').value,q=+$('band-q').value,i=+$('band-i').value,j=+$('band-j').value,h=p+q+1;
+ const inside=(r,c)=>r>=c-q&&r<=c+p,value=(r,c)=>r===c?2:-1;
+ $('band-dense').innerHTML=table(Array.from({length:n},(_,r)=>Array.from({length:n},(_,c)=>inside(r,c)?value(r,c):0)),(r,c)=>r===i&&c===j);
+ $('band-packed').innerHTML=table(Array.from({length:h},(_,r)=>Array.from({length:n},(_,c)=>{const row=r-q+c;return row>=0&&row<n?value(row,c):'—';})),(r,c)=>inside(i,j)&&c===j&&r===q+i-j);
+ const count=n*h-p*(p+1)/2-q*(q+1)/2;
+ $('band-result').innerHTML=pair(`Allocated: ${n*h} / ${n*n} values; visited positions: ${count}.`,`分配：${n*h} / ${n*n} 个数；遍历位置：${count}。`)+ '<br>'+ (inside(i,j)?pair(`A(${i},${j}) → band(${q+i-j},${j}) → offset ${j*h+q+i-j}`,`A(${i},${j}) → 紧凑位置 (${q+i-j},${j}) → 线性偏移 ${j*h+q+i-j}`):pair(`A(${i},${j}) is outside the band: zero, no slot.`,`A(${i},${j}) 在带外：值为零，无存储槽位。`));
+}sliders(update);update();
+
+})();
+</script>
+</body></html>

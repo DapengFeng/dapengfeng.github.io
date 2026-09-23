@@ -1,0 +1,246 @@
+/* Article typography: explanations remain readable in every language and viewport. */
+.article-page{--muted:#bdc7b5;--quiet:#a8b39f}
+#article-content,#article-content .legacy-content,#article-content .prose{font-size:18px;line-height:1.85;color:#e8eddf;--muted:#bdc7b5}
+#article-content :is(p,.parallel-text){font-size:18px;line-height:1.85}
+#article-content :is(h2,h2.parallel-text){font-size:28px;line-height:1.5}
+#article-content :is(h3,h3.parallel-text){font-size:23px;line-height:1.5}
+#article-content :is(h4,h4.parallel-text){font-size:20px;line-height:1.5}
+#article-content .parallel-text>[data-lang],#article-content .i18n,#article-content .i18n>[data-lang]{font-size:inherit!important;line-height:inherit;opacity:1}
+#article-content .parallel-text>[data-lang="zh"],#article-content .i18n>[data-lang="zh"]{color:inherit}
+#article-content .paragraph-pair>[data-lang="zh"]{font-size:18px;color:#e8eddf}
+#article-content :is(small,label,button,select,summary,figcaption,th,td){font-size:16px;line-height:1.7}
+#article-content :is(.card-note,.editorial-note,.lab-foot,.hybrid-note,.sources-explainer,.source-item,.source-item p,.source-item a,.ref-item,.ref-description,.control-help,.readout-detail,.experiment-caption,.lab-caption,.compiler-note,.compiler-config,.compiler-status,.compiler-assembly summary,.notation,.callout,.detail-body,.derived-result,.equation-explain>div,.plot-legend,.control-label,.range-limits,.readout-label,.plot-title,.lab-title,.lab-title small,.step-caption,.scenario-takeaway,.bridge-contract p,.pill-note,.small){font-size:16px;line-height:1.8;color:#cbd4c3}
+#article-content :is(.eyebrow,.feature-caption,.matrix-head,.dim strong,.dim small,.matrix-cell strong,.code-pane-heading,.result-title,.code-title,.tax-label,.chapter-type,.pill,.bridge-node .label,.contract-tag,.scenario-button strong,.scenario-button small,.measure-card .eyebrow,.compiler-provider){font-size:16px;line-height:1.7}
+#article-content .feature-caption span{font-size:inherit}
+#article-content :is(pre,.code-block,.code-wrap pre,.compiler-check pre){font-size:16px;line-height:1.8;max-width:100%;overflow:auto}
+#article-content pre code{font-size:inherit}
+#article-content :not(pre)>code{font-size:.95em}
+#article-content :is(.line-number,.source-number,.source-ref,.ref,.eq-number,.chapter-no,.section-no,.index){font-size:14px}
+#article-content :is(.lab-result,.compiler-check,.compiler-config code,.compiler-run,.control-label output){font-size:16px;line-height:1.8}
+#article-content .compiler-results pre{max-height:480px}
+#article-content .equation{font-size:18px}
+#article-content .lab-inputs{gap:20px 24px}
+#article-content :is(button,select){min-height:44px}
+#article-content .lab-inputs label{flex-wrap:wrap}
+#article-content .paired-article .experiment-body{grid-template-columns:minmax(0,1fr) 320px}
+#article-content .controls .control-label{flex-wrap:wrap;gap:8px}
+#article-content .scenario-button{height:auto;min-width:0}
+#article-content .scenario-button small{white-space:normal}
+.article-heading>p{font-size:18px;color:#cbd4c3}
+.article-heading :is(.article-byline,.article-tags,.date-note){font-size:16px;color:#bdc7b5}
+.article-heading :is(p,.article-byline,.article-tags) .i18n>[data-lang]{font-size:inherit;opacity:1}
+.article-toc,.article-toc nav>a,.article-toc .i18n,.article-toc .i18n>[data-lang],.article-toc summary,.toc-bottom a,.toc-bottom button{font-size:16px;line-height:1.65;opacity:1}
+.article-toc nav>a>span:first-child,.toc-bottom>span{font-size:14px}
+@media(max-width:1200px){#article-content .paired-article .experiment-body{grid-template-columns:1fr}#article-content .controls{border-left:0;border-top:1px solid var(--border)}}
+@media(max-width:700px){#article-content :is(h2,h2.parallel-text){font-size:25px}#article-content :is(h3,h3.parallel-text){font-size:22px}#article-content .lab-inputs label{max-width:100%}#article-content .segmented{flex-wrap:wrap}#article-content .lab-title{flex-wrap:wrap;gap:12px}}
+@media print{#article-content,#article-content .legacy-content,#article-content .prose{color:#111;--muted:#333}#article-content :is(p,small,figcaption,.experiment-caption,.compiler-note),.article-heading>p{color:#222}}
+
+#article-content :is(p,label,small,button,td,th) strong{font-size:inherit}
+#article-content :is(.source-item,.ref-item,.sources-details>summary) span{font-size:inherit}
+#article-content :is(.tax-names,.detail-badge,.live,.exp-icon){font-size:16px}
+#article-content .feature-caption{align-items:flex-start;letter-spacing:0;margin-bottom:20px}
+#article-content .feature-caption span{width:auto;height:auto;display:block;background:none;border-radius:0}
+#article-content .feature-caption>span:first-child{display:grid;place-items:center;flex:0 0 24px;width:24px;height:28px}
+#article-content .feature-caption>.parallel-text{flex:1;min-width:0}
+#article-content :is(.memory-heading,.step-controls,.code-pane-heading,.experiment-header){flex-wrap:wrap;gap:12px}
+#article-content .memory-heading span,#article-content .diagram-label{font-size:16px}
+#article-content .roadmap-step .mono{font-size:14px}
+#article-content .step-dots{flex-wrap:wrap}
+#article-content .step-dots button{width:44px;height:44px}
+#article-content .takeaway .num{font-size:16px}
+#article-content .feature-caption>.parallel-text{text-align:left}
+#article-content .compiler-editor-label{display:block;margin-bottom:12px;font-size:18px}
+#article-content .compiler-editor{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:220px;max-height:none;resize:vertical;overflow:auto;margin-bottom:20px;padding:16px;background:#0d140d;border:1px solid #526446;border-radius:6px;color:#e8eddf;font:16px/1.8 var(--mono);tab-size:4;white-space:pre}
+#article-content .compiler-editor:focus{outline:2px solid var(--lime);outline-offset:3px}
+#article-content .compiler-actions{display:flex;gap:12px;flex-wrap:wrap}
+#article-content .compiler-reset{padding:9px 12px;background:#253020;border:1px solid #526446;border-radius:5px;color:var(--ink)}
+#article-content .compiler-results h4{font-size:18px;margin:20px 0 8px}
+@media print{#article-content .compiler-actions{display:none}#article-content .compiler-editor{max-height:none;color:#111;background:white}}
+/* Shared teaching figures; each article owns its bilingual content and experiment. */
+#article-content .lesson{max-width:960px}
+#article-content .lesson h2{margin-top:52px;padding-top:12px;border-top:1px solid var(--border)}
+#article-content .lesson h2:first-child{margin-top:0;border-top:0}
+#article-content .lesson h3{margin-top:32px}
+#article-content .lesson-note{padding:20px 24px;border-left:3px solid var(--lime);background:#1c2717;margin-block:28px}
+#article-content .lesson-note p{margin:0}
+#article-content .lesson-lab{margin-block:24px;padding:24px}
+#article-content .lesson-controls{display:flex;flex-wrap:wrap;gap:20px;margin-block:20px}
+#article-content .lesson-controls label{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;flex:1 1 200px;min-width:0}
+#article-content .lesson-controls label>[data-lang]{grid-column:1/-1;line-height:1.6}
+#article-content .lesson-controls input{width:100%;min-width:0;accent-color:var(--lime);height:28px}
+#article-content .lesson-controls output{font:18px/1.6 var(--mono);min-width:30px}
+#article-content .lesson-buttons{display:flex;gap:12px;flex-wrap:wrap}
+#article-content .lesson-buttons button{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:12px 16px;white-space:normal}
+#article-content .lesson-buttons button[aria-pressed=true]{background:#c0f47b;color:#17200e;border-color:#c0f47b}
+#article-content .lesson-duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+#article-content .lesson figure{margin:20px 0;min-width:0}
+#article-content .lesson figcaption{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;color:var(--ink)}
+#article-content .lesson-scroll{overflow-x:auto;max-width:100%;padding-bottom:6px}
+#article-content .lesson table{width:100%;border-collapse:collapse}
+#article-content .lesson-matrix{display:table;width:auto;min-width:100%}
+#article-content .lesson-matrix td{text-align:center;min-width:46px;height:46px;padding:8px;border:1px solid #47533c;font:16px/1.5 var(--mono)}
+#article-content .lesson .selected{background:#c0f47b;color:#16200e;font-weight:700;outline:2px solid #e6ffc5;outline-offset:-2px}
+#article-content .lesson .visited{background:#395329;color:#eef9e8}
+#article-content .lesson-readout{font-size:18px;line-height:1.85;padding:18px 0 0;border-top:1px solid var(--border);overflow-wrap:anywhere}
+#article-content .lesson-slots{display:flex;flex-wrap:wrap;gap:8px}
+#article-content .lesson-slot{display:flex;flex-direction:column;align-items:center;border:1px solid #47533c;min-width:60px;padding:8px;font:16px/1.7 var(--mono)}
+#article-content .lesson-slot strong{font-size:20px}
+#article-content .lesson-bars{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin:20px 0}
+#article-content .lesson-bar{min-width:0;text-align:center;font:16px/1.7 var(--mono)}
+#article-content .lesson-bar-track{height:180px;display:flex;align-items:flex-end;background:#253020;margin:8px 0}
+#article-content .lesson-bar-track span{display:block;background:#c0f47b;width:100%;min-height:1px}
+#article-content .lesson-plot{width:100%;height:auto;max-width:560px;display:block;margin-inline:auto}
+#article-content .lesson-butterfly{display:grid;gap:12px;background:#1c2717;padding:20px;border:1px solid var(--border);margin-block:24px}
+#article-content .lesson-butterfly>div{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+@media(max-width:1100px){#article-content .lesson-duo{grid-template-columns:1fr}}
+@media(max-width:600px){#article-content .lesson-lab{padding:16px}#article-content .lesson-bars{gap:4px}#article-content .lesson-bar{font-size:16px}#article-content .lesson-note{padding:18px}#article-content .lesson-controls label{flex-basis:100%}}
+#article-content .lesson-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+#article-content .lesson-controls label:only-child{grid-column:1/-1}
+#article-content .lesson-buttons button{margin:0;background:#202d1b;color:var(--ink);border:1px solid #526446}
+#article-content .lesson-buttons button[aria-pressed=true]{background:#c0f47b;color:#17200e}
+#article-content .lesson-readout>.i18n,#article-content .lesson-readout>.i18n>[data-lang]{display:block}
+#article-content .lesson-anchor{display:block;scroll-margin-top:40px}
+@media(max-width:600px){#article-content .lesson-controls{grid-template-columns:1fr}}
+#article-content .lesson-matrix td{white-space:nowrap;overflow-wrap:normal}
+#article-content .lesson-scroll:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+/* Code palette: readable colors on charcoal, shared by static and editable examples. */
+#article-content .syntax-keyword{color:#c9acff}
+#article-content .syntax-type{color:#7fddd1}
+#article-content .syntax-function{color:#8bc8ff}
+#article-content .syntax-string{color:#c5e78c}
+#article-content .syntax-number,#article-content .syntax-constant{color:#ffbd87}
+#article-content .syntax-comment{color:#a2b1b9;font-style:normal}
+#article-content .syntax-directive{color:#f4a6c5}
+#article-content .syntax-block{background:#10191e;border:1px solid #46575b;border-radius:10px;padding:20px;color:#e6edf3}
+#article-content .compiler-editor-surface{position:relative;isolation:isolate;min-width:0;margin-bottom:20px;background:#10191e;border-radius:10px;box-shadow:inset 0 1px 0 #ffffff06}
+#article-content .compiler-editor-surface .compiler-editor,#article-content .compiler-highlight,#article-content .compiler-highlight code{font:16px/1.8 var(--mono);font-variant-ligatures:none;letter-spacing:normal;text-align:left;tab-size:4;white-space:pre;overflow-wrap:normal;word-break:normal;text-transform:none}
+#article-content .compiler-editor-surface .compiler-editor{position:relative;z-index:1;margin:0;padding:16px;border:1px solid #46575b;border-radius:10px;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:#e6edf3}
+#article-content .compiler-editor-surface .compiler-editor::selection{background:#9bc8ff40}
+#article-content .compiler-editor-surface:focus-within{box-shadow:0 0 0 4px #c0f47b12}
+#article-content .compiler-editor-surface .compiler-highlight{position:absolute;z-index:0;top:1px;left:1px;box-sizing:border-box;display:block;margin:0;padding:16px;border:0;border-radius:9px;max-width:none;max-height:none;min-height:0;overflow:hidden;background:transparent;color:#e6edf3;pointer-events:none}
+#article-content .compiler-highlight code{display:block;margin:0;padding:0;border:0;background:none;color:inherit}
+#article-content .compiler-highlight span{font:inherit}
+@media(forced-colors:active){#article-content .compiler-highlight{display:none}#article-content .compiler-editor-surface .compiler-editor{color:CanvasText;-webkit-text-fill-color:CanvasText;caret-color:CanvasText}}
+@media print{#article-content .compiler-highlight{display:none}#article-content .compiler-editor-surface .compiler-editor{color:#111;-webkit-text-fill-color:#111;background:white}}
+/* CUDA ownership map: indices and intervals share one responsive experiment. */
+#article-content .cuda-groups{display:grid;gap:12px}
+#article-content .cuda-group{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:14px;border:1px solid #46575b;border-radius:8px;background:#10191e}
+#article-content .cuda-group strong{font-size:16px;min-width:80px;color:#8bc8ff}
+#article-content .cuda-cells{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+#article-content .cuda-cell{display:grid;place-items:center;width:38px;height:38px;border:1px solid #66894d;background:#23371c;color:#d5f6af;font:16px/1.5 var(--mono)}
+#article-content .cuda-cell.cuda-masked{border-style:dashed;border-color:#5b6870;background:transparent;color:#a2b1b9}
+#article-content .cuda-interval{font:18px/1.6 var(--mono);color:#c5e78c}
+#article-content #cuda-map[data-broken=true] #cuda-threads .cuda-cell:not(.cuda-masked){border-color:#d48b7b;background:#452d2a;color:#ffd1c5}
+#article-content .cuda-lesson .syntax-block{margin-block:20px}
+/* Reading rhythm, including imported essays with their own compact styles. */
+#article-content .parallel-text>[data-lang=zh]{margin-top:10px}
+html[data-language=zh] #article-content .parallel-text>[data-lang=zh]{margin-top:0}
+#article-content :is(h2,h3,h4).parallel-text>[data-lang=zh]{margin-top:12px}
+html[data-language=zh] #article-content :is(h2,h3,h4).parallel-text>[data-lang=zh]{margin-top:0}
+#article-content .paragraph-pair{margin-bottom:28px}
+#article-content .paragraph-pair>.article-edition+.article-edition{margin-top:12px}
+#article-content .bilingual-chapter{margin-bottom:48px;padding-bottom:40px}
+#article-content .bilingual-section+.bilingual-section{margin-top:56px}
+#article-content .lesson>p{margin-block:24px}
+#article-content .lesson>h2{margin-top:56px;margin-bottom:24px;padding-top:24px}
+#article-content .lesson>h2:first-child{margin-top:0;padding-top:0}
+#article-content .lesson>h3{margin-top:40px;margin-bottom:20px}
+#article-content .lesson>:is(pre,.lesson-scroll,.lesson-note,.lesson-lab,.shared-equation){margin-block:32px}
+#article-content .shared-equation{margin-block:28px}
+#article-content .legacy-content p+p{margin-top:24px}
+#article-content .legacy-content :is(h3,h4)+p{margin-top:16px}
+#article-content .legacy-content :is(.twins,.two-col,.taxonomy,.compare-grid,.takeaways,.roadmap){gap:24px}
+#article-content :is(.card-body,.card-heading,.mini-panel,.takeaway){padding:24px}
+#article-content :is(.section-title,.section-head-row){margin-bottom:28px}
+#article-content .section-head-row .segmented{margin-bottom:0}
+#article-content .matrix-scroll-note{margin-block:20px}
+#article-content .article-section{padding-top:24px}
+#article-content :is(.callout,.diagram,.experiment,.memory-demo,.measurement,.scenario-shell,.hybrid,.details){margin-block:32px}
+#article-content .feature-caption{margin-bottom:24px}
+#article-content .feature-caption+.feature-list{margin-top:0}
+#article-content .lab-toolbar{padding:24px;gap:20px}
+#article-content .lab-title small{margin-top:12px}
+#article-content .lab-foot{padding:24px}
+#article-content .code-pane .compiler-check{margin:20px 16px 28px}
+#article-content .compiler-check{padding:24px;margin-block:32px}
+#article-content .compiler-editor-label{margin-bottom:16px}
+#article-content .compiler-editor-surface{margin-bottom:24px}
+#article-content .compiler-toolbar{gap:20px;flex-wrap:wrap}
+#article-content .compiler-config{margin-top:10px}
+#article-content :is(.compiler-note,.compiler-status){margin-top:20px}
+#article-content .compiler-results{margin-top:28px}
+#article-content .compiler-results h4{margin:24px 0 12px}
+#article-content .compiler-results pre{margin-top:0}
+#article-content .compiler-assembly{margin-top:24px}
+#article-content .compiler-assembly[open]>pre{margin-top:16px}
+#article-content .interactive-lab{padding:28px;margin-block:32px}
+#article-content .interactive-lab canvas+.lab-inputs{margin-top:24px}
+#article-content .lab-inputs{gap:24px}
+#article-content .lesson-controls{gap:24px;margin-block:24px}
+#article-content .lesson-readout{margin-top:24px;padding-top:24px}
+#article-content .lesson figcaption{gap:10px;margin-bottom:18px}
+#article-content .controls{padding:24px;gap:24px}
+#article-content .control-group{margin-bottom:28px}
+#article-content .control-group:last-child{margin-bottom:0}
+#article-content .control-label{gap:12px;margin-bottom:16px}
+#article-content .experiment-caption{padding:20px 24px}
+#article-content .details summary{padding:20px 24px}
+#article-content .details summary .detail-badge{display:table;max-width:100%;white-space:normal;margin:10px 0 0}
+#article-content .detail-body{padding:20px 24px 24px}
+#article-content .detail-body p{margin-block:20px}
+#article-content .source-item{padding-block:20px;gap:14px}
+#article-content .source-item p{margin-top:12px}
+@media(max-width:700px){
+ #article-content .legacy-content :is(.twins,.two-col,.taxonomy,.compare-grid,.takeaways,.roadmap){gap:20px}
+ #article-content :is(.card-body,.card-heading,.mini-panel,.takeaway,.compiler-check,.interactive-lab,.controls){padding:20px}
+ #article-content .paired-article .controls{grid-template-columns:minmax(0,1fr)}
+ #article-content .control-group{margin:0}
+ #article-content .bilingual-section+.bilingual-section{margin-top:44px}
+ #article-content .lesson>h2{margin-top:44px;padding-top:20px}
+ #article-content :is(.lab-toolbar,.lab-foot,.details summary,.experiment-caption){padding:20px}
+ #article-content .detail-body{padding:16px 20px 20px}
+ #article-content .code-pane .compiler-check{margin-inline:12px;padding:16px}
+ #article-content .compiler-actions{gap:16px}
+ #article-content .lesson-controls{gap:20px}
+}
+#article-content .taxonomy-card{padding:24px}
+#article-content .taxonomy-card h3{margin-block:16px}
+#article-content .taxonomy-card .tax-names{margin-block:20px}
+@media(max-width:700px){
+ #article-content .taxonomy-card{display:block;padding:20px}
+ #article-content .lab-inputs label{display:grid;grid-template-columns:minmax(0,1fr) auto;flex-basis:100%;gap:12px}
+ #article-content .lab-inputs label>.i18n{grid-column:1/-1}
+ #article-content .lab-inputs label input{width:100%;min-width:0;min-height:28px}
+}
+/* One formula system: inline mathematics flows with text; displays have a copy toolbar. */
+#article-content .mini-panel{min-width:0}
+#article-content .formula-inline{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hidden;vertical-align:middle;margin:0;padding:0;border:0;background:none;color:inherit;font-size:1em;line-height:inherit}
+#article-content .formula-inline mjx-container{font-size:1.05em}
+#article-content :is(.formula-inline,.formula-scroll) svg{display:inline-block;max-width:none}
+#article-content .formula-block{display:block;position:relative;min-width:0;max-width:100%;margin-block:32px;padding:0;border:1px solid #465345;border-left:3px solid #a6d971;border-radius:10px;background:#151e14;color:#e8eddf;font-size:18px;line-height:1.8;text-align:left;overflow:visible}
+#article-content .formula-tools{display:flex;align-items:center;justify-content:flex-end;gap:16px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid #35422e}
+#article-content .formula-tools .eq-number{position:static;inset:auto;transform:none;flex:0 0 auto;margin:0 auto 0 0;color:#bdc7b5;font:16px/1.6 var(--mono)}
+#article-content .formula-copy{display:inline-flex;justify-content:center;align-items:center;width:44px;height:44px;min-height:44px;padding:10px;border:1px solid #526446;border-radius:6px;background:#24351c;color:#d3efb0;font:16px/1.5 var(--font);white-space:normal}
+#article-content .formula-copy:hover{background:#304724}
+#article-content .formula-scroll{display:block;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;padding:24px;scrollbar-width:thin;text-align:center}
+#article-content .formula-scroll>.math-display{display:block;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit}
+#article-content .formula-scroll mjx-container[display="true"]{display:block;width:max-content;min-width:100%;margin:0;padding:0;font-size:1.15em;text-align:center}
+#article-content .formula-scroll:focus-visible{outline:2px solid var(--lime);outline-offset:-4px}
+#article-content .formula-manual{padding:0 20px 20px}
+#article-content .formula-manual label{display:block;font-size:16px}
+#article-content .formula-manual textarea{display:block;box-sizing:border-box;width:100%;min-width:0;margin-top:12px;padding:12px;border:1px solid #526446;border-radius:6px;background:#10191e;color:#e6edf3;font:16px/1.7 var(--mono);resize:vertical}
+@media(max-width:600px){#article-content .formula-tools{padding:12px 16px}#article-content .formula-scroll{padding:20px 16px}#article-content .formula-manual{padding:0 16px 20px}}
+@media print{#article-content .formula-tools{border:0;padding-bottom:0}#article-content .formula-copy,#article-content .formula-status,#article-content .formula-manual{display:none}#article-content .formula-block{background:white;color:#111;border-color:#aaa;break-inside:avoid}#article-content .formula-scroll{overflow:visible}}
+
+#article-content .formula-copy svg{display:block;width:20px;height:20px;flex:none}
+#article-content .formula-copy .copied-symbol{display:none}
+#article-content .formula-copy[data-copied=true] .copy-symbol{display:none}
+#article-content .formula-copy[data-copied=true] .copied-symbol{display:block}
+
+/* Explicit foreground/background pairs remain legible in imported light-theme demos. */
+#article-content :is(.exp-tabs,.segmented) button{color:#e8eddf;background:#202d1b;border-color:#526446}
+#article-content :is(.exp-tabs,.segmented) button[aria-pressed=true]{color:#17200e;background:#c0f47b;border-color:#c0f47b}
+#article-content .outline-button{color:#e8eddf;background:#202d1b;border-color:#526446}
+#article-content .outline-button:hover{background:#304724}
+
+#article-content :is(.exp-tabs,.segmented) button [data-lang]{color:inherit}

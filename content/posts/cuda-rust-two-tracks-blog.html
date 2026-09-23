@@ -1,0 +1,230 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CUDA Rust: from threads to tiles</title><script type="application/json" id="article-metadata">{
+  "title": "CUDA Rust：从线程到 Tile，理解两条 Kernel 路线",
+  "titleEn": "CUDA Rust: from threads to tiles",
+  "description": "用同一个向量计算理解 SIMT 与 Tile：交互索引、Rust 写入权限、C++ 边界验证，以及真实 GPU 基准测试的测量方法。",
+  "descriptionEn": "One vector operation, two programming models: interactive indexing, Rust write ownership, C++ boundary checks, and a GPU measurement plan.",
+  "date": "2026-09-23",
+  "dateKind": "published",
+  "category": "systems",
+  "tags": [
+    "CUDA",
+    "Rust",
+    "SIMT",
+    "Tile",
+    "GPU performance"
+  ],
+  "featured": 3,
+  "art": "gpu",
+  "updated": "2026-09-23"
+}</script></head><body><div class="lesson cuda-lesson">
+<h2 class="parallel-text" id="section-1"><span class="parallel-en" data-lang="en" lang="en">One calculation, two ways to divide the work</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">同一个计算，两种工作划分</span></h2>
+
+<span id="topic-1" class="lesson-anchor"></span>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Think of a long workbench. SIMT gives each worker an address and the same instruction; Tile hands over a tray of values and lets the compiler organize the workers. The distinction is the unit of programming: a thread’s scalar work versus a computation over a data tile.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">想象一张很长的工作台。SIMT 给每位工人一个地址和同一份指令；Tile 直接交付一盘数据，由编译器组织工人。差别在于编程单位：描述一个线程的标量工作，还是描述整块数据的计算。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">NVIDIA’s September 8, 2026 announcement names these tracks <strong>cuda-oxide</strong> and <strong>cutile-rs</strong>. Both author device kernels in Rust. A Rust host calling a CUDA C++ kernel is a separate integration choice; it is not the definition of these two tracks.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">NVIDIA 在 2026 年 9 月 8 日的介绍中，将这两条路线分别称为 <strong>cuda-oxide</strong> 和 <strong>cutile-rs</strong>。二者都用 Rust 编写设备内核。用 Rust 主机程序调用 CUDA C++ 内核是另一种集成选择，并不是这里“双轨”的含义。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://developer.nvidia.com/blog/introducing-cuda-rust-two-tracks-for-writing-gpu-kernels/">NVIDIA: the two tracks and their early-stage status ↗</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://developer.nvidia.com/blog/introducing-cuda-rust-two-tracks-for-writing-gpu-kernels/">NVIDIA：两条路线及其早期开发状态 ↗</a></span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">We will compute an out-of-place affine vector operation. Inputs and output have N float32 elements in separate buffers. Each result depends only on the two inputs at the same index, making missing work, duplicate writers, and tail handling easy to inspect.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">下面计算一个写入独立输出数组的仿射向量运算。输入和输出分别存储 N 个 float32 元素。每个结果只依赖相同位置的两个输入，便于观察漏算、重复写入和尾部处理。</span></p>
+
+<div class="shared-equation" data-math="z_i=2x_i+y_i,\qquad 0\le i&lt;N"></div>
+
+<h2 class="parallel-text" id="section-2"><span class="parallel-en" data-lang="en" lang="en">Move the boundary; watch the tail</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">移动边界，观察尾部</span></h2>
+
+<span id="topic-2" class="lesson-anchor"></span>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Start with N = 17 and width B = 8. The SIMT model launches three blocks of eight threads; seven threads must skip their stores. The Tile model owns three disjoint intervals. B means threads per block on the left and elements per tile on the right; a tile of eight elements does not imply eight physical threads.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">先看 N = 17、宽度 B = 8。左侧 SIMT 模型启动三个块，每块八个线程，其中七个线程必须跳过写入。右侧 Tile 模型拥有三个互不重叠的区间。B 在左侧表示每块线程数，右侧表示每个 Tile 的元素数；八个元素的 Tile 不代表八个物理线程。</span></p>
+
+<div class="shared-equation" data-math="G=\lceil N/B\rceil,\qquad i=bB+t,\qquad I_b=[bB,\min((b+1)B,N))"></div>
+
+<div class="interactive-lab lesson-lab" id="cuda-map"><div class="lesson-controls"><label for="cuda-n"><span class="parallel-en" data-lang="en" lang="en">Elements N</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">元素数量 N</span><input id="cuda-n" type="range" min="1" max="64" value="17"><output for="cuda-n">17</output></label><label for="cuda-b"><span class="parallel-en" data-lang="en" lang="en">Illustration width B</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">示意宽度 B</span><input id="cuda-b" type="range" min="1" max="4" value="3"><output for="cuda-b">8</output></label></div><div class="lesson-buttons"><button id="cuda-bug" type="button" aria-pressed="false"><span class="parallel-en" data-lang="en" lang="en">Forget the block offset</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">漏掉块偏移</span></button></div><div class="lesson-duo"><figure><figcaption><span class="parallel-en" data-lang="en" lang="en">SIMT · threads and their output addresses</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">SIMT · 线程与输出地址</span></figcaption><div id="cuda-threads" class="cuda-groups"></div></figure><figure><figcaption><span class="parallel-en" data-lang="en" lang="en">Tile · exclusive output intervals</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">Tile · 独占的输出区间</span></figcaption><div id="cuda-tiles" class="cuda-groups"></div></figure></div><div id="cuda-result" class="lesson-readout" role="status" aria-live="polite"></div></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Cells show output indices. “×” marks a guarded-off thread. Enable the broken mapping i = t: multiple blocks now target the first B outputs, while later outputs are never written. This model counts writes sequentially to expose the conflict; a real non-atomic concurrent write is a data race, even if writers happen to calculate the same value.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">格子显示输出索引，“×”表示被边界判断屏蔽的线程。打开错误映射 i = t 后，多个块争写前 B 个输出，后面的输出则无人写入。这里顺序统计写入次数以揭示冲突；真实的非原子并发写入属于数据竞争，即使各线程恰好算出相同的值也一样。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The diagram is an ownership model, not GPU execution or a cuTile tail-policy guarantee. For a concrete Tile kernel, use the documented shape constraints and masked/padded access behavior. A conservative experiment can pad every input and output to G × B, then keep only the first N results.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">示意图展示所有权划分，不运行 GPU，也不承诺 cuTile 的具体尾部行为。实际 Tile 内核需要遵循文档中的形状约束和掩码／填充访问规则。保守的实验方案是把所有输入和输出补齐到 G × B，再只取前 N 个结果。</span></p>
+
+<h2 class="parallel-text" id="section-3"><span class="parallel-en" data-lang="en" lang="en">SIMT: make the writer’s identity explicit</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">SIMT：明确每个写入者的身份</span></h2>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">cuda-oxide uses a custom Rust compiler backend to emit PTX. In its safe indexing API, a mutable output is represented by DisjointSlice, and a thread-derived index witnesses which element the thread may write. A checked launch contract ties that indexing to the host launch geometry.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">cuda-oxide 通过定制 Rust 编译器后端生成 PTX。在其安全索引 API 中，可写输出由 DisjointSlice 表示，来自线程坐标的索引证明该线程可以写入哪个元素。经过检查的启动契约把这种索引方式与主机端启动配置关联起来。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">This device-side example uses a fixed block width of 128 and separate, equally sized input/output buffers. It needs the cuda-oxide project and generated host launcher; it is not a standalone rustc program. GPU compilation and execution of these Rust fragments have not been verified for this article.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">下面的设备端示例固定每块 128 个线程，并要求输入输出数组相互独立且等长。它需要 cuda-oxide 工程和生成的主机启动器，不能当作独立 rustc 程序运行。本文未对这些 Rust 片段进行 GPU 编译和实机运行验证。</span></p>
+
+<pre><code class="language-rust">use cuda_device::{kernel, launch_contract, DisjointSlice};
+
+#[kernel]
+#[launch_contract(domain = 1, block = (128, 1, 1))]
+pub fn affine_threads(
+    samples: &amp;[f32],
+    offsets: &amp;[f32],
+    mut result: DisjointSlice&lt;f32&gt;,
+) {
+    if let Some((slot, position)) = result.get_mut_indexed() {
+        let index = position.get();
+        *slot = 2.0 * samples[index] + offsets[index];
+    }
+}
+</code></pre>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The Option handles threads outside the output. It does not establish that both inputs are long enough. The caller must provide the intended shapes, and checked input accesses still matter. For N = 1024, use eight 128-thread blocks and prepare the launch against this exact kernel’s contract.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">Option 处理落在输出范围之外的线程，但并不能证明两个输入足够长。调用者仍需提供正确的形状，输入的边界检查也仍然重要。N = 1024 时使用八个 128 线程块，并针对这个内核的契约准备启动。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://nvlabs.github.io/cuda-oxide/gpu-safety/the-safety-model.html">cuda-oxide: index witnesses, checked launches and unsafe boundaries ↗</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://nvlabs.github.io/cuda-oxide/gpu-safety/the-safety-model.html">cuda-oxide：索引凭据、启动检查与 unsafe 边界 ↗</a></span></p>
+
+<h2 class="parallel-text" id="section-4"><span class="parallel-en" data-lang="en" lang="en">Tile: make the output partition explicit</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">Tile：明确输出数据的分区</span></h2>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The equivalent Tile body loads matching input tiles and stores one output tile. Broadcasting gives the scalar coefficient the tile’s shape. The host partitions the writable result; the kernel body contains no thread-index calculation. This is a device-module fragment using the documented cuTile API.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">等价的 Tile 内核加载对应输入块，再存储一个输出块。广播操作让标量系数获得与 Tile 相同的形状。主机端负责把可写结果分区，内核中不需要计算线程索引。下面是使用 cuTile 文档 API 编写的设备模块片段。</span></p>
+
+<pre><code class="language-rust">#[cutile::module]
+mod affine_tiles {
+    use cutile::core::*;
+
+    #[cutile::entry()]
+    fn transform&lt;const WIDTH: i32&gt;(
+        result: &amp;mut Tensor&lt;f32, { [WIDTH] }&gt;,
+        samples: &amp;Tensor&lt;f32, { [-1] }&gt;,
+        offsets: &amp;Tensor&lt;f32, { [-1] }&gt;,
+    ) {
+        let gain = (2.0_f32).broadcast(result.shape());
+        let values = samples.load_like(result);
+        let bias = offsets.load_like(result);
+        result.store(gain * values + bias);
+    }
+}
+</code></pre>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For a first experiment, use N = 1024 and partition the output into 128-element tiles: there are eight logical tiles. WIDTH is the tile extent, while −1 denotes a runtime input dimension. The partition supplies the output shape to the generated launcher.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">首次实验可以使用 N = 1024，把输出分成 128 元素的 Tile，得到八个逻辑块。WIDTH 是 Tile 的宽度，−1 表示输入的运行时维度。分区向生成的启动器提供输出形状。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://nvlabs.github.io/cutile-rs/main/tutorials/03-saxpy.html">cuTile tutorial: scalar broadcasting and tile arithmetic ↗</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://nvlabs.github.io/cutile-rs/main/tutorials/03-saxpy.html">cuTile 教程：标量广播与 Tile 运算 ↗</a></span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">cuTile lowers through CUDA Tile IR to GPU code. A new tile shape may trigger a new specialization; constructing an operation is not the same as completing it. Warm the intended specialization and wait for GPU completion before interpreting a duration.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">cuTile 通过 CUDA Tile IR 生成 GPU 代码。新的 Tile 形状可能触发新的特化编译；构造一个操作不等于完成该操作。解读耗时之前，应先预热目标特化版本，并等待 GPU 真正执行完成。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://nvlabs.github.io/cutile-rs/main/guide/jit-compilation.html">cuTile: compilation, specialization and caching ↗</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://nvlabs.github.io/cutile-rs/main/guide/jit-compilation.html">cuTile：编译、特化与缓存 ↗</a></span></p>
+
+<h2 class="parallel-text" id="section-5"><span class="parallel-en" data-lang="en" lang="en">Verify coverage without needing a GPU</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">不依赖 GPU，先验证索引覆盖</span></h2>
+
+<span id="topic-3" class="lesson-anchor"></span>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">This complete C++17 program executes the two mappings on the CPU. It checks the arithmetic against a scalar reference and requires every valid output to have exactly one writer. The last case deliberately removes the block offset. Its failure is expected and detected without invoking undefined behavior. Edit and run it below with Godbolt.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这个完整 C++17 程序在 CPU 上执行两种映射。它把结果与标量参考实现比较，并要求每个有效输出恰好只有一个写入者。最后故意去掉块偏移，程序会检测到预期的错误，而且不触发未定义行为。可以在下方编辑，并通过 Godbolt 运行。</span></p>
+
+<pre><code class="language-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;cstddef&gt;
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;vector&gt;
+
+struct Run {
+    std::vector&lt;float&gt; values;
+    std::vector&lt;unsigned&gt; writes;
+};
+
+Run simulate(std::size_t n, std::size_t width, bool tile, bool broken) {
+    if (width == 0) throw std::invalid_argument(&quot;width must be positive&quot;);
+    Run out{std::vector&lt;float&gt;(n, -1), std::vector&lt;unsigned&gt;(n, 0)};
+    const std::size_t groups = n / width + (n % width != 0);
+    auto write = [&amp;](std::size_t i) {
+        const float x = static_cast&lt;float&gt;(i);
+        const float y = 10.0f - x;
+        out.values.at(i) = 2.0f * x + y;
+        ++out.writes.at(i);
+    };
+    for (std::size_t block = 0; block &lt; groups; ++block) {
+        if (tile) {
+            const auto first = block * width;
+            const auto last = first + std::min(width, n - first);
+            for (auto i = first; i &lt; last; ++i) write(i);
+        } else {
+            for (std::size_t thread = 0; thread &lt; width; ++thread) {
+                const auto i = broken ? thread : block * width + thread;
+                if (i &lt; n) write(i);
+            }
+        }
+    }
+    return out;
+}
+
+bool correct(const Run&amp; out) {
+    for (std::size_t i = 0; i &lt; out.values.size(); ++i)
+        if (out.writes[i] != 1 || out.values[i] != 10.0f + float(i))
+            return false;
+    return true;
+}
+
+int main() {
+    unsigned cases = 0;
+    for (std::size_t n : {0, 1, 7, 8, 9, 17, 31, 32, 33}) {
+        for (std::size_t width : {4, 8, 16}) {
+            const auto scalar = simulate(n, width, false, false);
+            const auto tiled = simulate(n, width, true, false);
+            if (!correct(scalar) || !correct(tiled) || scalar.values != tiled.values)
+                return 1;
+            ++cases;
+        }
+    }
+    const auto bad = simulate(17, 8, false, true);
+    const auto missing = std::count(bad.writes.begin(), bad.writes.end(), 0u);
+    const auto collisions = std::count_if(bad.writes.begin(), bad.writes.end(),
+                                          [](unsigned count) { return count &gt; 1; });
+    std::cout &lt;&lt; &quot;Verified cases: &quot; &lt;&lt; cases &lt;&lt; &#x27;\n&#x27;;
+    std::cout &lt;&lt; &quot;Broken mapping: &quot; &lt;&lt; missing &lt;&lt; &quot; missing, &quot;
+              &lt;&lt; collisions &lt;&lt; &quot; multiply-written outputs\n&quot;;
+    std::cout &lt;&lt; &quot;Expected z[0], z[16]: 10, 26\n&quot;;
+    return correct(bad) || missing != 9 || collisions != 8 ? 1 : 0;
+}
+</code></pre>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Expected output: 27 verified size/width pairs; the broken mapping leaves 9 outputs missing and writes 8 outputs more than once. This checks the indexing model, not GPU concurrency, compiler correctness, or GPU speed.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">预期输出：通过 27 组长度／宽度组合；错误映射导致 9 个输出漏写、8 个输出被重复写入。这验证的是索引模型，不验证 GPU 并发行为、GPU 编译器正确性或 GPU 性能。</span></p>
+
+<h2 class="parallel-text" id="section-6"><span class="parallel-en" data-lang="en" lang="en">A safe program can still compute the wrong answer</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">安全的程序仍然可能算错</span></h2>
+
+<span id="topic-4" class="lesson-anchor"></span>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">There are three separate obligations: access valid memory, give conflicting accesses a valid ordering, and compute the intended mathematics. Rust APIs can encode parts of the first two. They do not prove that the coefficient is 2 rather than 3, that x and y were uploaded in the right order, or that a reduction has acceptable rounding error.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这里有三项独立责任：访问有效内存、为冲突访问建立合法顺序、完成预期数学计算。Rust API 可以把前两项中的部分约束编码进类型系统，但不会证明系数应该是 2 而不是 3、x 与 y 是否按正确顺序上传，或归约的舍入误差是否可以接受。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">A host-side borrow check and device-side write ownership solve different problems. Borrowing one allocation as both an immutable input and mutable output can fail at the host call. Preventing two device threads from writing one location needs the device indexing/partition rules as well. An intentional in-place update needs an API designed to express that ownership.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">主机端借用检查和设备端写入所有权解决不同的问题。把同一分配同时作为不可变输入和可变输出，可能在主机调用处就被拒绝；要防止两个设备线程写同一位置，还需要设备端的索引／分区规则。有意进行原地更新时，应使用能正确表达这种所有权的 API。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">In cuda-oxide, shared-memory cooperation and low-level operations can still require unsafe contracts. In cuTile, safe access checks may be resolved at compilation, moved to launch, or remain in the kernel. “Written in Rust” neither removes every runtime check nor justifies disabling one without a proof.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">在 cuda-oxide 中，共享内存协作和底层操作仍可能需要 unsafe 契约。在 cuTile 中，安全访问检查可能在编译时消除、移到启动阶段，或保留在内核中。“用 Rust 写的”既不代表所有运行时检查都消失，也不能成为未经证明就关闭检查的理由。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://nvlabs.github.io/cutile-rs/main/guide/bounds-check-placement.html">cuTile: where bounds checks actually execute ↗</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://nvlabs.github.io/cutile-rs/main/guide/bounds-check-placement.html">cuTile：边界检查实际在哪里执行 ↗</a></span></p>
+
+<h2 class="parallel-text" id="section-7"><span class="parallel-en" data-lang="en" lang="en">Measure the bottleneck, not the language label</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">测量瓶颈，而不是比较语言标签</span></h2>
+
+<span id="topic-5" class="lesson-anchor"></span>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Our fused float32 operation reads x and y and writes z: 12 useful bytes and two floating-point operations per element, counting a fused multiply-add as two FLOPs. That gives low arithmetic intensity. Large resident vectors often stress memory bandwidth; tiny vectors may instead be dominated by launch overhead.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这个融合的 float32 运算每个元素读取 x、y 并写入 z：有效数据量为 12 字节，浮点运算量为两次，融合乘加按两个 FLOP 计算。算术强度很低。大型常驻 GPU 的向量往往考验内存带宽，小向量则可能主要受启动开销影响。</span></p>
+
+<div class="shared-equation" data-math="I=\frac{2}{12}=\frac16\ \mathrm{FLOP/byte},\qquad BW_{\mathrm{useful}}=\frac{12N}{t\times10^9}\ \mathrm{GB/s}"></div>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For a hypothetical N = 2²⁰ and t = 0.10 ms, the useful bandwidth would be 125.83 GB/s. This is arithmetic, not a measurement from this site. Cache hits, transaction granularity and padding mean useful bytes do not equal measured DRAM traffic.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">假设 N = 2²⁰、耗时 t = 0.10 ms，有效带宽应为 125.83 GB/s。这只是计算示例，不是本站实测数据。缓存命中、事务粒度和填充都会使有效字节量不同于实际 DRAM 流量。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#effective-bandwidth-calculation">NVIDIA: effective bandwidth and GPU timing ↗</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#effective-bandwidth-calculation">NVIDIA：有效带宽与 GPU 计时 ↗</a></span></p>
+
+<ol><li class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Check correctness first: zero length, one element, exact multiples and non-multiples of the block/tile width; compare every result with a CPU reference.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">先验证正确性：零长度、单个元素、块／Tile 宽度的整倍数与非整倍数；逐项与 CPU 参考结果比较。</span></li><li class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Warm compilation and execution separately. Keep allocation and host/device copies outside a kernel-only timer; also report end-to-end time if those costs matter to the application.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">把编译预热与执行预热分开。纯内核计时应排除分配和主机／设备拷贝；若这些成本影响实际应用，还应报告端到端耗时。</span></li><li class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Record GPU events in the measured stream and wait for completion. Repeat runs and publish a median and spread; a CPU timer around an asynchronous enqueue measures a different interval.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">在被测流中记录 GPU 事件并等待完成。重复运行，公布中位数与波动范围；用 CPU 时钟只包住异步提交，测到的是另一个时间区间。</span></li><li class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Keep GPU, driver, input size, dtype, arithmetic policy and transfer policy identical across CUDA C++, cuda-oxide and cuTile. Save compiler versions, repository revisions, block/tile shapes and the checking method.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">比较 CUDA C++、cuda-oxide 与 cuTile 时，保持 GPU、驱动、输入规模、类型、算术策略和数据传输策略一致。记录编译器版本、仓库修订、块／Tile 形状以及校验方法。</span></li></ol>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">One optimization is already visible without a speed claim: splitting the calculation into temporary = 2x and z = temporary + y requires 20 useful bytes per element, versus 12 for fusion. Fusion reduces this model’s traffic by 40%; it does not promise a 40% reduction in elapsed time.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">即使没有性能数据，也能明确一项优化：拆成 temporary = 2x 和 z = temporary + y，每个元素需要 20 个有效字节；融合后只需 12 个。融合让这个模型的数据量减少 40%，但不意味着耗时必然减少 40%。</span></p>
+
+<h2 class="parallel-text" id="section-8"><span class="parallel-en" data-lang="en" lang="en">Choose an experiment you can reproduce</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">选择一个能复现的实验</span></h2>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">As checked on September 23, 2026, both projects describe themselves as early-stage. cuda-oxide requires its pinned nightly and supporting toolchain; cuTile supports stable Rust 1.89+ and has GPU/Tile IR compatibility requirements. Follow the selected repository revision’s setup instructions and retain its lockfile; do not assume every Rust crate or CUDA feature works on the device.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">截至 2026 年 9 月 23 日核对时，两个项目都将自己定位为早期项目。cuda-oxide 需要其固定的 nightly 及配套工具链；cuTile 支持 stable Rust 1.89+，并对 GPU／Tile IR 兼容性有要求。应遵循所选仓库修订的安装说明并保留锁文件，不要假定所有 Rust crate 或 CUDA 功能都能在设备上使用。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://nvlabs.github.io/cuda-oxide/getting-started/installation.html">cuda-oxide installation and toolchain requirements ↗</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://nvlabs.github.io/cuda-oxide/getting-started/installation.html">cuda-oxide 安装与工具链要求 ↗</a></span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://github.com/NVlabs/cutile-rs#setup">cuTile setup and architecture compatibility ↗</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://github.com/NVlabs/cutile-rs#setup">cuTile 环境与架构兼容性 ↗</a></span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For this affine operation, my starting choice would be Tile because the work naturally partitions into independent contiguous outputs. I would investigate SIMT when the experiment requires explicit lane behavior or hardware-level cooperation. That is a workload-based starting hypothesis, to be revised after correctness checks and profiling.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">对于本文的仿射运算，我会先尝试 Tile，因为工作天然可以划分成连续且独立的输出块；如果实验需要显式控制线程通道行为或硬件级协作，则研究 SIMT。这是基于工作负载的初步判断，最终仍需由正确性检查和 profiling 修正。</span></p>
+
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The useful next result is a reproducible record: source revision, build command, input shape, correctness error, cold-start cost and warm kernel duration. Until that exists, there is no measured basis here for declaring either Rust route faster than CUDA C++.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">下一步真正有价值的成果是一份可复现记录：源代码修订、构建命令、输入形状、正确性误差、冷启动开销和预热后的内核耗时。在这些证据出现之前，本文没有实测依据宣称任何 Rust 路线比 CUDA C++ 更快。</span></p>
+
+</div>
+<script>
+(() => {
+ const root=document.querySelector('#cuda-map'),get=id=>document.getElementById(id);
+ const pair=(en,zh)=>`<span class="i18n"><span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span></span>`;
+ let broken=false;
+ function update(){
+  const n=Number(get('cuda-n').value),b=2**Number(get('cuda-b').value),groups=Math.ceil(n/b),writes=Array(n).fill(0);
+  root.querySelector('output[for="cuda-n"]').value=n;root.querySelector('output[for="cuda-b"]').value=b;
+  get('cuda-threads').innerHTML=Array.from({length:groups},(_,block)=>{
+   const cells=Array.from({length:b},(_,t)=>{const i=broken?t:block*b+t;if(i<n)writes[i]++;return `<span class="cuda-cell ${i<n?'':'cuda-masked'}">${i<n?i:'×'}</span>`;}).join('');
+   return `<div class="cuda-group"><strong>${pair('Block '+block,'块 '+block)}</strong><div class="cuda-cells">${cells}</div></div>`;
+  }).join('');
+  get('cuda-tiles').innerHTML=Array.from({length:groups},(_,k)=>`<div class="cuda-group"><strong>${pair('Tile '+k,'数据块 '+k)}</strong><span class="cuda-interval">[${k*b}, ${Math.min((k+1)*b,n)})</span><span>${pair(Math.min(b,n-k*b)+' valid elements',Math.min(b,n-k*b)+' 个有效元素')}</span></div>`).join('');
+  const missing=writes.filter(x=>!x).length,collisions=writes.filter(x=>x>1).length;
+  root.dataset.broken=broken;get('cuda-result').innerHTML=pair(`SIMT: ${groups*b} threads; ${broken?'i = t':'i = bB + t'}. Missing outputs: ${missing}; multiply-written outputs: ${collisions}. Tile: ${groups} disjoint intervals; ${groups*b-n} padding positions in a padded implementation.`,`SIMT：${groups*b} 个线程；${broken?'i = t':'i = bB + t'}。漏写输出：${missing}；重复写入的输出：${collisions}。Tile：${groups} 个互斥区间；补齐实现需要 ${groups*b-n} 个填充位置。`);
+ }
+ root.querySelectorAll('input').forEach(input=>input.addEventListener('input',update));get('cuda-bug').addEventListener('click',()=>{broken=!broken;get('cuda-bug').setAttribute('aria-pressed',broken);update();});update();
+})();
+</script></body></html>

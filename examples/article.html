@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A visual note: vectors, formulas, and code</title>
+  <!-- Set date to the first push date; later revisions keep date and may add updated.
+       date 使用首次推送日期；后续更新保留 date，可添加 updated。 -->
+  <script type="application/json" id="article-metadata">
+  {
+    "titleEn": "A visual note: vectors, formulas, and code",
+    "title": "可视化笔记：向量、公式与代码",
+    "descriptionEn": "A reusable bilingual article template with AMS mathematics, C++ code, and a shared experiment.",
+    "description": "可复用的双语文章模板，包含 AMS 公式、C++ 代码与共用交互实验。",
+    "date": "2026-09-23",
+    "category": "math",
+    "tags": ["Algebra", "C++"],
+    "art": "math"
+  }
+  </script>
+</head>
+<body>
+<!-- Copy this file into content/posts/ under a unique name, then run npm run build.
+     将本文件以唯一文件名复制到 content/posts/，再运行 npm run build。
+     Shared CSS, syntax highlighting, math rendering, and compiler controls are added by the site.
+     站点会自动添加共用样式、语法高亮、公式排版和编译控件；无需复制生成后的 DOM。 -->
+<div class="lesson">
+  <!-- Count logical h2 sections from 1, including an overview; paired English/Chinese headings count once. Contents, chapter badges,
+       and equation prefixes must use the same sequence; do not introduce a chapter 0.
+       所有逻辑章节（含概览）从 1 开始，中英文标题成对计为一章；目录、章节标记与公式前缀使用同一序列，不设第 0 章。 -->
+  <h2 class="parallel-text" id="writing">
+    <span lang="en" data-lang="en">One article, two languages</span>
+    <span lang="zh-CN" data-lang="zh">一篇文章，两种语言</span>
+  </h2>
+  <p class="parallel-text">
+    <span lang="en" data-lang="en">Keep each English paragraph immediately before its Chinese translation. Use paired h2 and h3 headings to generate the contents automatically. Share code, display equations, tables, and experiments once; put bilingual labels inside them.</span>
+    <span lang="zh-CN" data-lang="zh">每段英文后紧接对应中文。使用成对的 h2 和 h3 标题，目录会自动生成。代码、独立公式、表格和交互实验只保留一份，在内部放置双语标签。</span>
+  </p>
+  <aside class="lesson-note">
+    <p class="parallel-text">
+      <span lang="en" data-lang="en">Reuse the site’s typography and spacing: 18px body text, 16px code and control text, and generous gaps between blocks. Use lesson-note for explanations and lesson-scroll for wide tables. Do not shrink important explanations to fit.</span>
+      <span lang="zh-CN" data-lang="zh">复用站点字号与间距：正文 18px，代码和控件文字 16px，块之间留足空隙。说明使用 lesson-note，宽表格使用 lesson-scroll。不要为了塞下内容而缩小重要说明。</span>
+    </p>
+  </aside>
+
+  <h2 class="parallel-text" id="math">
+    <span lang="en" data-lang="en">Inline and display mathematics</span>
+    <span lang="zh-CN" data-lang="zh">行内与独立公式</span>
+  </h2>
+  <p class="parallel-text">
+    <span lang="en" data-lang="en">For a vector <span data-math="x\in\mathbb{R}^2" data-display="inline"></span>, the squared length is the sum of its squared coordinates.</span>
+    <span lang="zh-CN" data-lang="zh">对于向量 <span data-math="x\in\mathbb{R}^2" data-display="inline"></span>，长度的平方等于各坐标的平方之和。</span>
+  </p>
+  <!-- Inline: span + data-display="inline". Display: div + data-math, outside data-lang.
+       行内：span 加 data-display="inline"。独立：div 加 data-math，放在 data-lang 之外。
+       Write literal TeX backslashes; escape & as &amp; and < as &lt; in HTML attributes.
+       TeX 反斜杠直接书写；HTML 属性中的 & 和 < 分别转义为 &amp; 和 &lt;。 -->
+  <div class="shared-equation" id="eq-length" data-math="\begin{aligned} \lVert x\rVert_2^2 &amp;= x_1^2+x_2^2 \\ \lVert (2,3)\rVert_2^2 &amp;= 4+9=13 \end{aligned}"></div>
+  <p class="parallel-text">
+    <span lang="en" data-lang="en">MathJax with AMS renders formulas during the build. Each display block gets an automatic number and one copy icon; clicking it copies the original LaTeX. Inline formulas have neither. Long equations scroll inside their block. Do not add dollar delimiters, usepackage commands, or hand-built copy buttons.</span>
+    <span lang="zh-CN" data-lang="zh">构建时使用 MathJax 的 AMS 扩展排版。每个独立公式块自动编号，并显示一个复制图标，点击即可复制原始 LaTeX。行内公式不编号、不加按钮。长公式在块内滚动。不要添加美元分隔符、usepackage 命令或手写复制按钮。</span>
+  </p>
+  <p class="parallel-text">
+    <span lang="en" data-lang="en">Use aligned for a multi-line derivation, pmatrix for a matrix, and cases for a piecewise definition. Use automatic numbering for the entire article; do not mix in hand-written eq-number labels. Automatic numbers follow the h2 section and equation order (1.1, 1.2, 2.1), matching spike_notes; a multi-line derivation in one block shares one number.</span>
+    <span lang="zh-CN" data-lang="zh">多行推导使用 aligned，矩阵使用 pmatrix，分段定义使用 cases。整篇文章统一使用自动编号，不要混入手写的 eq-number 标签。自动编号按 h2 章节和公式顺序生成（1.1、1.2、2.1），与 spike_notes 一致；同一块中的多行推导共用一个编号。</span>
+  </p>
+  <div class="shared-equation" data-math="x=\begin{pmatrix}2\\3\end{pmatrix},\qquad x^\mathsf{T}x=13"></div>
+  <div class="shared-equation" data-math="s(t)=\begin{cases}0 &amp; t&lt;0\\t^2 &amp; t\ge 0\end{cases}"></div>
+
+  <h2 class="parallel-text" id="code">
+    <span lang="en" data-lang="en">Code with syntax colors</span>
+    <span lang="zh-CN" data-lang="zh">带语法配色的代码</span>
+  </h2>
+  <p class="parallel-text">
+    <span lang="en" data-lang="en">Use pre and code with class language-cpp for a C++ fragment. The site adds syntax colors. Escape HTML characters in code, but do not insert highlighting spans or wrap the same code in two language versions.</span>
+    <span lang="zh-CN" data-lang="zh">C++ 片段使用 pre 和带 language-cpp 类的 code，站点会自动配色。代码中的 HTML 特殊字符需要转义，但不要插入高亮用的 span，也不要为中英文重复放置同一段代码。</span>
+  </p>
+  <pre><code class="language-cpp">double squared_length(double x, double y) {
+    return x * x + y * y;
+}</code></pre>
+  <h3 class="parallel-text" id="runnable-code">
+    <span lang="en" data-lang="en">A complete editable program</span>
+    <span lang="zh-CN" data-lang="zh">可编辑的完整程序</span>
+  </h3>
+  <p class="parallel-text">
+    <span lang="en" data-lang="en">Add data-godbolt="c++" only to a complete program supported by the configured compiler. Readers can edit, reset, compile, and run it here. Diagnostics, stdout, and stderr appear separately. This example prints 13; it makes no performance claim.</span>
+    <span lang="zh-CN" data-lang="zh">只有当前配置的编译器支持的完整程序才添加 data-godbolt="c++"。读者可以在文内修改、重置、编译和运行，编译诊断、标准输出与标准错误会分别展示。本例输出 13，不代表性能测试结果。</span>
+  </p>
+  <pre><code class="language-cpp" data-godbolt="c++">#include &lt;array&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    const std::array&lt;double, 2&gt; x{2.0, 3.0};
+    double squared_length = 0.0;
+    for (const double value : x) {
+        squared_length += value * value;
+    }
+    std::cout &lt;&lt; squared_length &lt;&lt; '\n';
+    return squared_length == 13.0 ? 0 : 1;
+}</code></pre>
+
+  <h2 class="parallel-text" id="experiment">
+    <span lang="en" data-lang="en">One shared interactive figure</span>
+    <span lang="zh-CN" data-lang="zh">一个共用的交互图</span>
+  </h2>
+  <p class="parallel-text">
+    <span lang="en" data-lang="en">Move the horizontal coordinate while keeping the vertical coordinate at 3. The vector and squared length update together. Both languages use the same controls and state.</span>
+    <span lang="zh-CN" data-lang="zh">保持纵坐标为 3，调整横坐标，向量与长度平方会同步更新。两种语言使用同一组控件和状态。</span>
+  </p>
+  <div class="interactive-lab lesson-lab" id="example-vector-lab">
+    <div class="lesson-controls">
+      <label for="example-vector-x">
+        <span lang="en" data-lang="en">Horizontal coordinate</span>
+        <span lang="zh-CN" data-lang="zh">横坐标</span>
+        <input id="example-vector-x" type="range" min="0" max="5" step="1" value="2">
+        <output for="example-vector-x" id="example-vector-value">2</output>
+      </label>
+    </div>
+    <figure>
+      <figcaption>
+        <span lang="en" data-lang="en">Vector from the origin to (x, 3)</span>
+        <span lang="zh-CN" data-lang="zh">从原点指向 (x, 3) 的向量</span>
+      </figcaption>
+      <svg class="lesson-plot" viewBox="0 0 320 240" aria-hidden="true">
+        <path d="M40 20V200H300" fill="none" stroke="#a2b1b9" stroke-width="2"></path>
+        <text x="20" y="222" fill="currentColor" font-size="16">0</text>
+        <text x="284" y="222" fill="currentColor" font-size="16">x</text>
+        <text x="16" y="24" fill="currentColor" font-size="16">y</text>
+        <path id="example-vector-guide" d="M140 200V50H40" fill="none" stroke="#66894d" stroke-dasharray="5 5"></path>
+        <path id="example-vector-line" d="M40 200L140 50" fill="none" stroke="#c0f47b" stroke-width="4"></path>
+        <circle id="example-vector-tip" cx="140" cy="50" r="6" fill="#c0f47b"></circle>
+      </svg>
+    </figure>
+    <div class="lesson-readout" role="status" aria-live="polite" aria-atomic="true">
+      <span class="i18n">
+        <span lang="en" data-lang="en">Vector: (<span data-example-x>2</span>, 3). Squared length: <strong data-example-result>13</strong>.</span>
+        <span lang="zh-CN" data-lang="zh">向量：(<span data-example-x>2</span>, 3)。长度平方：<strong data-example-result>13</strong>。</span>
+      </span>
+    </div>
+  </div>
+
+  <h2 class="parallel-text" id="results">
+    <span lang="en" data-lang="en">Tables and supporting explanations</span>
+    <span lang="zh-CN" data-lang="zh">表格与补充说明</span>
+  </h2>
+  <div class="lesson-scroll" tabindex="0" role="region" aria-labelledby="results">
+    <table>
+      <thead><tr>
+        <th scope="col"><span class="i18n"><span lang="en" data-lang="en">Vector</span><span lang="zh-CN" data-lang="zh">向量</span></span></th>
+        <th scope="col"><span class="i18n"><span lang="en" data-lang="en">Squared length</span><span lang="zh-CN" data-lang="zh">长度平方</span></span></th>
+      </tr></thead>
+      <tbody><tr><td>(0, 3)</td><td>9</td></tr><tr><td>(2, 3)</td><td>13</td></tr><tr><td>(5, 3)</td><td>34</td></tr></tbody>
+    </table>
+  </div>
+  <aside class="lesson-note">
+    <p class="parallel-text">
+      <span lang="en" data-lang="en">These are exact values for the selected inputs, not benchmark measurements. A performance article should also state the hardware, compiler, flags, input sizes, warm-up, repetitions, and variability.</span>
+      <span lang="zh-CN" data-lang="zh">这些是指定输入的精确结果，并非基准测试测量值。性能文章还应注明硬件、编译器、编译选项、输入规模、预热、重复次数和波动情况。</span>
+    </p>
+  </aside>
+</div>
+<script>
+(() => {
+  // Scope selectors and use unique IDs so multiple experiments can coexist.
+  // 限定选择器范围并使用唯一 ID，让多个实验可以共存。
+  const root = document.getElementById('example-vector-lab');
+  const slider = root.querySelector('input');
+  function update() {
+    const x = Number(slider.value), px = 40 + x * 50;
+    root.querySelector('output').value = String(x);
+    root.querySelectorAll('[data-example-x]').forEach(node => node.textContent = String(x));
+    root.querySelectorAll('[data-example-result]').forEach(node => node.textContent = String(x * x + 9));
+    root.querySelector('#example-vector-line').setAttribute('d', `M40 200L${px} 50`);
+    root.querySelector('#example-vector-guide').setAttribute('d', `M${px} 200V50H40`);
+    root.querySelector('#example-vector-tip').setAttribute('cx', String(px));
+  }
+  slider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

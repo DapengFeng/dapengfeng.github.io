@@ -1,8 +1,7 @@
-_site/
-.sass-cache/
-.jekyll-metadata
-alembic-jekyll-theme-*.gem
-Gemfile.lock
-**/Gemfile.lock
+node_modules/
+dist/
+test-results/
+.playwright/
 .vscode/
-log/
+*.log
+.DS_Store

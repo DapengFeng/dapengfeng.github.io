@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fast Matrix–Vector Products</title>
+<script type="application/json" id="article-metadata">
+{
+  "title": "快速矩阵向量乘法",
+  "titleEn": "Fast Matrix–Vector Products",
+  "description": "从八点频谱看懂蝶形分解，用可运行 C++ 对照直接 DFT，理解 FFT 的速度、误差和适用边界。",
+  "descriptionEn": "Explore an eight-point spectrum, unpack the FFT butterfly, and verify C++ FFT results against a direct DFT.",
+  "date": "2019-01-12",
+  "dateKind": "published",
+  "category": "math",
+  "tags": [
+    "FFT",
+    "线性代数"
+  ],
+  "art": "wave",
+  "updated": "2026-09-23"
+}
+</script>
+</head><body>
+<div class="lesson">
+<span id="topic-1" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-1"><span class="parallel-en" data-lang="en" lang="en">A frequency is a question you ask the signal</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">频率，是向信号提出的一个问题</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Suppose eight sensors record a repeating motion. The DFT asks how strongly those eight numbers match each of eight rotating patterns. Every output is a weighted sum of the same input samples. FFT is a way to reuse those sums; it computes the same transform, not an approximation with fewer frequencies.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">假设八个采样点记录了一段周期运动。DFT 会询问：这八个数分别与八种旋转模式有多匹配？每个输出都是对同一组输入做加权求和。FFT 通过复用这些求和来加速，计算的仍然是同一个变换，不是少看几个频率的近似。</span></p>
+<div class="shared-equation" data-math="X_k=\sum_{j=0}^{n-1}x_j e^{-2\pi\mathrm{i}jk/n},\qquad k=0,\ldots,n-1"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Here i is the imaginary unit, the forward transform uses a negative exponent, and there is no 1/n factor. The inverse uses the opposite sign and divides by n. Fix these conventions before comparing implementations: a sign or normalization mismatch can look like an algorithm bug.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这里 i 是虚数单位，正向变换采用负指数，不带 1/n 因子。逆变换采用相反符号并除以 n。比较两个实现前，要先对齐这些约定，否则符号或归一化差异会被误判成算法错误。</span></p>
+<h2 class="parallel-text" id="fft-lab-title"><span class="parallel-en" data-lang="en" lang="en">Change the signal, watch the spectrum</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">换一种信号，看频谱如何变化</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Choose an eight-sample signal. The table shows the signed samples; the bars show unnormalized magnitudes |Xₖ|. Frequency k represents k/8 cycles per sample. The browser computes this tiny display with the direct DFT so it can serve as a transparent reference for the FFT code below.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">选择一组八点信号。表格显示带正负号的采样值，柱状图显示未归一化的幅值 |Xₖ|。第 k 个频率对应每个采样间隔 k/8 个周期。浏览器用直接 DFT 计算这个小图，便于对照下方 FFT 代码。</span></p>
+<div class="interactive-lab lesson-lab" id="fft-lab"><div class="lesson-buttons"><button type="button" id="fft-impulse" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">Impulse</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">单位脉冲</span></button><button type="button" id="fft-constant" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">Constant</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">常量</span></button><button type="button" id="fft-alternating" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">Alternating</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">正负交替</span></button><button type="button" id="fft-sine" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">Sine</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">正弦</span></button></div><div class="lesson-controls"><label for="fft-bin"><span class="parallel-en" data-lang="en" lang="en">Sine frequency bin</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">正弦频率索引</span><input id="fft-bin" type="range" min="1" max="3" value="1" step="1"><output for="fft-bin">1</output></label></div><div id="fft-input" class="lesson-scroll" tabindex="0" role="region" aria-label="Scrollable data table / 可横向滚动的数据表格"></div><figure><figcaption><span class="parallel-en" data-lang="en" lang="en">Magnitude spectrum · shared numerical results</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">幅度谱 · 中英文共用同一组结果</span></figcaption><div id="fft-spectrum" class="lesson-bars"></div></figure><div id="fft-result" class="lesson-readout" role="status" aria-live="polite"></div></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">An impulse at j = 0 contributes 1 to every frequency. A constant signal adds coherently only at k = 0, giving 8. Alternating +1 and −1 concentrates at k = 4. A unit sine at bin 1 gives magnitudes 4 at bins 1 and 7: the second peak is its negative-frequency partner, not a second unrelated oscillation.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">j = 0 处的单位脉冲对每个频率都贡献 1。常量信号只在 k = 0 同相累加，得到 8。正负交替的信号集中在 k = 4。索引为 1 的单位正弦，在 1 和 7 处各有幅值 4：后者是负频率伙伴，不是另一个无关振动。</span></p>
+<h2 class="parallel-text" id="split"><span class="parallel-en" data-lang="en" lang="en">Split even and odd positions</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">把偶数位置和奇数位置分开</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Let n = 2m. Group the terms whose input index is 2r and those whose index is 2r+1. The even-index sum becomes an m-point DFT, as does the odd-index sum. Denote them E and O. One rotation of O can be reused to produce two outputs.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">令 n = 2m，把输入索引为 2r 和 2r+1 的项分组。偶数位置的求和变成 m 点 DFT，奇数位置也一样，分别记为 E 和 O。把 O 旋转一次，就能同时得到两个输出。</span></p>
+<div class="shared-equation" data-math="\omega_n=e^{-2\pi\mathrm{i}/n},\quad E_k=\sum_{r=0}^{m-1}x_{2r}\omega_m^{rk},\quad O_k=\sum_{r=0}^{m-1}x_{2r+1}\omega_m^{rk}"></div>
+<div class="shared-equation" data-math="X_k=E_k+\omega_n^k O_k,\qquad X_{k+m}=E_k-\omega_n^k O_k,\quad 0\le k&lt;m"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Why does the lower output use a minus sign? Because ωₙᵐ = −1, so increasing the output index by m flips the odd contribution and leaves the even contribution unchanged. This two-input, two-output pattern is the butterfly.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">为什么后一半要用减号？因为 ωₙᵐ = −1，输出索引增加 m 后，奇数位置的贡献翻转符号，偶数位置的贡献不变。这个两路输入、两路输出的组合就是蝶形运算。</span></p>
+<div class="lesson-butterfly"><div><code>Eₖ</code><span>＋ t</span><strong>Xₖ</strong></div><div><code>Oₖ → t = ωₙᵏOₖ</code><span> Eₖ − t</span><strong>Xₖ₊ₘ</strong></div></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For x = [1,2,3,4], the even part [1,3] transforms to [4,−2] and the odd part [2,4] to [6,−2]. With twiddles [1,−i], merging gives [10,−2+2i,−2,−2−2i]. Check this four-point case by hand before thinking about thousands of samples.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">取 x = [1,2,3,4]，偶数位置 [1,3] 的变换为 [4,−2]，奇数位置 [2,4] 为 [6,−2]。乘上旋转因子 [1,−i] 再合并，得到 [10,−2+2i,−2,−2−2i]。先手算通这个四点例子，再考虑成千上万个采样点。</span></p>
+<h2 class="parallel-text" id="complexity"><span class="parallel-en" data-lang="en" lang="en">Where the speedup comes from</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">加速来自哪里？</span></h2>
+<div class="shared-equation" data-math="T(n)=2T(n/2)+O(n)=O(n\log_2 n)"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">At every level, the total merge work is linear in n, and there are log₂n levels. For n = 1024, direct evaluation has 1,048,576 input–frequency terms; radix-2 merging has 5,120 butterflies. These are different kinds of work, so their ratio is not a measured speedup or an exact FLOP ratio.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">每一层的合并总工作量与 n 成正比，共有 log₂n 层。n = 1024 时，直接求和有 1,048,576 个输入与频率的配对项；基 2 合并共有 5,120 个蝶形。两种计数单位不同，因此它们的比值既不是实测加速比，也不是精确的 FLOP 比值。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">This recursive version splits and allocates temporary vectors to make the idea visible. It uses O(n) peak auxiliary storage, but allocates and copies across recursion levels. Iterative implementations can work in place after a suitable permutation; tuned libraries also plan transform decompositions and memory access.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这个递归版本通过拆分与临时向量把结构写清楚，峰值辅助空间为 O(n)，但会跨递归层分配和复制。迭代实现可以在适当重排后原地计算；经过调优的库还会规划变换分解方式和访存过程。</span></p>
+<h2 class="parallel-text" id="cpp"><span class="parallel-en" data-lang="en" lang="en">Run FFT against a direct DFT</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">用直接 DFT 校验 FFT</span></h2>
+<pre><code class="language-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+#include &lt;complex&gt;
+#include &lt;iomanip&gt;
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;vector&gt;
+using C = std::complex&lt;double&gt;;
+using Signal = std::vector&lt;C&gt;;
+const double pi=std::acos(-1.0);
+
+// Forward transform: negative exponent, no normalization.
+Signal radix2(const Signal&amp; x) {
+    const std::size_t n=x.size();
+    if (n==0 || (n&amp;(n-1))!=0)
+        throw std::invalid_argument(&quot;size must be a positive power of two&quot;);
+    if (n==1) return x;
+    Signal even(n/2),odd(n/2),y(n);
+    for (std::size_t j=0;j&lt;n/2;++j) {even[j]=x[2*j];odd[j]=x[2*j+1];}
+    auto e=radix2(even),o=radix2(odd);
+    for (std::size_t k=0;k&lt;n/2;++k) {
+        const C t=std::polar(1.0,-2*pi*double(k)/double(n))*o[k];
+        y[k]=e[k]+t;
+        y[k+n/2]=e[k]-t;
+    }
+    return y;
+}
+Signal direct_dft(const Signal&amp; x) {
+    Signal y(x.size());
+    for (std::size_t k=0;k&lt;x.size();++k)
+        for (std::size_t j=0;j&lt;x.size();++j)
+            y[k]+=x[j]*std::polar(1.0,-2*pi*double(j)*double(k)/double(x.size()));
+    return y;
+}
+Signal inverse_fft(Signal y) {
+    for (auto&amp; v:y) v=std::conj(v);
+    y=radix2(y);
+    for (auto&amp; v:y) v=std::conj(v)/double(y.size());
+    return y;
+}
+double error(const Signal&amp; a,const Signal&amp; b) {
+    double result=0;
+    for (std::size_t i=0;i&lt;a.size();++i) result=std::max(result,std::abs(a[i]-b[i]));
+    return result;
+}
+int main() {
+    Signal x(8);
+    for (std::size_t j=0;j&lt;x.size();++j) x[j]=std::sin(2*pi*double(j)/8);
+    auto y=radix2(x);
+    std::cout &lt;&lt; std::fixed &lt;&lt; std::setprecision(3) &lt;&lt; &quot;magnitudes:&quot;;
+    for (auto v:y) std::cout &lt;&lt; &#x27; &#x27; &lt;&lt; std::abs(v);
+    std::cout &lt;&lt; &#x27;\n&#x27;;
+    double dft_error=0,roundtrip_error=0;
+    for (int n : {1,2,4,8,16,32}) {
+        Signal input(n);
+        for (int j=0;j&lt;n;++j) input[j]=C(std::sin(0.7*j),std::cos(0.3*j));
+        auto result=radix2(input);
+        dft_error=std::max(dft_error,error(result,direct_dft(input)));
+        roundtrip_error=std::max(roundtrip_error,error(input,inverse_fft(result)));
+    }
+    bool rejected=false;
+    try {radix2(Signal(3));} catch(const std::invalid_argument&amp;) {rejected=true;}
+    std::cout &lt;&lt; std::scientific &lt;&lt; &quot;DFT error=&quot; &lt;&lt; dft_error
+              &lt;&lt; &quot; roundtrip error=&quot; &lt;&lt; roundtrip_error
+              &lt;&lt; &quot; rejected size 3=&quot; &lt;&lt; rejected &lt;&lt; &#x27;\n&#x27;;
+    return dft_error&lt;1e-10 &amp;&amp; roundtrip_error&lt;1e-10 &amp;&amp; rejected ? 0 : 1;
+}
+</code></pre>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The program compares both methods for six power-of-two sizes, checks an inverse round trip, and rejects size 3. The sine example should have magnitudes [0,4,0,0,0,0,0,4], up to rounding. Small nonzero errors are expected with floating-point complex arithmetic.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">程序对六种 2 的幂次长度比较两种算法，检查正逆变换往返，并拒绝长度 3。正弦示例的幅值应接近 [0,4,0,0,0,0,0,4]，允许舍入误差。浮点复数运算产生很小的非零误差是正常现象。</span></p>
+<h2 class="parallel-text" id="limits"><span class="parallel-en" data-lang="en" lang="en">Read the picture without overclaiming</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">读懂图，也要读懂边界</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Radix-2 requires a positive power-of-two length; FFT as a family does not. Zero-padding a length-6 signal to length 8 changes the sampled frequency grid: it is not the original six-point DFT. A frequency between bins spreads energy across bins because a finite observation window generally cuts an incomplete number of periods.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">基 2 算法要求长度是正的 2 的幂，但 FFT 这一算法家族并不限于此。把六点信号补零到八点，会改变频率采样网格，不等于原来的六点 DFT。若频率落在两个网格点之间，有限观测窗通常截不到整数个周期，能量就会散布到多个频率点。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Magnitude also discards phase. Two spectra with the same bar heights can reconstruct different time signals. Try changing the C++ input to a shifted impulse: magnitudes remain one, while the complex phases rotate.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">幅值还丢掉了相位信息。柱子一样高的两组频谱，也可能重建出不同的时域信号。可以把 C++ 输入改为平移后的单位脉冲：幅值仍全为一，复数相位却会旋转。</span></p>
+<h2 class="parallel-text" id="references"><span class="parallel-en" data-lang="en" lang="en">Read further</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">继续阅读</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://www.fftw.org/fftw3_doc/The-1d-Discrete-Fourier-Transform-_0028DFT_0029.html">FFTW: transform sign, normalization, and frequency ordering</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://www.fftw.org/fftw3_doc/The-1d-Discrete-Fourier-Transform-_0028DFT_0029.html">FFTW：变换符号、归一化和频率排列</a></span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="/blog/waves-and-phase.html">Explore phase with a shared wave experiment</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="/blog/waves-and-phase.html">用波动实验继续理解相位</a></span></p>
+</div>
+<script>
+(()=>{
+
+const root=document.querySelector('.lesson');
+const $=id=>document.getElementById(id);
+const pair=(en,zh)=>`<span class="i18n"><span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span></span>`;
+function table(rows,active=()=>false){return '<table class="lesson-matrix"><tbody>'+rows.map((row,i)=>'<tr>'+row.map((v,j)=>`<td class="${active(i,j)?'selected':''}">${v}</td>`).join('')+'</tr>').join('')+'</tbody></table>';}
+function sliders(update){root.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{input.nextElementSibling.value=input.value;update();}));}
+
+let signal='sine';
+function update(){const n=8,k=+$('fft-bin').value,x=Array.from({length:n},(_,j)=>signal==='impulse'?(j===0?1:0):signal==='constant'?1:signal==='alternating'?(j%2?-1:1):Math.sin(2*Math.PI*k*j/n));
+ $('fft-bin').disabled=signal!=='sine';for(const type of ['impulse','constant','alternating','sine'])$('fft-'+type).setAttribute('aria-pressed',String(type===signal));
+ const magnitudes=Array.from({length:n},(_,bin)=>{let re=0,im=0;for(let j=0;j<n;j++){const angle=-2*Math.PI*bin*j/n;re+=x[j]*Math.cos(angle);im+=x[j]*Math.sin(angle);}return Math.hypot(re,im);});
+ const clean=v=>Math.abs(v)<1e-10?0:v;
+ $('fft-input').innerHTML=table([['j',...x.map((_,j)=>j)],['xⱼ',...x.map(v=>clean(v).toFixed(2))]]);
+ $('fft-spectrum').innerHTML=magnitudes.map((v,k)=>`<div class="lesson-bar"><strong>${clean(v).toFixed(1)}</strong><div class="lesson-bar-track"><span style="height:${v/8*100}%"></span></div><span>k=${k}</span></div>`).join('');
+ $('fft-result').innerHTML=pair('Unnormalized |X|: ','未归一化 |X|：')+magnitudes.map(v=>clean(v).toFixed(2)).join(', ');
+}for(const type of ['impulse','constant','alternating','sine'])$('fft-'+type).addEventListener('click',()=>{signal=type;update();});sliders(update);update();
+
+})();
+</script>
+</body></html>

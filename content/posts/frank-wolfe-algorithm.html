@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Frank–Wolfe Algorithm</title>
+<script type="application/json" id="article-metadata">
+{
+  "title": "Frank–Wolfe 条件梯度法",
+  "titleEn": "Frank–Wolfe Algorithm",
+  "description": "在三角形可行域中逐步观察优化路径，推导停止证书，并运行带校验的 C++ Frank–Wolfe 实现。",
+  "descriptionEn": "Walk through a constrained optimization path, derive a stopping certificate, and run checked C++ Frank–Wolfe steps.",
+  "date": "2019-01-04",
+  "dateKind": "published",
+  "category": "math",
+  "tags": [
+    "凸优化",
+    "Frank–Wolfe"
+  ],
+  "art": "math",
+  "updated": "2026-09-23"
+}
+</script>
+</head><body>
+<div class="lesson">
+<span id="topic-1" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-1"><span class="parallel-en" data-lang="en" lang="en">Stay inside the fence</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">每一步都留在围栏里</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Imagine walking toward a target while staying inside a triangular field. A gradient step points downhill but may cross the fence. Frank–Wolfe instead asks which allowed corner looks best under the current local slope, then travels only part of the way toward it. The whole segment stays inside a convex field.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">想象你要走向一个目标，但必须留在三角形场地里。直接沿梯度下坡可能越过围栏。Frank–Wolfe 则先问：按当前位置的坡度，哪个允许到达的角点最有利？再沿着通往它的线段走一部分。凸场地里的这整条线段都不会越界。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">We consider a differentiable convex objective on a nonempty compact convex set. Compactness ensures that the linear subproblem attains a solution. Smoothness with bounded curvature supports the usual convergence guarantees; “convex” alone is not the entire set of assumptions.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这里考虑非空紧凸集上的可微凸目标函数。紧性保证线性子问题能取得解；具有有界曲率的光滑性则支撑常见收敛保证。只说“凸”并不足以交代全部前提。</span></p>
+<div class="shared-equation" data-math="\min_{x\in C} f(x),\qquad s_t\in\operatorname*{arg\,min}_{s\in C}\langle\nabla f(x_t),s\rangle"></div>
+<h2 class="parallel-text" id="fw-lab-title"><span class="parallel-en" data-lang="en" lang="en">Watch one step at a time</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">一步一步看它怎么走</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The green triangle is x₁ ≥ 0, x₂ ≥ 0, x₁+x₂ ≤ 1. We minimize half the squared distance to the target. The path is the sequence of feasible iterates; the dashed segment points toward the corner selected at the current iterate. The gap is an upper bound on remaining objective error, not distance to the target.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">绿色三角形满足 x₁ ≥ 0、x₂ ≥ 0、x₁+x₂ ≤ 1。目标是让到目标点的距离平方的一半最小。折线表示历次可行迭代点，虚线指向当前选择的角点。间隙是剩余目标函数误差的上界，不是到目标点的距离。</span></p>
+<div class="interactive-lab lesson-lab" id="fw-lab"><div class="lesson-buttons"><button type="button" id="fw-outside" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">Target outside</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">目标在外</span></button><button type="button" id="fw-inside" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">Target inside</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">目标在内</span></button><button type="button" id="fw-next" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">One step →</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">再走一步 →</span></button><button type="button" id="fw-reset" class="outline-button"><span class="parallel-en" data-lang="en" lang="en">Reset path</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">重置路径</span></button></div><div class="lesson-controls"><label for="fw-steps"><span class="parallel-en" data-lang="en" lang="en">Iterations</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">迭代次数</span><input id="fw-steps" type="range" min="0" max="40" value="0" step="1"><output for="fw-steps">0</output></label></div><svg id="fw-plot" class="lesson-plot" viewBox="0 0 400 340" role="img" aria-label="Frank–Wolfe path / Frank–Wolfe 迭代路径"></svg><p class="lesson-legend parallel-text"><span class="parallel-en" data-lang="en" lang="en">Green: feasible set · cyan: target · white: iterate · orange: selected corner</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">绿色：可行域 · 蓝色：目标 · 白色：迭代点 · 橙色：选中的角点</span></p><div id="fw-result" class="lesson-readout" role="status" aria-live="polite"></div></div>
+<span id="topic-2" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-2"><span class="parallel-en" data-lang="en" lang="en">Separate direction from step length</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">方向和步长，分开来想</span></h2>
+<div class="shared-equation" data-math="d_t=s_t-x_t,\qquad x_{t+1}=x_t+\gamma_t d_t=(1-\gamma_t)x_t+\gamma_t s_t,\quad 0\le\gamma_t\le1"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The linear oracle chooses a direction. The step size chooses how far to go. Since the new point is a convex combination of two feasible points, no projection is needed. But the oracle still has a computational cost: projection-free does not mean constraint-free or cost-free.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">线性求解器负责选方向，步长负责决定走多远。新点是两个可行点的凸组合，因此不需要投影。但线性求解器本身仍有计算成本：无需投影，不等于没有约束，也不等于没有代价。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">A common general schedule is γₜ = 2/(t+2), starting with t = 0. This article’s experiment instead uses exact line search for its quadratic objective. With gradient g = x−a and direction d, the unconstrained minimizing step is −g·d/(d·d); clipping it to [0,1] keeps the move on the segment.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">常见通用步长为 γₜ = 2/(t+2)，从 t = 0 开始。本文实验采用针对这个二次目标的精确线搜索。梯度 g = x−a、方向为 d 时，无约束最优步长是 −g·d/(d·d)；将它截到 [0,1]，就把移动限制在线段上。</span></p>
+<div class="shared-equation" data-math="f(x)=\tfrac12\|x-a\|_2^2,\quad \gamma_t=\operatorname{clip}_{[0,1]}\!\left(\frac{-\langle g,d\rangle}{\langle d,d\rangle}\right)"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">For the outside target a = (0.8,0.6), starting at (0,0) gives gradient (−0.8,−0.6). The oracle picks (1,0), and line search gives γ = 0.8, so the first iterate is (0.8,0). The constrained optimum is (0.6,0.4), on the fence; its objective is 0.04, not zero.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">对于外部目标 a = (0.8,0.6)，从 (0,0) 出发，梯度为 (−0.8,−0.6)。线性求解器选 (1,0)，线搜索给出 γ = 0.8，于是第一步到达 (0.8,0)。约束最优点为围栏上的 (0.6,0.4)，目标函数值是 0.04，而不是零。</span></p>
+<span id="topic-3" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-3"><span class="parallel-en" data-lang="en" lang="en">Know when you are close enough</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">怎样知道已经足够接近？</span></h2>
+<div class="shared-equation" data-math="G(x)=\langle\nabla f(x),x-s(x)\rangle\ge0,\qquad f(x)-f(x^*)\le G(x)"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Convexity gives f(x*) ≥ f(x)+∇f(x)·(x*−x). Because the oracle minimizes the linear term, replacing x* by s can only lower that linear value. Rearranging gives the gap bound above. This certificate does not require knowing the optimum; our example has a known optimum only so we can check the certificate too.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">由凸性可得 f(x*) ≥ f(x)+∇f(x)·(x*−x)。线性求解器最小化其中的线性项，因此用 s 替换 x*，该线性值只会更低。移项就得到上面的间隙界。这个证书不要求事先知道最优点；本例特意选已知最优点，是为了连证书本身也一起检查。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The exact oracle matters. If an approximate subproblem solution is used, its error must be accounted for before claiming the same upper bound. A small step size by itself is not a reliable stopping rule. At a zero direction, stop rather than divide by zero in the line-search formula.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这里需要准确求解线性子问题。若使用近似解，在声称同样的误差上界之前必须计入子问题误差。步长很小本身不是可靠的停止条件。若方向为零，应直接停止，不要在线搜索公式中除以零。</span></p>
+<h2 class="parallel-text" id="cpp"><span class="parallel-en" data-lang="en" lang="en">Executable C++ with geometric checks</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">带几何校验的 C++ 程序</span></h2>
+<pre><code class="language-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;array&gt;
+#include &lt;cmath&gt;
+#include &lt;iomanip&gt;
+#include &lt;iostream&gt;
+using Point=std::array&lt;double,2&gt;;
+const std::array&lt;Point,3&gt; vertices={Point{0,0},Point{1,0},Point{0,1}};
+double dot(Point a,Point b) {return a[0]*b[0]+a[1]*b[1];}
+Point sub(Point a,Point b) {return {a[0]-b[0],a[1]-b[1]};}
+double objective(Point x,Point target) {auto d=sub(x,target);return 0.5*dot(d,d);}
+Point oracle(Point gradient) {
+    return *std::min_element(vertices.begin(),vertices.end(),[&amp;](Point a,Point b){
+        return dot(gradient,a)&lt;dot(gradient,b);
+    });
+}
+int main() {
+    const Point target={0.8,0.6},optimum={0.6,0.4};
+    Point x={0,0};
+    bool valid=true;
+    int steps=0;
+    for(;steps&lt;1000;++steps) {
+        const Point gradient=sub(x,target),s=oracle(gradient),d=sub(s,x);
+        const double gap=-dot(gradient,d);
+        if(gap&lt;=1e-8) break;
+        const double length2=dot(d,d);
+        if(length2==0) break;
+        // Exact line search for this particular squared-distance objective.
+        const double gamma=std::clamp(gap/length2,0.0,1.0);
+        const Point next={x[0]+gamma*d[0],x[1]+gamma*d[1]};
+        valid &amp;= next[0]&gt;=-1e-12 &amp;&amp; next[1]&gt;=-1e-12 &amp;&amp; next[0]+next[1]&lt;=1+1e-12;
+        valid &amp;= objective(next,target)&lt;=objective(x,target)+1e-12;
+        x=next;
+    }
+    const Point gradient=sub(x,target);
+    const double gap=dot(gradient,sub(x,oracle(gradient)));
+    const double suboptimality=objective(x,target)-objective(optimum,target);
+    valid &amp;= suboptimality&gt;=-1e-12 &amp;&amp; suboptimality&lt;=gap+1e-12;
+    std::cout &lt;&lt; std::fixed &lt;&lt; std::setprecision(8)
+              &lt;&lt; &quot;steps=&quot; &lt;&lt; steps &lt;&lt; &quot; x=&quot; &lt;&lt; x[0] &lt;&lt; &#x27;,&#x27; &lt;&lt; x[1]
+              &lt;&lt; &quot;\nf=&quot; &lt;&lt; objective(x,target) &lt;&lt; &quot; gap=&quot; &lt;&lt; gap
+              &lt;&lt; &quot; suboptimality=&quot; &lt;&lt; suboptimality
+              &lt;&lt; &quot;\nfeasible, monotone, certificate valid=&quot; &lt;&lt; std::boolalpha &lt;&lt; valid &lt;&lt; &#x27;\n&#x27;;
+    return valid ? 0 : 1;
+}
+</code></pre>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Each step is checked for feasibility and nonincreasing objective. The final objective error is checked against the Frank–Wolfe gap. After 1,000 steps, this example gives an objective near 0.04023 and a gap near 0.00038; the printed values are the actual run results. Reaching the iteration limit is not the same as satisfying the 10⁻⁸ gap tolerance.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">每一步都检查可行性和目标值不增，最后还会检查目标误差不超过 Frank–Wolfe 间隙。运行 1,000 步后，本例目标值约为 0.04023、间隙约为 0.00038；页面输出的是实际运行结果。达到迭代上限，不等于满足 10⁻⁸ 的间隙停止阈值。</span></p>
+<span id="topic-4" class="lesson-anchor" aria-hidden="true"></span><span id="topic-5" class="lesson-anchor" aria-hidden="true"></span><span id="section-5" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-4"><span class="parallel-en" data-lang="en" lang="en">Why sparse steps can be useful</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">稀疏的一步，为什么有用？</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Starting at a vertex and adding at most one vertex per iteration means the iterate can be represented using at most t+1 selected vertices after t steps. For an ℓ₁ ball of radius R, the oracle picks the coordinate with the largest gradient magnitude and moves toward the opposite signed axis point. This can be cheaper than a full projection when the representation is large.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">从一个顶点出发，每次至多引入一个新顶点，做完 t 步后就能用至多 t+1 个已选顶点表示当前点。对于半径 R 的 ℓ₁ 球，线性求解器选择梯度绝对值最大的坐标，并指向符号相反的轴上点。表示规模很大时，这可能比完整投影更便宜。</span></p>
+<div class="shared-equation" data-math="j\in\operatorname*{arg\,max}_i|g_i|,\qquad s=-R\operatorname{sign}(g_j)e_j\quad(g\ne0)"></div>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">On an ℓ₂ ball the answer is −Rg/‖g‖₂ instead; a zero gradient permits any feasible oracle output. The familiar O(1/t) objective-error rate assumes a smooth convex objective and a suitable compact domain and step rule. Strong convexity of the objective alone does not make the ordinary method uniformly linearly convergent; geometry and algorithm variants matter.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">若约束是 ℓ₂ 球，答案则是 −Rg/‖g‖₂；梯度为零时，任意可行点都能作为线性子问题的解。常见的 O(1/t) 目标误差收敛率需要光滑凸目标、适当的紧致定义域和步长规则。仅有目标函数强凸，并不能保证普通方法统一地线性收敛；可行域几何与算法变体都很重要。</span></p>
+<h2 class="parallel-text" id="references"><span class="parallel-en" data-lang="en" lang="en">Read further</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">继续阅读</span></h2>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://proceedings.mlr.press/v28/jaggi13.html">Jaggi (2013): Frank–Wolfe, sparse iterates, and duality-gap certificates</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://proceedings.mlr.press/v28/jaggi13.html">Jaggi（2013）：Frank–Wolfe、稀疏迭代与对偶间隙证书</a></span></p>
+</div>
+<script>
+(()=>{
+
+const root=document.querySelector('.lesson');
+const $=id=>document.getElementById(id);
+const pair=(en,zh)=>`<span class="i18n"><span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span></span>`;
+function table(rows,active=()=>false){return '<table class="lesson-matrix"><tbody>'+rows.map((row,i)=>'<tr>'+row.map((v,j)=>`<td class="${active(i,j)?'selected':''}">${v}</td>`).join('')+'</tr>').join('')+'</tbody></table>';}
+function sliders(update){root.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{input.nextElementSibling.value=input.value;update();}));}
+
+let target=[.8,.6];const vertices=[[0,0],[1,0],[0,1]],dot=(a,b)=>a[0]*b[0]+a[1]*b[1],sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+function oracle(g){return vertices.reduce((best,v)=>dot(g,v)<dot(g,best)?v:best,vertices[0]);}
+function update(){let x=[0,0],path=[x];const steps=+$('fw-steps').value;for(let t=0;t<steps;t++){const g=sub(x,target),d=sub(oracle(g),x),gap=-dot(g,d),den=dot(d,d);if(den===0||gap<1e-12)break;const gamma=Math.max(0,Math.min(1,gap/den));x=[x[0]+gamma*d[0],x[1]+gamma*d[1]];path.push(x);}
+ const g=sub(x,target),s=oracle(g),gap=dot(g,sub(x,s)),f=.5*dot(g,g),X=v=>45+270*v[0],Y=v=>300-270*v[1];
+ $('fw-plot').innerHTML=`<path d="M45 30V300H335" stroke="#859879" fill="none"/><polygon points="45,300 315,300 45,30" fill="#c0f47b20" stroke="#c0f47b"/><polyline points="${path.map(v=>X(v)+','+Y(v)).join(' ')}" fill="none" stroke="#eff4e8" stroke-width="3"/><path d="M${X(x)} ${Y(x)}L${X(s)} ${Y(s)}" stroke="#e9b77c" stroke-dasharray="6 6"/><circle cx="${X(target)}" cy="${Y(target)}" r="7" fill="#8dbbf8"/><circle cx="${X(s)}" cy="${Y(s)}" r="8" fill="none" stroke="#e9b77c" stroke-width="3"/><circle cx="${X(x)}" cy="${Y(x)}" r="5" fill="#eff4e8"/><g fill="#dce5d4" font-size="26"><text x="20" y="328">0</text><text x="306" y="328">1</text><text x="15" y="38">1</text><text x="345" y="308">x₁</text><text x="35" y="22">x₂</text></g>`;
+ $('fw-result').innerHTML=pair(`Steps: ${path.length-1}; x = (${x.map(v=>v.toFixed(4)).join(', ')}).`,`步数：${path.length-1}；x = (${x.map(v=>v.toFixed(4)).join(', ')}）。`)+'<br>'+pair('Objective f and gap G','目标值 f 与间隙 G')+`<div>f = ${f.toFixed(6)} · G = ${gap.toFixed(6)}</div>`;
+ $('fw-outside').setAttribute('aria-pressed',String(target[0]===.8));$('fw-inside').setAttribute('aria-pressed',String(target[0]===.25));$('fw-next').disabled=steps===40;
+}
+function setSteps(n){$('fw-steps').value=n;$('fw-steps').nextElementSibling.value=n;update();}
+$('fw-next').addEventListener('click',()=>setSteps(Math.min(40,+$('fw-steps').value+1)));$('fw-reset').addEventListener('click',()=>setSteps(0));$('fw-outside').addEventListener('click',()=>{target=[.8,.6];setSteps(0);});$('fw-inside').addEventListener('click',()=>{target=[.25,.35];setSteps(0);});sliders(update);update();
+
+})();
+</script>
+</body></html>
