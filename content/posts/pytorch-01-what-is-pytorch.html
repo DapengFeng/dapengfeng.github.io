@@ -1,0 +1,473 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>What is PyTorch? Inside torch.matmul</title><script type="application/json" id="article-metadata">{
+  "titleEn": "What is PyTorch? Inside torch.matmul",
+  "title": "PyTorch 到底是什么？跟踪一次 torch.matmul",
+  "descriptionEn": "Trace a real matrix multiplication from Python through ATen, dispatch, autograd, and CPU or CUDA kernels, with source links and two interactive animations.",
+  "description": "从一行矩阵乘法追踪 Python、ATen、调度器、自动求导与 CPU／CUDA 内核，结合固定版本源码、实测输出与两组交互动画。",
+  "date": "2026-09-23",
+  "category": "systems",
+  "tags": [
+    "PyTorch",
+    "ATen",
+    "Autograd",
+    "C++",
+    "Framework internals"
+  ],
+  "art": "matrix",
+  "featured": 4,
+  "series": {
+    "id": "pytorch-internals",
+    "titleEn": "Inside PyTorch",
+    "title": "PyTorch 源码之旅",
+    "part": 1
+  }
+}</script>
+<style>.pytorch-lesson{--pt-orange:#ffb087;--pt-blue:#94c9ff;--pt-line:#4a574d}
+.pt-demo{border:1px solid var(--pt-line);border-radius:18px;background:#141d19;padding:clamp(16px,3vw,28px);margin-block:28px;overflow:hidden}
+.pt-demo p{line-height:1.85}.pt-demo [data-lang]{display:block}.pt-demo button{font:inherit;line-height:1.5;color:#e8eee5;background:#202d25;border:1px solid #596d5d;border-radius:10px;padding:12px 16px;cursor:pointer;white-space:normal}
+.pt-demo button:hover{border-color:#bff185}.pt-demo button[aria-pressed=true]{background:#c0f47b;color:#152011}.pt-demo button:focus-visible{outline:3px solid #94c9ff;outline-offset:3px}.pt-demo button:disabled{cursor:default;opacity:.65}
+.pt-demo legend{padding:0 6px;font-size:18px;line-height:1.6}.pt-demo fieldset{border:1px solid #536256;min-width:0;padding:16px;border-radius:12px;margin:0;display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:12px}
+.pt-options{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;margin-bottom:24px}.pt-toolbar{display:flex;flex-wrap:wrap;gap:12px;margin-block:24px}.pt-demo [data-lang=zh]{margin-top:6px}
+.pt-readout{padding:22px;border:1px solid #607154;border-radius:12px;background:#1d2a21;min-height:220px;overflow-wrap:anywhere}.pt-readout strong{font-size:22px;line-height:1.6}.pt-readout p{margin:16px 0!important}.pt-readout a{font-size:17px;text-decoration:underline;text-underline-offset:4px}.pt-progress{font:18px/1.7 var(--mono);color:#d3e6c2;display:block;margin-block:16px}.pt-label{color:#c0f47b;font-size:18px;font-weight:600}
+.pt-matrices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-block:24px}.pt-matrices figure{margin:0;min-width:0}.pt-matrices figcaption{font:20px/1.7 var(--mono);margin-bottom:14px}.pt-matrix{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:7px}.pt-cell{display:grid;place-content:center;padding:12px 3px;min-height:54px;border:1px solid #536457;border-radius:8px;background:#1e2b23;font:19px/1.4 var(--mono);color:#eef2e9}.pt-cell.pt-selected{border:2px solid var(--pt-orange);background:#55331f;color:#fff1e9}.pt-cell.pt-output{border:2px solid #c0f47b;background:#334725;color:#efffdf}.pt-cell.pt-done{background:#2a3924;color:#d9fbb3}.pt-equation{font:20px/1.8 var(--mono);overflow-wrap:anywhere;color:#ffe0cb}.pt-slider{display:grid;gap:12px;font-size:18px;line-height:1.7}.pt-slider input{width:100%;accent-color:#c0f47b;min-height:32px}.pt-slider output{font-family:var(--mono);color:#c0f47b}
+.pt-roadmap{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-block:28px}.pt-roadmap>div{padding:20px;border:1px solid var(--pt-line);border-radius:12px;display:flex;gap:20px;align-items:flex-start}.pt-roadmap b{font:24px/1.6 var(--mono);color:var(--pt-orange)}.pt-roadmap>div>span{font-size:18px;line-height:1.7}.pt-roadmap [data-lang]{display:block}
+.pt-details{border:1px solid var(--pt-line);border-radius:12px;margin-block:28px;padding:20px}.pt-details summary{font-size:18px;line-height:1.7;cursor:pointer}.pt-details summary [data-lang]{display:block}.pt-details pre{margin-top:24px!important}.pt-demo[data-playing=true] [aria-current=step]{animation:pt-glow 1.6s ease-in-out infinite}
+@keyframes pt-glow{50%{box-shadow:0 0 0 3px #c0f47b44}}
+@media(max-width:1100px){.pt-options{grid-template-columns:1fr}}
+@media(max-width:620px){.pt-matrices,.pt-roadmap{grid-template-columns:1fr}.pt-matrices{gap:28px}.pt-cell{min-height:52px}.pt-readout{padding:18px}.pt-demo fieldset{padding:12px}.pt-demo{border-radius:12px}}
+@media(prefers-reduced-motion:reduce){.pt-demo[data-playing=true] [aria-current=step]{animation:none}}
+
+/* Clickable nodes and measured SVG edges share one layout coordinate system. */
+.pt-phase-switch{display:flex;gap:12px;flex-wrap:wrap;margin-block:24px}.pt-phase-switch button{flex:1;font-weight:700}
+.pt-map-legend{font-size:16px;line-height:1.8;margin-block:20px!important}
+.pt-graph-scroll{max-height:680px;overflow:auto;max-width:100%;border:1px solid #526052;border-radius:12px;margin-block:24px;scrollbar-width:thin;overscroll-behavior-x:contain}
+.pt-graph-scroll:focus-visible{outline:3px solid #94c9ff;outline-offset:3px}
+.pt-graph{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:64px 34px;min-width:780px;position:relative;padding:24px;background:radial-gradient(circle,#52605244 1px,transparent 1px) 0 0/18px 18px;isolation:isolate}
+.pt-graph .pt-node{z-index:1;position:relative;border:1px solid #6d7c70;background:#18261f;min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:12px;text-align:center;padding:18px 12px;border-radius:14px;font-size:16px;box-shadow:0 6px 14px #0003}
+.pt-node b{font:700 18px/1.6 var(--mono);overflow-wrap:anywhere;color:#ecf3e5}.pt-node-caption{font-size:16px;line-height:1.6}.pt-node-values{font:18px/1.6 var(--mono);color:#c5e3ff;display:block}
+.pt-graph .pt-node[data-complete=true]{border-color:#8ca478}
+.pt-graph .pt-node[aria-current=step]{border:2px solid #c0f47b;background:#2d4021;box-shadow:0 0 0 4px #c0f47b22}
+#pt-backward-graph .pt-node[aria-current=step]{border-color:#94c9ff;background:#21394b;box-shadow:0 0 0 4px #94c9ff22}
+.pt-data{z-index:1;border:1px solid #688076;background:#13251f;border-radius:12px;padding:18px;font-size:16px;line-height:1.7;min-width:0;text-align:center}.pt-data>b{display:block;font:20px/1.8 var(--mono);margin-block:12px}.pt-saved{border-style:dashed;border-color:#ffb087;background:#30281f}.pt-saved[data-available=false]{border-color:#7c776f;background:#22251f}
+.pt-tensor-pair{display:flex;justify-content:space-around;gap:24px;margin-top:16px}.pt-tensor-pair>div{min-width:0}.pt-mini-matrix{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:4px;margin-top:12px;padding-inline:8px;border-inline:2px solid #94c9ff}.pt-mini-matrix>span{padding:4px 4px;color:#e2edf4;font:18px/1.5 var(--mono)}
+.pt-edges{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible;pointer-events:none}.pt-edges path.pt-edge{fill:none;stroke:#89998a;stroke-width:2}.pt-edges path[data-saved=true]{stroke:#ffb087;stroke-dasharray:5 5}.pt-edges path[data-active=true]{stroke:#c0f47b;stroke-width:3}#pt-backward-graph .pt-edges path[data-active=true]{stroke:#94c9ff}.pt-demo[data-playing=true] .pt-edges path[data-active=true]{stroke-dasharray:7 5;animation:pt-flow .9s linear infinite}
+.pt-edges path[data-saved=true][data-active=true]{stroke:#ffb087}
+#pt-route-context{font-size:17px;margin-top:24px!important}.pt-node[disabled]{opacity:1}.pt-graph[data-blocked=true] .pt-edges{visibility:hidden}
+@media(max-width:620px){#pt-backward-graph{min-width:calc(200vw - 110px)}}
+@keyframes pt-flow{to{stroke-dashoffset:-24}}
+@media(prefers-reduced-motion:reduce){.pt-demo[data-playing=true] .pt-edges path[data-active=true]{animation:none}}
+</style></head><body><div class="lesson pytorch-lesson">
+<h2 class="parallel-text" id="the-question"><span data-lang="en" lang="en">One line, several jobs</span><span data-lang="zh" lang="zh-CN">一行代码，几种不同的工作</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en"><strong>PyTorch is a tensor-computing framework with automatic differentiation.</strong> Its eager runtime turns tensor operations into concrete implementations; its optional compiler stack can capture and optimize larger regions of a program. Python is a familiar entrance, ATen supplies tensor operations, and lower-level libraries perform much of the arithmetic. Training also needs a record of how results depend on inputs.</span><span data-lang="zh" lang="zh-CN"><strong>PyTorch 是支持自动求导的张量计算框架。</strong>它的 eager 运行时把张量操作交给具体实现；可选的编译栈则能捕获并优化更大范围的程序。Python 是熟悉的入口，ATen 提供张量运算，底层库完成大量数值计算。训练还需要记录结果怎样依赖输入。</span></p>
+<pre tabindex="0"><code class="language-python" >y = torch.matmul(a, b)</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Read this line as a request: “multiply these two tensors, using their shapes, storage layouts, devices, and differentiation state.” The tensor values are only part of the request. The framework must interpret the operation, choose implementations, allocate an output, perform the calculation, and—when needed—attach gradient history.</span><span data-lang="zh" lang="zh-CN">可以把这一行理解为一张请求单：“根据这两个张量的形状、存储布局、设备和求导状态，完成乘法。”数值只是请求的一部分。框架还要解释运算、选择实现、分配输出、执行计算，并在需要时关联梯度历史。</span></p>
+<aside class="lesson-note">
+<p class="parallel-text"><span data-lang="en" lang="en">Source baseline: <strong>PyTorch v2.10.0</strong>, commit <code>449b17684101</code>. The main route uses ordinary dense, strided, two-dimensional float32 tensors, eager execution, no tensor subclass, no autocast, and no <code>out=</code>. The CPU examples below were run with <code>2.10.0+cpu</code>; the CUDA branch is a source-guided illustration, not a GPU measurement.</span><span data-lang="zh" lang="zh-CN">源码基线：<strong>PyTorch v2.10.0</strong>，提交 <code>449b17684101</code>。主线限定为普通稠密、strided、二维 float32 张量，采用 eager 执行，无张量子类、无 autocast、无 <code>out=</code>。下方 CPU 示例已在 <code>2.10.0+cpu</code> 运行；CUDA 分支依据源码示意，不是 GPU 实测。</span></p>
+</aside>
+<p class="parallel-text"><span data-lang="en" lang="en">By the end, you should be able to locate the 2-D branch, explain why the result has an <code>MmBackward0</code> node, and separate a dispatch decision from the kernel that calculates numbers. Each later installment will zoom into one part of this journey.</span><span data-lang="zh" lang="zh-CN">读完后，你应该能够定位二维分支，解释结果为什么带有 <code>MmBackward0</code> 节点，并区分“选哪个实现”和“实际算出数值”。后续每一期会放大研究这条路径中的一个部分。</span></p>
+<h2 class="parallel-text" id="concrete-input"><span data-lang="en" lang="en">Start with numbers you can check</span><span data-lang="zh" lang="zh-CN">先用能够手算的数据</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Use A with shape (2, 3) and B with shape (3, 2). Their inner dimensions agree, so Y has shape (2, 2). The product is a sum of row–column products; there is no elementwise broadcasting in this 2-D case.</span><span data-lang="zh" lang="zh-CN">令 A 的形状为 (2, 3)，B 为 (3, 2)。内侧维度一致，因此 Y 的形状为 (2, 2)。每个输出都是一行与一列的乘积之和；这个二维例子不是逐元素广播乘法。</span></p>
+<div class="shared-equation" data-math="A=\begin{pmatrix}1&amp;2&amp;3\\4&amp;5&amp;6\end{pmatrix},\quad B=\begin{pmatrix}7&amp;8\\9&amp;10\\11&amp;12\end{pmatrix},\quad Y=AB=\begin{pmatrix}58&amp;64\\139&amp;154\end{pmatrix}"></div>
+<pre tabindex="0"><code class="language-python" id="pt-python-main">import torch
+
+assert torch.__version__.split(&quot;+&quot;)[0] == &quot;2.10.0&quot;
+a = torch.tensor([[1., 2., 3.], [4., 5., 6.]], requires_grad=True)
+b = torch.tensor([[7., 8.], [9., 10.], [11., 12.]], requires_grad=True)
+y = torch.matmul(a, b)
+print(&quot;version:&quot;, torch.__version__)
+print(&quot;shape:&quot;, tuple(y.shape))
+print(&quot;y:&quot;, y.tolist())
+print(&quot;grad_fn:&quot;, type(y.grad_fn).__name__)
+y.sum().backward()
+print(&quot;a.grad:&quot;, a.grad.tolist())
+print(&quot;b.grad:&quot;, b.grad.tolist())
+torch.testing.assert_close(y, torch.tensor([[58., 64.], [139., 154.]]))
+torch.testing.assert_close(a.grad, torch.tensor([[15., 19., 23.], [15., 19., 23.]]))
+torch.testing.assert_close(b.grad, torch.tensor([[5., 5.], [7., 7.], [9., 9.]]))</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Run this in a local Python environment with PyTorch installed. The article’s generic Godbolt Python runner does not supply this pinned PyTorch package, so this block is a local reproduction script. The independent C++ example later in the article can run in the embedded compiler.</span><span data-lang="zh" lang="zh-CN">请在安装了 PyTorch 的本地 Python 环境中运行。站点通用 Godbolt Python 运行器不提供这里固定版本的 PyTorch 包，因此本代码块用于本地复现。文章后面的独立 C++ 示例可直接在站内编译器运行。</span></p>
+<pre tabindex="0"><code class="language-bash" >python -m pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu</code></pre>
+<details class="pt-details"><summary><span data-lang="en" lang="en">Observed CPU output</span><span data-lang="zh" lang="zh-CN">CPU 实际输出</span></summary>
+<pre tabindex="0"><code class="language-text" >version: 2.10.0+cpu
+shape: (2, 2)
+y: [[58.0, 64.0], [139.0, 154.0]]
+grad_fn: MmBackward0
+a.grad: [[15.0, 19.0, 23.0], [15.0, 19.0, 23.0]]
+b.grad: [[5.0, 5.0], [7.0, 7.0], [9.0, 9.0]]</code></pre>
+</details>
+<h3 class="parallel-text" id="multiply-it"><span data-lang="en" lang="en">Watch one output being assembled</span><span data-lang="zh" lang="zh-CN">观察一个输出怎样累加出来</span></h3>
+<p class="parallel-text"><span data-lang="en" lang="en">Each step highlights one scalar multiplication. Change A[0,0], then replay: the first row of Y changes. The arithmetic is real JavaScript computation, but the scalar ordering is an educational animation; optimized BLAS kernels use blocking, vectorization, and possibly multiple threads.</span><span data-lang="zh" lang="zh-CN">每一步高亮一次标量乘法。修改 A[0,0] 后重放，Y 的第一行会改变。这里的算术由 JavaScript 实际计算，但标量顺序只是教学动画；优化后的 BLAS 内核会使用分块、向量化，也可能使用多线程。</span></p>
+<div class="pt-demo" id="pt-multiply"><div class="pt-label"><span data-lang="en" lang="en">MATRIX LAB · 12 MULTIPLY–ADD STEPS</span><span data-lang="zh" lang="zh-CN">矩阵实验 · 12 次乘加</span></div><div class="lesson-controls"><label class="pt-slider" for="pt-a00"><span data-lang="en" lang="en">Change A[0,0]</span><span data-lang="zh" lang="zh-CN">修改 A[0,0]</span><input id="pt-a00" type="range" min="-3" max="5" step="1" value="1" disabled><output for="pt-a00">1</output></label></div><div class="pt-matrices"><figure><figcaption>A · 2 × 3</figcaption><div class="pt-matrix" id="pt-matrix-a" style="--cols:3"><span class="pt-cell">1</span><span class="pt-cell">2</span><span class="pt-cell">3</span><span class="pt-cell">4</span><span class="pt-cell">5</span><span class="pt-cell">6</span></div></figure><figure><figcaption>B · 3 × 2</figcaption><div class="pt-matrix" id="pt-matrix-b" style="--cols:2"><span class="pt-cell">7</span><span class="pt-cell">8</span><span class="pt-cell">9</span><span class="pt-cell">10</span><span class="pt-cell">11</span><span class="pt-cell">12</span></div></figure><figure><figcaption>Y · 2 × 2</figcaption><div class="pt-matrix" id="pt-matrix-y" style="--cols:2"><span class="pt-cell">58</span><span class="pt-cell">64</span><span class="pt-cell">139</span><span class="pt-cell">154</span></div></figure></div><div class="pt-toolbar"><button type="button" id="pt-matrix-play" disabled><span data-lang="en" lang="en">Animate arithmetic</span><span data-lang="zh" lang="zh-CN">播放计算</span></button><button type="button" id="pt-matrix-next" disabled><span data-lang="en" lang="en">One multiply–add</span><span data-lang="zh" lang="zh-CN">执行一次乘加</span></button><button type="button" id="pt-matrix-reset" disabled><span data-lang="en" lang="en">Reset calculation</span><span data-lang="zh" lang="zh-CN">重置计算</span></button></div><output class="pt-progress" id="pt-matrix-position">0 / 12</output><div class="pt-readout" id="pt-matrix-info" role="status" aria-live="polite"><p class="parallel-text"><span data-lang="en" lang="en">At the original inputs, Y[0,0] = 1 × 7 + 2 × 9 + 3 × 11 = 58.</span><span data-lang="zh" lang="zh-CN">初始输入下，Y[0,0] = 1 × 7 + 2 × 9 + 3 × 11 = 58。</span></p></div></div>
+<h2 class="parallel-text" id="follow-the-call"><span data-lang="en" lang="en">Follow the request through the runtime</span><span data-lang="zh" lang="zh-CN">跟随请求穿过运行时</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Think of ATen as the menu of tensor operations, the dispatcher as the routing desk, and the backend as the workshop. Autograd adds a recipe for the return trip. These responsibilities interact: <code>matmul</code> can call another operator, and an autograd wrapper can redispatch the same operator below the autograd layer. The route is not one pass through a universal pipeline.</span><span data-lang="zh" lang="zh-CN">把 ATen 想成张量运算菜单，dispatcher 想成分派工作的位置，backend 则是实际加工的车间。Autograd 为回程留下求导配方。这些职责相互协作：<code>matmul</code> 可以调用另一算子，求导包装层也能绕过自身重新调度同一算子。调用不是沿着一条通用流水线只走一遍。</span></p>
+<div class="pt-demo" id="pt-route"><div class="pt-label"><span data-lang="en" lang="en">ONE CALL, TWO DIRECTIONS</span><span data-lang="zh" lang="zh-CN">一次调用，两个方向</span></div><p class="parallel-text"><span data-lang="en" lang="en">Follow the arrows and click a node to inspect that operation. Forward computes values and records dependencies; backward sends gradients through those dependencies. The matrices are fixed to the example above.</span><span data-lang="zh" lang="zh-CN">沿箭头追踪，点击图中节点查看对应操作。前向计算数值并记录依赖，反向沿这些依赖传递梯度。矩阵固定为上方示例。</span></p><div class="pt-options"><fieldset><legend><span data-lang="en" lang="en">Backend</span><span data-lang="zh" lang="zh-CN">后端</span></legend><button type="button" data-pt-device="cpu" aria-pressed="true" disabled>CPU</button><button type="button" data-pt-device="cuda" aria-pressed="false" disabled>CUDA</button></fieldset><fieldset><legend><span data-lang="en" lang="en">Gradient recording</span><span data-lang="zh" lang="zh-CN">梯度记录</span></legend><button type="button" data-pt-grad="on" aria-pressed="true" disabled><span data-lang="en" lang="en">Record gradients</span><span data-lang="zh" lang="zh-CN">记录梯度</span></button><button type="button" data-pt-grad="off" aria-pressed="false" disabled><span data-lang="en" lang="en">No gradient recording</span><span data-lang="zh" lang="zh-CN">不记录梯度</span></button></fieldset></div><div class="pt-phase-switch" role="group" aria-label="Direction / 传播方向"><button type="button" data-pt-phase="forward" aria-pressed="true" disabled><span data-lang="en" lang="en">→ Forward</span><span data-lang="zh" lang="zh-CN">→ 前向</span></button><button type="button" data-pt-phase="backward" aria-pressed="false" disabled><span data-lang="en" lang="en">↶ Backward</span><span data-lang="zh" lang="zh-CN">↶ 反向</span></button></div><fieldset id="pt-loss-controls" hidden><legend><span data-lang="en" lang="en">Compare reductions of the same Y</span><span data-lang="zh" lang="zh-CN">比较同一个 Y 的两种归约</span></legend><button type="button" data-pt-loss="sum" aria-pressed="true" disabled>L = y.sum()</button><button type="button" data-pt-loss="mean" aria-pressed="false" disabled>L = y.mean()</button></fieldset><div class="pt-toolbar"><button type="button" id="pt-route-play" disabled><span data-lang="en" lang="en">Play route</span><span data-lang="zh" lang="zh-CN">播放路径</span></button><button type="button" id="pt-route-prev" disabled><span data-lang="en" lang="en">Previous step</span><span data-lang="zh" lang="zh-CN">上一步</span></button><button type="button" id="pt-route-next" disabled><span data-lang="en" lang="en">Next step</span><span data-lang="zh" lang="zh-CN">下一步</span></button><button type="button" id="pt-route-reset" disabled><span data-lang="en" lang="en">Back to start</span><span data-lang="zh" lang="zh-CN">回到起点</span></button></div><output class="pt-progress" id="pt-route-position">1 / 8</output><p class="pt-map-legend"><span data-lang="en" lang="en">Solid arrows: execution or gradient flow. Dashed arrows: saved tensors. Highlight: current operation. Scroll the diagram to inspect the full graph; stepping keeps the active node in view.</span><span data-lang="zh" lang="zh-CN">实线箭头：执行或梯度流向。虚线箭头：保存的张量。高亮：当前操作。可滚动查看完整图形；逐步操作时，视图会跟随当前节点。</span></p><div id="pt-forward-scroll" class="pt-graph-scroll" tabindex="0" role="region" aria-label="Forward execution graph / 前向执行图"><div class="pt-graph" id="pt-forward-graph"><svg class="pt-edges" aria-hidden="true"><defs><marker id="pt-forward-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="context-stroke"/></marker></defs><g></g></svg><div id="pt-inputs" class="pt-data" style="grid-column:1 / 5;grid-row:1"><span data-lang="en" lang="en">INPUTS · ordinary dense tensors · float32 · requires_grad=True</span><span data-lang="zh" lang="zh-CN">输入 · 普通稠密张量 · float32 · requires_grad=True</span><div class="pt-tensor-pair"><div><b>A · (2, 3)</b><span class="pt-mini-matrix" style="--cols:3"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></span></div><div><b>B · (3, 2)</b><span class="pt-mini-matrix" style="--cols:2"><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span></span></div></div></div><button type="button" id="pt-f0" class="pt-node" style="grid-column:1;grid-row:2" data-pt-stage="0" disabled><b>torch.matmul</b><span class="pt-node-caption"><span data-lang="en" lang="en">Python binding</span><span data-lang="zh" lang="zh-CN">Python 绑定</span></span></button><button type="button" id="pt-f1" class="pt-node" style="grid-column:2;grid-row:2" data-pt-stage="1" disabled><b>aten::matmul</b><span class="pt-node-caption"><span data-lang="en" lang="en">Dispatch composite operator</span><span data-lang="zh" lang="zh-CN">调度组合算子</span></span></button><button type="button" id="pt-f2" class="pt-node" style="grid-column:3;grid-row:2" data-pt-stage="2" disabled><b>_matmul_impl</b><span class="pt-node-caption"><span data-lang="en" lang="en">2-D × 2-D → mm</span><span data-lang="zh" lang="zh-CN">二维乘二维 → mm</span></span></button><button type="button" id="pt-f3" class="pt-node" style="grid-column:4;grid-row:2" data-pt-stage="3" disabled><b>aten::mm</b><span class="pt-node-caption"><span data-lang="en" lang="en">Dispatch this operator</span><span data-lang="zh" lang="zh-CN">调度 mm 算子</span></span></button><button type="button" id="pt-f4" class="pt-node" style="grid-column:4;grid-row:3" data-pt-stage="4" disabled><b>Autograd</b><span class="pt-node-caption"><span data-lang="en" lang="en">Prepare backward history</span><span data-lang="zh" lang="zh-CN">准备反向历史</span></span></button><button type="button" id="pt-f5" class="pt-node" style="grid-column:3;grid-row:3" data-pt-stage="5" disabled><b>Redispatch</b><span class="pt-node-caption"><span data-lang="en" lang="en">Skip the autograd layer</span><span data-lang="zh" lang="zh-CN">绕过求导层</span></span></button><button type="button" id="pt-f6" class="pt-node" style="grid-column:2;grid-row:3" data-pt-stage="6" disabled><b>CPU / CUDA</b><span class="pt-node-caption"><span data-lang="en" lang="en">Compute Y = AB</span><span data-lang="zh" lang="zh-CN">计算 Y = AB</span></span></button><button type="button" id="pt-f7" class="pt-node" style="grid-column:1;grid-row:3" data-pt-stage="7" disabled><b>y · (2, 2)</b><span class="pt-node-caption"><span data-lang="en" lang="en">Attach history and return</span><span data-lang="zh" lang="zh-CN">关联历史并返回</span></span><span id="pt-y-values" class="pt-node-values"></span></button><div id="pt-saved" class="pt-data pt-saved" style="grid-column:3 / 5;grid-row:4"><span data-lang="en" lang="en">SAVED FOR BACKWARD</span><span data-lang="zh" lang="zh-CN">为反向传播保存</span><b>A (2, 3) · B (3, 2)</b><span id="pt-saved-state"></span></div></div></div><div id="pt-backward-scroll" class="pt-graph-scroll" tabindex="0" role="region" aria-label="Backward gradient graph / 反向梯度图" hidden><div id="pt-backward-unavailable" class="pt-data" hidden><b>Y → L &nbsp; ⨯ &nbsp; backward()</b><span data-lang="en" lang="en">No gradient history connects this loss to A or B. Recompute the forward pass with gradient recording enabled.</span><span data-lang="zh" lang="zh-CN">没有梯度历史把这个损失连接到 A、B。请开启梯度记录，重新计算前向。</span><b>y.grad_fn = None<br>a.grad = None · b.grad = None</b></div><div class="pt-graph" id="pt-backward-graph"><svg class="pt-edges" aria-hidden="true"><defs><marker id="pt-backward-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="context-stroke"/></marker></defs><g></g></svg><button type="button" id="pt-loss" class="pt-node" style="grid-column:1 / 3;grid-row:1" data-pt-backstage="0" disabled><b>L = y.sum()</b><span class="pt-node-caption"><span data-lang="en" lang="en">Forward result → scalar loss</span><span data-lang="zh" lang="zh-CN">前向结果 → 标量损失</span></span><span id="pt-loss-value" class="pt-node-values">415</span></button><button type="button" id="pt-seed" class="pt-node" style="grid-column:3 / 5;grid-row:1" data-pt-backstage="1" disabled><b>L.backward()</b><span class="pt-node-caption"><span data-lang="en" lang="en">Engine starts with ∂L/∂L = 1</span><span data-lang="zh" lang="zh-CN">引擎以 ∂L/∂L = 1 开始</span></span></button><button type="button" id="pt-reduce" class="pt-node" style="grid-column:3 / 5;grid-row:2" data-pt-backstage="2" disabled><b>SumBackward0</b><span class="pt-node-caption"><span data-lang="en" lang="en">Expand the scalar gradient</span><span data-lang="zh" lang="zh-CN">将标量梯度扩展至输出形状</span></span><span id="pt-g-values" class="pt-node-values"></span></button><div id="pt-back-saved" class="pt-data pt-saved" style="grid-column:1 / 3;grid-row:2"><span data-lang="en" lang="en">FROM THE FORWARD PASS</span><span data-lang="zh" lang="zh-CN">来自前向计算</span><b>A · B</b><span data-lang="en" lang="en">Saved tensors, not a replay of Python.</span><span data-lang="zh" lang="zh-CN">使用已保存的张量，不是重跑 Python。</span></div><button type="button" id="pt-mm-back" class="pt-node" style="grid-column:2 / 4;grid-row:3" data-pt-backstage="3" disabled><b>MmBackward0</b><span class="pt-node-caption"><span data-lang="en" lang="en">Apply the matrix-product derivative</span><span data-lang="zh" lang="zh-CN">应用矩阵乘法的求导规则</span></span></button><button type="button" id="pt-da" class="pt-node" style="grid-column:1 / 3;grid-row:4" data-pt-backstage="4" disabled><b>G @ Bᵀ</b><span class="pt-node-caption"><span data-lang="en" lang="en">Gradient contribution for A · (2, 3)</span><span data-lang="zh" lang="zh-CN">A 的梯度贡献 · (2, 3)</span></span><span id="pt-da-values" class="pt-node-values"></span></button><button type="button" id="pt-db" class="pt-node" style="grid-column:3 / 5;grid-row:4" data-pt-backstage="4" disabled><b>Aᵀ @ G</b><span class="pt-node-caption"><span data-lang="en" lang="en">Gradient contribution for B · (3, 2)</span><span data-lang="zh" lang="zh-CN">B 的梯度贡献 · (3, 2)</span></span><span id="pt-db-values" class="pt-node-values"></span></button><button type="button" id="pt-acc-a" class="pt-node" style="grid-column:1 / 3;grid-row:5" data-pt-backstage="5" disabled><b>AccumulateGrad → a.grad</b><span class="pt-node-caption"><span data-lang="en" lang="en">Store or accumulate at the leaf</span><span data-lang="zh" lang="zh-CN">写入叶子张量，已有梯度则累加</span></span><span id="pt-ag-values" class="pt-node-values"></span></button><button type="button" id="pt-acc-b" class="pt-node" style="grid-column:3 / 5;grid-row:5" data-pt-backstage="5" disabled><b>AccumulateGrad → b.grad</b><span class="pt-node-caption"><span data-lang="en" lang="en">Store or accumulate at the leaf</span><span data-lang="zh" lang="zh-CN">写入叶子张量，已有梯度则累加</span></span><span id="pt-bg-values" class="pt-node-values"></span></button></div></div><div class="pt-readout" id="pt-route-info" role="status" aria-live="polite"><strong><span data-lang="en" lang="en">Start with the Python call</span><span data-lang="zh" lang="zh-CN">从 Python 调用开始</span></strong><p><span data-lang="en" lang="en">The source explanation below follows both values and gradients. Enable JavaScript to operate the diagram.</span><span data-lang="zh" lang="zh-CN">下方源码解释同时介绍数值和梯度；启用 JavaScript 后可操作图形。</span></p></div><p id="pt-route-context" class="parallel-text"></p><noscript><p><span data-lang="en" lang="en">The complete source explanation and numerical results are available below.</span><span data-lang="zh" lang="zh-CN">下方提供完整源码解释与数值结果。</span></p></noscript></div>
+<aside class="lesson-note">
+<p class="parallel-text"><span data-lang="en" lang="en">“No gradient recording” models <code>torch.no_grad()</code> with the same input tensors. It prevents construction of a new backward history, but does not mean every autograd dispatch key disappears. The animation presents responsibilities in a useful order; it is not an instruction-level trace or a timing chart.</span><span data-lang="zh" lang="zh-CN">“不记录梯度”对应保留相同输入张量、使用 <code>torch.no_grad()</code>。它阻止建立新的反向历史，并不意味着所有 autograd 调度键都会消失。动画按便于理解的顺序展示职责，不是指令级调用跟踪或耗时图。</span></p>
+</aside>
+<h2 class="parallel-text" id="source-map"><span data-lang="en" lang="en">Read the source at five decision points</span><span data-lang="zh" lang="zh-CN">在五个决策点阅读源码</span></h2>
+<h3 class="parallel-text" id="python-boundary"><span data-lang="en" lang="en">1. Python binding: unpack a request</span><span data-lang="zh" lang="zh-CN">1. Python 绑定：拆开请求</span></h3>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>torch.matmul</code> enters a generated C++ binding. The generator uses <code>PythonArgParser</code> to interpret arguments and chooses a dispatch expression for an overload. Ordinary tensor arguments cross this boundary as tensor handles; they are not converted into Python lists and multiplied by a Python loop. Override protocols such as <code>__torch_function__</code> can intercept other cases, which this example excludes.</span><span data-lang="zh" lang="zh-CN"><code>torch.matmul</code> 进入生成的 C++ 绑定。生成器使用 <code>PythonArgParser</code> 解析参数，并为重载选择调用表达式。普通张量以张量句柄跨过这层边界，不会先变成 Python 列表、再由 Python 循环做乘法。<code>__torch_function__</code> 等覆盖协议可以拦截其他情况，本例不涉及这些扩展。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/gen_python_functions.py#L827">Binding generator: parser template and overload dispatch ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/gen_python_functions.py#L827">绑定生成器：参数解析模板与重载分派 ↗</a></span></p>
+<pre tabindex="0"><code class="language-text" >static PythonArgParser parser({
+    ${signatures}
+  }, /*traceable=*/${traceable});
+
+  ParsedArgs&lt;${max_args}&gt; parsed_args;
+  auto _r = parser.parse(${self_}, args, kwargs, parsed_args);
+  ${check_has_torch_function}
+  switch (_r.idx) {
+    ${dispatch}
+  }</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The <code>${...}</code> placeholders above belong to PyTorch’s code generator. This is a literal template excerpt, not a runnable C++ program. Generated bindings may live under <code>torch/csrc/autograd/generated/</code>; searching only checked-in Python functions misses this boundary.</span><span data-lang="zh" lang="zh-CN">上面的 <code>${...}</code> 是 PyTorch 代码生成器的占位符。这是原始模板摘录，不是可运行的 C++ 程序。生成的绑定可能位于 <code>torch/csrc/autograd/generated/</code>；只在已提交的 Python 函数中搜索，会漏掉这层边界。</span></p>
+<h3 class="parallel-text" id="operator-schema"><span data-lang="en" lang="en">2. Operator schema: define the promise</span><span data-lang="zh" lang="zh-CN">2. 算子 schema：定义接口承诺</span></h3>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml#L3822">native_functions.yaml: matmul registration ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml#L3822">native_functions.yaml：matmul 的注册信息 ↗</a></span></p>
+<pre tabindex="0"><code class="language-yaml" >- func: matmul(Tensor self, Tensor other) -&gt; Tensor
+  variants: function, method
+  dispatch:
+    CompositeImplicitAutograd: matmul
+    NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: matmul_nested</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The schema names the operator and its arguments. <code>variants: function, method</code> describes function and method APIs. <code>CompositeImplicitAutograd</code> means this implementation can be expressed using other differentiable operators, which supply the usual gradient behavior. It does not mean “run on the CPU,” nor does it mean autograd is absent. Specialized registrations, such as nested tensors, can take other paths.</span><span data-lang="zh" lang="zh-CN">schema 指定算子及参数，<code>variants: function, method</code> 对应函数和方法两类 API。<code>CompositeImplicitAutograd</code> 表示这个实现可由其他可求导算子组成，通常借助这些算子提供梯度行为。它不表示“在 CPU 上运行”，也不表示没有自动求导。嵌套张量等专门注册可以走其他路径。</span></p>
+<h3 class="parallel-text" id="matmul-branch"><span data-lang="en" lang="en">3. Shape decides which smaller operation to request</span><span data-lang="zh" lang="zh-CN">3. 形状决定下一次请求哪个算子</span></h3>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/LinearAlgebra.cpp#L2032">_matmul_impl: dimension-dependent branches ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/LinearAlgebra.cpp#L2032">_matmul_impl：按维度选择分支 ↗</a></span></p>
+<pre tabindex="0"><code class="language-cpp" >if (dim_tensor1 == 1 &amp;&amp; dim_tensor2 == 1) {
+    return has_out ? at::dot_out(out, tensor1, tensor2) : tensor1.dot(tensor2);
+  } else if (dim_tensor1 == 2 &amp;&amp; dim_tensor2 == 1) {
+    return has_out ? at::mv_out(out, tensor1, tensor2) : tensor1.mv(tensor2);
+  } else if (dim_tensor1 == 1 &amp;&amp; dim_tensor2 == 2) {
+    return has_out ? at::mm_out(out, tensor1.unsqueeze(0), tensor2).squeeze_(0)
+                   : tensor1.unsqueeze(0).mm(tensor2).squeeze_(0);
+  } else if (dim_tensor1 == 2 &amp;&amp; dim_tensor2 == 2) {
+    return has_out ? at::mm_out(out, tensor1, tensor2) : tensor1.mm(tensor2);</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">For our 2-D × 2-D inputs and no <code>out=</code>, the branch returns <code>tensor1.mm(tensor2)</code>. That is a new operator call. A 1-D × 1-D product uses <code>dot</code>; 2-D × 1-D uses <code>mv</code>; 1-D × 2-D temporarily adds and removes a dimension. Higher-rank inputs require batching, broadcasting, and sometimes folding into <code>mm</code>; “every matmul becomes bmm” is not a reliable rule.</span><span data-lang="zh" lang="zh-CN">本例为二维乘二维，且没有 <code>out=</code>，因此分支返回 <code>tensor1.mm(tensor2)</code>，这又发起了一次算子调用。一维乘一维使用 <code>dot</code>，二维乘一维使用 <code>mv</code>，一维乘二维先补一维再去掉它。更高维输入涉及批次、广播，有时还能折叠成 <code>mm</code>；不能把“所有 matmul 都变成 bmm”当作规律。</span></p>
+<h3 class="parallel-text" id="dispatch-keys"><span data-lang="en" lang="en">4. Dispatcher: pick a handler, then possibly dispatch again</span><span data-lang="zh" lang="zh-CN">4. 调度器：选择处理函数，也可能再次调度</span></h3>
+<p class="parallel-text"><span data-lang="en" lang="en">The dispatcher combines information from tensor arguments with thread-local state into a dispatch-key set, selects a registered handler, and invokes it. Device/backend, layout, and features such as autograd participate; this is richer than <code>if (is_cuda)</code>. The numeric dtype also matters inside backend implementations, but it is not accurate to describe every dtype as its own top-level dispatch key.</span><span data-lang="zh" lang="zh-CN">调度器结合张量参数与线程局部状态形成调度键集合，再查找并调用已注册的处理函数。设备／后端、布局以及 autograd 等功能都会参与，比一个 <code>if (is_cuda)</code> 丰富得多。数值 dtype 也会影响后端内部实现，但不能说每一种 dtype 都是独立的顶层调度键。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/Dispatcher.h#L776">Dispatcher::call: extract keys and look up a kernel ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/Dispatcher.h#L776">Dispatcher::call：提取调度键并查找实现 ↗</a></span></p>
+<pre tabindex="0"><code class="language-cpp" >auto dispatchKeySet =
+      op.operatorDef_-&gt;op.dispatchKeyExtractor()
+          .template getDispatchKeySetUnboxed&lt;Args...&gt;(args...);</code></pre>
+<pre tabindex="0"><code class="language-cpp" >#ifndef PYTORCH_DISABLE_PER_OP_PROFILING</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">For ordinary grad-enabled CPU inputs, <code>mm</code> has an autograd wrapper. It determines whether a backward node is needed, redispatches below autograd to obtain the numerical result, then associates the history and saved information. The backward engine runs later when the user requests backward. A handler called a “kernel” in a dispatch table may therefore be a wrapper, not the final numerical loop.</span><span data-lang="zh" lang="zh-CN">对于开启梯度记录的普通 CPU 输入，<code>mm</code> 有 autograd 包装层。它判断是否需要反向节点，绕过求导层重新调度以取得数值结果，再关联历史和保存的信息。反向引擎是在用户随后请求 backward 时才运行。因此调度表里称为“kernel”的处理函数也可能是包装层，并非最终的数值循环。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml#L4196">mm delegates to structured mm.out backend implementations ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml#L4196">mm 委托给结构化 mm.out 后端实现 ↗</a></span></p>
+<pre tabindex="0"><code class="language-yaml" >- func: mm.out(Tensor self, Tensor mat2, *, Tensor(a!) out) -&gt; Tensor(a!)
+  structured: True
+  dispatch:
+    CPU: mm_out_cpu
+    CUDA: mm_out_cuda</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The functional <code>mm</code> entry uses <code>structured_delegate: mm.out</code>. Generated wrappers handle output setup and invoke the structured implementation. This does <em>not</em> mean our Python call used an explicit <code>out=</code> argument or that a profiler must show a separate public <code>aten::mm.out</code> event.</span><span data-lang="zh" lang="zh-CN">函数式 <code>mm</code> 条目使用 <code>structured_delegate: mm.out</code>。生成的包装代码负责输出准备并调用结构化实现。这<em>不</em>意味着 Python 调用显式传入了 <code>out=</code>，也不意味着 profiler 必须出现独立的公开 <code>aten::mm.out</code> 事件。</span></p>
+<h3 class="parallel-text" id="actual-work"><span data-lang="en" lang="en">5. Backend: arrange memory, then do the arithmetic</span><span data-lang="zh" lang="zh-CN">5. 后端：安排内存，再完成数值计算</span></h3>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/LinearAlgebra.cpp#L1636">CPU mm implementation: reuse the addmm machinery ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/LinearAlgebra.cpp#L1636">CPU mm 实现：复用 addmm 路径 ↗</a></span></p>
+<pre tabindex="0"><code class="language-cpp" >TORCH_IMPL_FUNC(mm_out_cpu)(const Tensor &amp; self, const Tensor &amp; mat2, const Tensor &amp; result) {
+  {
+    at::NoNamesGuard guard;
+    addmm_impl_cpu_(const_cast&lt;Tensor&amp;&gt;(result), result, self, mat2, 0, 1);
+  }
+}</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The CPU implementation calls <code>addmm_impl_cpu_</code> with beta = 0 and alpha = 1. In the GEMM contract, that selects a plain matrix product. The helper checks layouts and strides and prepares the arguments for the numerical implementation. It is not Python iterating over tensor elements.</span><span data-lang="zh" lang="zh-CN">CPU 实现以 beta = 0、alpha = 1 调用 <code>addmm_impl_cpu_</code>。在 GEMM 的接口约定中，这恰好表示普通矩阵乘法。辅助函数检查布局与步幅，为数值实现准备参数；不是 Python 在遍历张量元素。</span></p>
+<div class="shared-equation" data-math="C\leftarrow\alpha AB+\beta C,\qquad \alpha=1,\ \beta=0\ \Longrightarrow\ C=AB"></div>
+<p class="parallel-text"><span data-lang="en" lang="en">For float32 CPU GEMM, <code>CPUBlas.cpp</code> contains a BLAS path and a fallback stub, with additional build-dependent optimized branches. The linked BLAS library, CPU, shape, and build configuration determine the precise numerical routine. On CUDA, <code>mm_out_cuda</code> reaches CUDA BLAS machinery; the library and selected algorithm launch GPU work. Neither branch promises one fixed kernel for every input.</span><span data-lang="zh" lang="zh-CN">float32 CPU GEMM 的 <code>CPUBlas.cpp</code> 中既有 BLAS 路径，也有回退 stub，以及取决于构建配置的优化分支。具体数值例程取决于链接的 BLAS 库、CPU、形状与构建配置。在 CUDA 上，<code>mm_out_cuda</code> 进入 CUDA BLAS 路径，由库及其所选算法启动 GPU 工作。两条分支都不保证所有输入使用同一个固定内核。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/CPUBlas.cpp#L195">CPUBlas: float GEMM, BLAS selection and fallback ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/CPUBlas.cpp#L195">CPUBlas：float GEMM、BLAS 选择与回退 ↗</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/cuda/Blas.cpp#L668">CUDA mm: the CUDA BLAS entry ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/cuda/Blas.cpp#L668">CUDA mm：CUDA BLAS 入口 ↗</a></span></p>
+<aside class="lesson-note">
+<p class="parallel-text"><span data-lang="en" lang="en">A CUDA tensor is not selected because the computer happens to have a GPU: the inputs must be on the appropriate device. GPU work is generally asynchronous with respect to the host. Getting a Python result object does not prove the GPU has finished; copying results to the CPU or explicit synchronization can wait for completion. Never report host enqueue time as kernel execution time.</span><span data-lang="zh" lang="zh-CN">计算机装有 GPU，并不意味着 CPU 张量会自动走 CUDA：输入必须位于相应设备。GPU 工作通常相对主机异步执行。拿到 Python 结果对象不等于 GPU 已完成；把结果复制到 CPU 或显式同步可能等待执行完成。不要把主机提交任务的耗时当成内核执行时间。</span></p>
+</aside>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/cuda.html#asynchronous-execution">PyTorch 2.10: asynchronous execution ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/cuda.html#asynchronous-execution">PyTorch 2.10：异步执行 ↗</a></span></p>
+<h2 class="parallel-text" id="backward-recipe"><span data-lang="en" lang="en">Autograd keeps a recipe, not another copy of the Python program</span><span data-lang="zh" lang="zh-CN">Autograd 留下的是求导配方</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">For these inputs, the observed <code>MmBackward0</code> node is evidence of the <code>mm</code> computation used by the composite <code>matmul</code> implementation. The node type is an internal implementation detail, not a stable public API guarantee. With gradient recording enabled, the graph connects the output to the operations and leaves that produced it, saving the information needed for derivatives.</span><span data-lang="zh" lang="zh-CN">本例实际出现的 <code>MmBackward0</code> 节点，对应组合式 <code>matmul</code> 使用的 <code>mm</code> 运算。节点类型属于内部实现细节，不是稳定的公开 API 承诺。启用梯度记录时，计算图把输出连接到生成它的运算与叶子张量，并保存求导所需的信息。</span></p>
+<div class="shared-equation" data-math="Y=AB,\quad G=\frac{\partial L}{\partial Y},\qquad \frac{\partial L}{\partial A}=GB^{\mathsf T},\quad \frac{\partial L}{\partial B}=A^{\mathsf T}G"></div>
+<p class="parallel-text"><span data-lang="en" lang="en">These formulas are for real-valued matrices. For <code>L = y.sum()</code>, G is a 2 × 2 matrix of ones. Each row of A.grad is therefore [15, 19, 23], while B.grad has rows [5, 5], [7, 7], and [9, 9]. This is why <code>backward()</code> itself can issue more matrix multiplications. Complex-valued derivatives require conjugation conventions beyond this example.</span><span data-lang="zh" lang="zh-CN">这些公式针对实数矩阵。对于 <code>L = y.sum()</code>，G 是一个全 1 的 2 × 2 矩阵。因此 A.grad 每一行都是 [15, 19, 23]，B.grad 的三行分别是 [5, 5]、[7, 7] 和 [9, 9]。这也解释了为什么 <code>backward()</code> 自身会发起更多矩阵乘法。复数求导还涉及共轭约定，不在本例范围内。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/derivatives.yaml#L1199">Derivative definitions for mm ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/derivatives.yaml#L1199">mm 的导数定义 ↗</a></span></p>
+<pre tabindex="0"><code class="language-yaml" >- name: mm(Tensor self, Tensor mat2) -&gt; Tensor
+  self: mm_mat1_backward(grad, mat2, self.sym_sizes(), self.sym_strides(), self.layout(), 1)
+  mat2: mm_mat2_backward(grad, self, mat2.sym_sizes(), mat2.sym_strides(), mat2.layout(), 1)
+  result: at::mm(self_t, mat2_p) + at::mm(self_p, mat2_t)</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The YAML defines rules used to generate autograd code; it is not interpreted afresh for every multiplication. Saved tensors, graph nodes, and version checks make differentiation possible, but can consume memory. <code>torch.no_grad()</code> suppresses new gradient history even if the inputs require gradients. Leaf gradients accumulate across backward calls unless cleared.</span><span data-lang="zh" lang="zh-CN">这些 YAML 规则用于生成 autograd 代码，不会在每次乘法时重新解释。保存的张量、图节点与版本检查支撑自动求导，也会消耗内存。即使输入要求梯度，<code>torch.no_grad()</code> 也会禁止记录新的梯度历史。叶子梯度会在多次 backward 之间累加，除非主动清空。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/autograd.html">PyTorch 2.10: autograd mechanics and grad modes ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/autograd.html">PyTorch 2.10：Autograd 机制与梯度模式 ↗</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The backward diagram follows the <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/engine.cpp">engine’s dependency scheduling</a>, then ends at <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/functions/accumulate_grad.cpp#L87">AccumulateGrad</a>. These leaf nodes update <code>.grad</code>; they do not perform an optimizer step. Switching the diagram to <code>mean()</code> divides the upstream gradient by the four elements of Y, so both leaf gradients become one quarter of the sum case.</span><span data-lang="zh" lang="zh-CN">反向图沿着<a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/engine.cpp">引擎的依赖调度</a>推进，最终到达 <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/functions/accumulate_grad.cpp#L87">AccumulateGrad</a>。这些叶子节点更新 <code>.grad</code>，不会执行优化器更新。把图中的归约切为 <code>mean()</code> 时，上游梯度除以 Y 的元素数 4，两份叶子梯度因此都变成求和情形的四分之一。</span></p>
+<h2 class="parallel-text" id="verify-the-route"><span data-lang="en" lang="en">Collect evidence on your own machine</span><span data-lang="zh" lang="zh-CN">在自己的机器上寻找证据</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">A CPU profiler can confirm operator nesting; a dispatch table can show available registrations. Neither by itself proves which low-level BLAS microkernel ran. First measure a small, controlled eager example, then change one condition at a time.</span><span data-lang="zh" lang="zh-CN">CPU profiler 可以确认算子嵌套，调度表可以查看可用注册。但单凭任何一个，都不能证明执行了哪一个底层 BLAS 微内核。先观察受控的小型 eager 示例，再一次改变一个条件。</span></p>
+<pre tabindex="0"><code class="language-python" id="pt-python-profile">import torch
+from torch.profiler import profile, ProfilerActivity
+
+a = torch.tensor([[1., 2., 3.], [4., 5., 6.]], requires_grad=True)
+b = torch.tensor([[7., 8.], [9., 10.], [11., 12.]], requires_grad=True)
+with profile(activities=[ProfilerActivity.CPU], record_shapes=True) as trace:
+    y = torch.matmul(a, b)
+for event in trace.events():
+    if event.name in (&quot;aten::matmul&quot;, &quot;aten::mm&quot;):
+        print(event.name, event.input_shapes)
+
+with torch.no_grad():
+    detached_result = torch.matmul(a, b)
+print(&quot;no_grad:&quot;, detached_result.requires_grad, detached_result.grad_fn)
+for name in (&quot;aten::matmul&quot;, &quot;aten::mm&quot;):
+    print(name)
+    for line in torch._C._dispatch_dump_table(name).splitlines():
+        if line.startswith((&quot;CPU:&quot;, &quot;AutogradCPU:&quot;)):
+            print(line)
+assert detached_result.grad_fn is None
+assert {&quot;aten::matmul&quot;, &quot;aten::mm&quot;} &lt;= {event.name for event in trace.events()}</code></pre>
+<pre tabindex="0"><code class="language-text" >aten::matmul [[2, 3], [3, 2]]
+aten::mm [[2, 3], [3, 2]]
+no_grad: False None</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The three lines above are the stable portion observed in this pinned CPU run. The table additionally reported composite “math kernel” entries for matmul at CPU and AutogradCPU, and a CPU kernel plus an autograd kernel for mm. Generated filenames and line numbers in that table describe the wheel’s build tree, not necessarily your checkout. <code>torch._C._dispatch_dump_table</code> is a private diagnostic API and may change.</span><span data-lang="zh" lang="zh-CN">上面三行是本次固定版本 CPU 运行中可复现的部分。调度表还显示：matmul 在 CPU 和 AutogradCPU 上注册的是组合式 “math kernel”；mm 则分别有 CPU kernel 和 autograd kernel。表中的生成文件名与行号来自 wheel 的构建目录，不一定对应你的源码目录。<code>torch._C._dispatch_dump_table</code> 是私有诊断 API，后续版本可能变化。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Try three experiments: replace both matrices with 1-D vectors and look for <code>aten::dot</code>; change an inner dimension and read the shape error; compare grad-enabled and <code>no_grad</code> results. Do not infer a speedup from these tiny matrices or from profiler overhead.</span><span data-lang="zh" lang="zh-CN">试做三个实验：把两个输入都换成一维向量，寻找 <code>aten::dot</code>；修改内侧维度，阅读形状错误；比较记录梯度与 <code>no_grad</code> 的结果。不要用这些小矩阵或 profiler 自身的开销推断性能提升。</span></p>
+<h2 class="parallel-text" id="rebuild-a-piece"><span data-lang="en" lang="en">Rebuild one small piece in C++</span><span data-lang="zh" lang="zh-CN">用 C++ 重建一个小零件</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">This self-contained model has a tensor value, a CPU backend, and a lookup function. It makes the separation between public operation, backend selection, and arithmetic tangible. It deliberately supports only contiguous 2-D double data on CPU; it has no autograd, views, dtype dispatch, BLAS, or CUDA. It is original teaching code, not a transcription of PyTorch’s dispatcher.</span><span data-lang="zh" lang="zh-CN">这个独立模型包含张量值、CPU 后端与查找函数，让“公开运算、后端选择、实际计算”的分工可以亲手运行。它仅支持 CPU 上连续存储的二维 double 数据，不实现 autograd、视图、dtype 分派、BLAS 或 CUDA。这是原创教学代码，不是 PyTorch 调度器的源码抄写。</span></p>
+<pre tabindex="0"><code class="language-cpp" data-godbolt="c++" id="pt-cpp-model">#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;vector&gt;
+
+enum class Device { CPU, CUDA };
+struct Tensor {
+    int rows, cols;
+    std::vector&lt;double&gt; data;
+    Device device = Device::CPU;
+};
+
+Tensor mm_cpu(const Tensor&amp; a, const Tensor&amp; b) {
+    if (a.rows &lt; 0 || a.cols &lt; 0 || b.rows &lt; 0 || b.cols &lt; 0 ||
+        a.cols != b.rows ||
+        a.data.size() != static_cast&lt;std::size_t&gt;(a.rows) * a.cols ||
+        b.data.size() != static_cast&lt;std::size_t&gt;(b.rows) * b.cols)
+        throw std::invalid_argument(&quot;invalid matrix shape or storage&quot;);
+    Tensor y{a.rows, b.cols,
+             std::vector&lt;double&gt;(static_cast&lt;std::size_t&gt;(a.rows) * b.cols, 0.0)};
+    for (int i = 0; i &lt; a.rows; ++i)
+        for (int j = 0; j &lt; b.cols; ++j)
+            for (int k = 0; k &lt; a.cols; ++k)
+                y.data[static_cast&lt;std::size_t&gt;(i) * b.cols + j] +=
+                    a.data[static_cast&lt;std::size_t&gt;(i) * a.cols + k] *
+                    b.data[static_cast&lt;std::size_t&gt;(k) * b.cols + j];
+    return y;
+}
+
+using Kernel = Tensor (*)(const Tensor&amp;, const Tensor&amp;);
+Kernel lookup(Device device) {
+    if (device == Device::CPU) return mm_cpu;
+    throw std::runtime_error(&quot;CUDA backend is not registered in this model&quot;);
+}
+Tensor matmul(const Tensor&amp; a, const Tensor&amp; b) {
+    if (a.device != b.device) throw std::invalid_argument(&quot;device mismatch&quot;);
+    return lookup(a.device)(a, b);
+}
+
+int main() {
+    Tensor a{2, 3, {1, 2, 3, 4, 5, 6}};
+    Tensor b{3, 2, {7, 8, 9, 10, 11, 12}};
+    const Tensor y = matmul(a, b);
+    for (int i = 0; i &lt; y.rows; ++i) {
+        for (int j = 0; j &lt; y.cols; ++j)
+            std::cout &lt;&lt; y.data[static_cast&lt;std::size_t&gt;(i) * y.cols + j]
+                      &lt;&lt; (j + 1 == y.cols ? &#x27;\n&#x27; : &#x27; &#x27;);
+    }
+    return y.data == std::vector&lt;double&gt;{58, 64, 139, 154} ? 0 : 1;
+}</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Change the inputs and rerun. Mark both inputs as CUDA and observe the explicit “backend not registered” error; that is a capability boundary, not an invitation to pretend CPU computation happened on a GPU. Replacing the triple loop with a BLAS call should not require changing the public matmul interface.</span><span data-lang="zh" lang="zh-CN">修改输入后重新运行。把两个输入都标为 CUDA，会得到明确的“后端未注册”错误；这表示能力边界，不能把 CPU 计算伪装成 GPU 执行。把三重循环替换成 BLAS 调用时，公开 matmul 接口应当无需改变。</span></p>
+<h2 class="parallel-text" id="boundaries-and-next"><span data-lang="en" lang="en">What we can now explain—and where to go next</span><span data-lang="zh" lang="zh-CN">现在能解释什么，下一步读哪里</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The original line is a request to a layered runtime: the binding interprets it; the matmul composite chooses mm for this shape; dispatch and autograd wrappers coordinate implementation selection and history; a backend produces the numbers. Later, backward follows derivative rules. The exact path changes with shape, layout, device, modes, and build.</span><span data-lang="zh" lang="zh-CN">原来的那一行向分层运行时发出请求：绑定解释参数；matmul 的组合实现为本例选择 mm；调度器与 autograd 包装层协调实现选择和历史记录；后端算出数值。之后 backward 才沿导数规则计算。具体路径会随形状、布局、设备、模式与构建配置变化。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>torch.compile</code> introduces another route: capture, transformation, and compilation can replace parts of eager execution with compiled regions. It is not an unavoidable stage inside every eager matmul call, and compilation does not imply every operation becomes one custom fused kernel. We will study that route after tensor storage, dispatch, and autograd.</span><span data-lang="zh" lang="zh-CN"><code>torch.compile</code> 引入另一条路线：捕获、变换与编译可以把部分 eager 执行替换为编译区域。它不是每次 eager matmul 必经的阶段，也不意味着每个运算都会变成一个自定义融合内核。我们会在张量存储、调度和 autograd 之后再研究这条路线。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/torch.compiler.html">PyTorch 2.10: torch.compiler overview ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/torch.compiler.html">PyTorch 2.10：torch.compiler 概览 ↗</a></span></p>
+<div class="pt-roadmap">
+<div><b>02</b><span><span data-lang="en" lang="en">Tensor, TensorImpl, sizes and strides</span><span data-lang="zh" lang="zh-CN">Tensor、TensorImpl、形状与步幅</span></span></div>
+<div><b>03</b><span><span data-lang="en" lang="en">Storage, views and memory allocation</span><span data-lang="zh" lang="zh-CN">Storage、视图与内存分配</span></span></div>
+<div><b>04</b><span><span data-lang="en" lang="en">Operator registration and dispatch keys</span><span data-lang="zh" lang="zh-CN">算子注册与调度键</span></span></div>
+<div><b>05</b><span><span data-lang="en" lang="en">Autograd nodes and the backward engine</span><span data-lang="zh" lang="zh-CN">Autograd 节点与反向引擎</span></span></div>
+<div><b>06</b><span><span data-lang="en" lang="en">CUDA streams, kernels and measurement</span><span data-lang="zh" lang="zh-CN">CUDA 流、内核与测量</span></span></div>
+<div><b>07</b><span><span data-lang="en" lang="en">Code generation and compiled execution</span><span data-lang="zh" lang="zh-CN">代码生成与编译执行</span></span></div>
+</div>
+<p class="parallel-text"><span data-lang="en" lang="en">The roadmap above is planned, not a list of published links. Next question: when <code>b = a.T</code> changes shape and strides, which object owns the actual bytes? Published installments are collected automatically in the <a href="/series/pytorch-internals/">series index</a>.</span><span data-lang="zh" lang="zh-CN">以上是后续规划，不是已发布文章链接。下一期先回答：<code>b = a.T</code> 改变形状和步幅时，究竟哪个对象拥有实际字节？已发布文章会自动汇总到<a href="/series/pytorch-internals/">专题目录</a>。</span></p>
+<h2 class="parallel-text" id="references"><span data-lang="en" lang="en">Sources and reproduction notes</span><span data-lang="zh" lang="zh-CN">来源与复现说明</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">All implementation links above are pinned to the same commit. Excerpts retain upstream names; omitted surroundings are visible at each linked location. Source review and CPU numerical/profiler checks support the main route. The browser animation models that route; it does not run PyTorch or inspect the visitor’s GPU.</span><span data-lang="zh" lang="zh-CN">上面的实现链接全部固定到同一提交。摘录保留上游命名，未展示的上下文可在各链接处阅读。主线经过源码核对与 CPU 数值／profiler 检查；浏览器动画只是该路径的模型，不会运行 PyTorch 或探测访客 GPU。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.matmul.html">API contract: torch.matmul in PyTorch 2.10</a> · <a data-citation href="https://github.com/pytorch/pytorch/wiki/PyTorch-dispatcher-walkthrough">Dispatcher walkthrough (living design notes)</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.matmul.html">API 约定：PyTorch 2.10 的 torch.matmul</a> · <a data-citation href="https://github.com/pytorch/pytorch/wiki/PyTorch-dispatcher-walkthrough">调度器设计导读（持续更新的设计笔记）</a></span></p>
+<details class="pt-details"><summary><span data-lang="en" lang="en">PyTorch source excerpt license and notices</span><span data-lang="zh" lang="zh-CN">PyTorch 源码摘录的许可证与声明</span></summary>
+<p class="parallel-text"><span data-lang="en" lang="en">The excerpts are from PyTorch, licensed under its BSD-style license. The original copyright notices, redistribution conditions, and disclaimer are reproduced below. They remain in the original language.</span><span data-lang="zh" lang="zh-CN">源码摘录来自 PyTorch，使用其 BSD 风格许可证。下方保留原始版权声明、再分发条件和免责声明；法律文本保持原文。</span></p>
+<pre tabindex="0"><code class="language-text" >From PyTorch:
+
+Copyright (c) 2016-     Facebook, Inc            (Adam Paszke)
+Copyright (c) 2014-     Facebook, Inc            (Soumith Chintala)
+Copyright (c) 2011-2014 Idiap Research Institute (Ronan Collobert)
+Copyright (c) 2012-2014 Deepmind Technologies    (Koray Kavukcuoglu)
+Copyright (c) 2011-2012 NEC Laboratories America (Koray Kavukcuoglu)
+Copyright (c) 2011-2013 NYU                      (Clement Farabet)
+Copyright (c) 2006-2010 NEC Laboratories America (Ronan Collobert, Leon Bottou, Iain Melvin, Jason Weston)
+Copyright (c) 2006      Idiap Research Institute (Samy Bengio)
+Copyright (c) 2001-2004 Idiap Research Institute (Ronan Collobert, Samy Bengio, Johnny Mariethoz)
+
+From Caffe2:
+
+Copyright (c) 2016-present, Facebook Inc. All rights reserved.
+
+All contributions by Facebook:
+Copyright (c) 2016 Facebook Inc.
+
+All contributions by Google:
+Copyright (c) 2015 Google Inc.
+All rights reserved.
+
+All contributions by Yangqing Jia:
+Copyright (c) 2015 Yangqing Jia
+All rights reserved.
+
+All contributions by Kakao Brain:
+Copyright 2019-2020 Kakao Brain
+
+All contributions by Cruise LLC:
+Copyright (c) 2022 Cruise LLC.
+All rights reserved.
+
+All contributions by Tri Dao:
+Copyright (c) 2024 Tri Dao.
+All rights reserved.
+
+All contributions by Arm:
+Copyright (c) 2021, 2023-2025 Arm Limited and/or its affiliates
+
+All contributions from Caffe:
+Copyright(c) 2013, 2014, 2015, the respective contributors
+All rights reserved.
+
+All other contributions:
+Copyright(c) 2015, 2016 the respective contributors
+All rights reserved.
+
+Caffe2 uses a copyright model similar to Caffe: each contributor holds
+copyright over their contributions to Caffe2. The project versioning records
+all such contribution and copyright details. If a contributor wants to further
+mark their specific copyright on a particular contribution, they should
+indicate their copyright solely in the commit message of the change when it is
+committed.
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Neither the names of Facebook, Deepmind Technologies, NYU, NEC Laboratories America
+   and IDIAP Research Institute nor the names of its contributors may be
+   used to endorse or promote products derived from this software without
+   specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.</code></pre>
+</details></div><script>(() => {
+ const root=document.querySelector('.pytorch-lesson');if(!root)return;
+ const $=selector=>root.querySelector(selector),all=selector=>[...root.querySelectorAll(selector)];
+ const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const pair=(en,zh)=>`<span data-lang="en" lang="en">${escape(en)}</span><span data-lang="zh" lang="zh-CN">${escape(zh)}</span>`;
+ const base='https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/';
+ const route=$('#pt-route');let routeStep=0,backStep=0,phase='forward',reduction='sum',device='cpu',record=true,routeTimer=null,matrixTimer=null,matrixStep=0;
+ const cpu='aten/src/ATen/native/LinearAlgebra.cpp#L1636',cuda='aten/src/ATen/native/cuda/Blas.cpp#L668';
+ function routeDetails(){return [
+  ['Python binding','Python 绑定','The generated binding parses a and b and reaches the tensor operator API. It does not multiply Python lists.','生成的绑定解析 a、b，并进入张量算子 API。它不会用 Python 列表执行乘法。','tools/autograd/gen_python_functions.py#L827'],
+  ['Dispatch aten::matmul','调度 aten::matmul','For these ordinary tensors, the dispatch table reaches the CompositeImplicitAutograd implementation. A composite handler can invoke other tensor operators.','对于本例的普通张量，调度表进入 CompositeImplicitAutograd 实现。组合式处理函数可以调用其他张量算子。','aten/src/ATen/native/native_functions.yaml#L3822'],
+  ['Two dimensions → mm','二维输入 → mm','_matmul_impl sees 2-D × 2-D and requests tensor1.mm(tensor2). Other ranks may use dot, mv, batching, or folding instead.','_matmul_impl 看到二维乘二维，于是请求 tensor1.mm(tensor2)。其他维度可能走 dot、mv、批量计算或维度折叠。','aten/src/ATen/native/LinearAlgebra.cpp#L2032'],
+  ['Dispatch aten::mm','调度 aten::mm',`This second operator call extracts dispatch keys. For the selected ${device.toUpperCase()} tensors, an autograd wrapper participates before redispatch to the backend.`,`这次新的算子调用提取调度键。对于所选的 ${device.toUpperCase()} 张量，求导包装层会在重新调度到后端之前参与。`,'aten/src/ATen/core/dispatch/Dispatcher.h#L776'],
+  ['Decide whether to record','判断是否记录梯度',record?'Grad mode is enabled and the inputs require gradients. The mm wrapper prepares a backward node and the information needed to connect history after the numerical call.':'Inside no_grad(), the wrapper does not create a new backward history. The tensor arguments can still carry autograd keys; no_grad is not the same as removing the wrapper.',record?'梯度模式开启，且输入要求梯度。mm 包装层准备反向节点，以及数值调用之后关联历史所需的信息。':'进入 no_grad() 后，包装层不建立新的反向历史。张量参数仍可能带有求导键；no_grad 不等于移除包装层。','tools/autograd/derivatives.yaml#L1199'],
+  ['Redispatch below autograd','绕过求导层重新调度',`The wrapper redispatches mm below the autograd layer. The structured ${device.toUpperCase()} implementation prepares output metadata and storage before doing the numerical work.`,`包装层绕过求导层重新调度 mm。结构化的 ${device.toUpperCase()} 实现在数值计算前准备输出元数据与存储。`,'aten/src/ATen/native/native_functions.yaml#L4196'],
+  [device==='cpu'?'CPU numerical computation':'CUDA work is enqueued',device==='cpu'?'CPU 数值计算':'提交 CUDA 工作',device==='cpu'?'mm_out_cpu reuses addmm_impl_cpu_ with beta=0 and alpha=1. BLAS or another eligible implementation computes AB; the exact routine depends on the build and inputs.':'mm_out_cuda enters the CUDA BLAS path. Host code submits work on a CUDA stream; completion can happen after the host call returns. This diagram does not execute a GPU kernel.',device==='cpu'?'mm_out_cpu 以 beta=0、alpha=1 复用 addmm_impl_cpu_。由 BLAS 或其他合适的实现计算 AB；具体例程取决于构建与输入。':'mm_out_cuda 进入 CUDA BLAS 路径。主机代码在 CUDA 流上提交工作，完成时间可能晚于主机调用返回。本图不会执行 GPU 内核。',device==='cpu'?cpu:cuda],
+  [record?'Return y with gradient history':'Return y without gradient history',record?'返回带有梯度历史的 y':'返回不含梯度历史的 y',record?`The result has shape (2,2). The pinned CPU example reports MmBackward0. backward() has not run yet.${device==='cuda'?' GPU work may still be pending.':''}`:`The result still has shape (2,2), but requires_grad is false and grad_fn is None.${device==='cuda'?' GPU work may still be pending.':''}`,record?`结果形状为 (2,2)。固定版本 CPU 示例返回 MmBackward0；此时尚未执行 backward()。${device==='cuda'?'GPU 工作仍可能未完成。':''}`:`结果形状仍为 (2,2)，但 requires_grad 为 false，grad_fn 为 None。${device==='cuda'?'GPU 工作仍可能未完成。':''}`,'tools/autograd/derivatives.yaml#L1199']
+ ];}
+
+ const matrixMarkup=(values,cols)=>`<span class="pt-mini-matrix" style="--cols:${cols}">${values.map(v=>`<span>${v}</span>`).join('')}</span>`;
+ function gradients(){const g=reduction==='mean'?.25:1;return {g,a:[15,19,23,15,19,23].map(v=>v*g),b:[5,5,7,7,9,9].map(v=>v*g)};}
+ function backwardDetails(){const mean=reduction==='mean',op=mean?'mean':'sum';return [
+  ['Reduce Y to a scalar loss','把 Y 归约为标量损失',`The forward pass has produced Y = [[58,64],[139,154]]. L = y.${op}() is ${mean?'103.75':'415'}. ${mean?'MeanBackward0':'SumBackward0'} links this loss to MmBackward0. Leaf .grad fields are still None.`,`前向已得到 Y = [[58,64],[139,154]]。L = y.${op}() = ${mean?'103.75':'415'}；${mean?'MeanBackward0':'SumBackward0'} 将损失与 MmBackward0 相连。此时叶子 .grad 仍为 None。`,'tools/autograd/derivatives.yaml#L'+(mean?'1129':'1508')],
+  ['Seed the backward engine','为反向引擎提供梯度种子','L.backward() supplies a seed of 1 for this real scalar: ∂L/∂L = 1. The engine follows dependency edges and schedules ready nodes. It does not rerun the Python forward program.','对于这个实数标量，L.backward() 提供种子 ∂L/∂L = 1。引擎沿依赖边调度已就绪节点，不会重新执行 Python 前向程序。','torch/autograd/__init__.py#L243'],
+  [mean?'MeanBackward0 → G':'SumBackward0 → G',mean?'MeanBackward0 → G':'SumBackward0 → G',`The incoming scalar gradient expands to Y's (2,2) shape${mean?' and is divided by its four elements':''}. Thus G = ∂L/∂Y has every entry equal to ${mean?'0.25':'1'}. This intermediate gradient is propagated even though y.grad is not retained by default.`,`标量梯度扩展到 Y 的 (2,2) 形状${mean?'，并除以元素数 4':''}。因此 G = ∂L/∂Y 的每项为 ${mean?'0.25':'1'}。即使默认不保留 y.grad，中间梯度仍会传播。`,'tools/autograd/derivatives.yaml#L'+(mean?'1129':'1508')],
+  ['MmBackward0 reads the saved inputs','MmBackward0 读取保存的输入','For Y = AB, the backward node receives G and uses the saved A and B: ∂L/∂A = GBᵀ, ∂L/∂B = AᵀG. The orange dashed edges carry saved forward values, not gradients.','对 Y = AB，反向节点接收 G，并使用保存的 A、B：∂L/∂A = GBᵀ，∂L/∂B = AᵀG。橙色虚线传递的是保存的前向数值，而非梯度。','tools/autograd/derivatives.yaml#L1199'],
+  ['Compute the two gradient contributions','计算两条分支的梯度贡献',`Both branches contain matrix multiplications, dispatched to ${device.toUpperCase()} implementations again. The (2,3) contribution goes to A and the (3,2) contribution to B. The diagram groups them for comparison; it does not assert their execution order or simultaneous scheduling.`,`两条分支都包含矩阵乘法，再次调度到 ${device.toUpperCase()} 实现。(2,3) 的贡献传给 A，(3,2) 的贡献传给 B。图中将其并列以便比较，不代表固定执行顺序或同时调度。`,'torch/csrc/autograd/FunctionsManual.cpp#L1422'],
+  ['Accumulate gradients at the leaves','在叶子张量处累积梯度',`AccumulateGrad stores these contributions in a.grad and b.grad. This example starts with .grad = None. A later backward on a newly computed graph adds to existing gradients unless they are cleared. No optimizer step occurs; A and B retain their original values.${device==='cuda'?' CUDA operations obey stream dependencies; this diagram is not a GPU execution trace.':''}`,`AccumulateGrad 将贡献写入 a.grad、b.grad。本例从 .grad = None 开始；重新前向后再次 backward 会向已有梯度累加，除非先清空。这里没有 optimizer.step()，A、B 的原始数值不变。${device==='cuda'?'CUDA 运算遵循流依赖；此图不是 GPU 执行跟踪。':''}`,'torch/csrc/autograd/functions/accumulate_grad.cpp#L87']
+ ];}
+ const forwardEdges=[['pt-inputs','pt-f0',0,'bottom','top'],...Array.from({length:7},(_,i)=>['pt-f'+i,'pt-f'+(i+1),i+1,i===3?'bottom':i<3?'right':'left',i===3?'top':i<3?'left':'right']),['pt-f4','pt-saved',4,'bottom','top',true]];
+ const backwardEdges=[['pt-loss','pt-seed',1,'right','left'],['pt-seed','pt-reduce',2,'bottom','top'],['pt-reduce','pt-mm-back',3,'bottom','top'],['pt-back-saved','pt-mm-back',3,'bottom','left',true],['pt-mm-back','pt-da',4,'bottom','top'],['pt-mm-back','pt-db',4,'bottom','top'],['pt-da','pt-acc-a',5,'bottom','top'],['pt-db','pt-acc-b',5,'bottom','top']];
+ function drawEdges(){
+  const graph=$(phase==='forward'?'#pt-forward-graph':'#pt-backward-graph');if(!graph.getBoundingClientRect().width)return;
+  const rect=graph.getBoundingClientRect(),svg=graph.querySelector('svg'),defs=svg.querySelector('defs'),edges=phase==='forward'?forwardEdges:backwardEdges,step=phase==='forward'?routeStep:backStep;
+  svg.setAttribute('viewBox',`0 0 ${rect.width} ${rect.height}`);
+  const point=(id,side)=>{const r=$('#'+id).getBoundingClientRect(),x=r.left-rect.left,y=r.top-rect.top;return side==='left'?[x,y+r.height/2]:side==='right'?[x+r.width,y+r.height/2]:side==='top'?[x+r.width/2,y]:[x+r.width/2,y+r.height];};
+  const tangent={left:[-28,0],right:[28,0],top:[0,-28],bottom:[0,28]};
+  svg.querySelector('g').innerHTML=edges.map(([from,to,at,side1,side2,saved=false])=>{if(saved&&!record)return '';const a=point(from,side1),b=point(to,side2),u=tangent[side1],v=tangent[side2];return `<path class="pt-edge" data-active="${step===at&&(phase==='forward'||record)}" data-saved="${saved}" marker-end="url(#${defs.querySelector('marker').id})" d="M${a} C${a[0]+u[0]},${a[1]+u[1]} ${b[0]+v[0]},${b[1]+v[1]} ${b}"/>`;}).join('');
+ }
+ function renderRoute(){
+  const back=phase==='backward',blocked=back&&!record,step=back?backStep:routeStep,total=back?6:8;
+  $('#pt-forward-scroll').hidden=back;$('#pt-backward-scroll').hidden=!back;$('#pt-loss-controls').hidden=!back;
+  $('#pt-backward-unavailable').hidden=!blocked;$('#pt-backward-graph').hidden=blocked;
+  all('[data-pt-phase]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.ptPhase===phase)));
+  all('[data-pt-stage],[data-pt-backstage]').forEach(button=>{const backward=button.hasAttribute('data-pt-backstage'),n=Number(backward?button.dataset.ptBackstage:button.dataset.ptStage),active=back===backward&&!blocked&&n===step;if(active)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');button.dataset.complete=String(back===backward&&!blocked&&n<step);if(backward)button.disabled=!record;});
+  all('[data-pt-loss]').forEach(button=>{button.setAttribute('aria-pressed',String(button.dataset.ptLoss===reduction));button.disabled=!record;});
+  const [en,zh,explainEn,explainZh,path]=blocked?['No backward path was recorded','未记录反向路径','Y was computed inside no_grad(). It has requires_grad=False and grad_fn=None, so reducing it and calling backward() cannot reach A or B. Enable gradient recording and recompute the forward pass to create that path.','Y 在 no_grad() 中计算，其 requires_grad=False、grad_fn=None。因此归约后调用 backward() 无法到达 A、B。需开启梯度记录并重新执行前向，才能建立这条路径。','torch/autograd/__init__.py#L243']:(back?backwardDetails()[step]:routeDetails()[step]);
+  $('#pt-route-info').innerHTML=`<strong>${pair(en,zh)}</strong><p class="parallel-text">${pair(explainEn,explainZh)}</p><a href="${base+path}">${pair('Open this source location ↗','查看这一处源码 ↗')}</a>`;
+  $('#pt-route-position').innerHTML=pair(blocked?'Backward unavailable':`${back?'Backward':'Forward'} · ${step+1} / ${total}`,blocked?'反向不可用':`${back?'反向':'前向'} · ${step+1} / ${total}`)+` · ${device.toUpperCase()} · ${record?'grad':'no_grad'}`;
+  $('#pt-route-prev').disabled=blocked||step===0;$('#pt-route-next').disabled=blocked||step===total-1;$('#pt-route-play').disabled=blocked;$('#pt-route-reset').disabled=blocked;
+  $('#pt-f6 b').textContent=device==='cpu'?'mm_out_cpu':'mm_out_cuda';
+  $('#pt-y-values').innerHTML=routeStep>=6?matrixMarkup([58,64,139,154],2):'· ·';
+  $('#pt-saved').dataset.available=String(record&&routeStep>=4);
+  $('#pt-saved-state').innerHTML=!record?pair('no_grad: no saved backward history','no_grad：不保存新的求导历史'):routeStep<4?pair('Not prepared yet','尚未准备'):routeStep<7?pair('Prepare node; retain inputs for derivatives','准备节点，保留求导所需输入'):pair('y.grad_fn → MmBackward0','y.grad_fn → MmBackward0');
+  const {g,a,b}=gradients(),ready=n=>record&&backStep>=n;
+  if(back&&record&&backStep===4)$('#pt-route-info').innerHTML+=`<div class="pt-equation">∂L/∂A[0,0] = ${g} × 7 + ${g} × 8 = ${a[0]}<br>∂L/∂B[0,0] = 1 × ${g} + 4 × ${g} = ${b[0]}</div>`;
+  $('#pt-loss b').textContent=`L = y.${reduction}()`;$('#pt-loss-value').textContent=reduction==='mean'?'103.75':'415';
+  $('#pt-reduce b').textContent=reduction==='mean'?'MeanBackward0':'SumBackward0';
+  $('#pt-g-values').innerHTML=ready(2)?'G · (2, 2)'+matrixMarkup(Array(4).fill(g),2):pair('G not propagated yet','尚未传播 G');
+  for(const [id,values,cols,n]of [['pt-da-values',a,3,4],['pt-db-values',b,2,4],['pt-ag-values',a,3,5],['pt-bg-values',b,2,5]])$('#'+id).innerHTML=ready(n)?matrixMarkup(values,cols):n===5?'None':pair('Pending','待计算');
+  $('#pt-back-saved').dataset.available=String(record);$('#pt-back-saved b').textContent=record?'A · B':'∅';$('#pt-backward-graph').dataset.blocked=String(!record);
+  route.dataset.step=String(routeStep);route.dataset.backwardStep=String(backStep);route.dataset.phase=phase;route.dataset.device=device;route.dataset.record=String(record);route.dataset.reduction=reduction;
+  route.dataset.gradA=JSON.stringify(ready(5)?a:null);route.dataset.gradB=JSON.stringify(ready(5)?b:null);
+  $('#pt-route-context').innerHTML=pair(back?'Backward starts from a completed forward pass. Each comparison uses fresh leaf gradients. Values are a mathematical illustration, not an execution trace; CUDA timings and completion are not simulated.':'The arrows show nested calls and return flow, not elapsed time. CUDA submits work to a stream; host return does not prove GPU completion. The numerical values shown are reference results.',back?'反向从一次已完成的前向开始。每次对比均从空的叶子梯度开始。数值为数学示意，不是执行跟踪；不模拟 CUDA 耗时或完成时刻。':'箭头表示嵌套调用及返回，不表示耗时。CUDA 将工作提交到流中；主机返回不代表 GPU 已完成。图中数值为参考结果。');
+  requestAnimationFrame(()=>{drawEdges();const region=$(back?'#pt-backward-scroll':'#pt-forward-scroll'),node=region.querySelector('[aria-current=step]');if(!node)return;const r=region.getBoundingClientRect(),n=node.getBoundingClientRect();let left=region.scrollLeft,top=region.scrollTop;if(n.left<r.left+12)left+=n.left-r.left-12;else if(n.right>r.right-12)left+=n.right-r.right+12;if(n.top<r.top+12)top+=n.top-r.top-12;else if(n.bottom>r.bottom-12)top+=n.bottom-r.bottom+12;region.scrollTo({left,top,behavior:'instant'});});
+ }
+ function stopRoute(){clearInterval(routeTimer);routeTimer=null;route.dataset.playing='false';$('#pt-route-play').innerHTML=pair('Play route','播放路径');$('#pt-route-play').setAttribute('aria-pressed','false');}
+ const activeStep=()=>phase==='forward'?routeStep:backStep, lastStep=()=>phase==='forward'?7:5;
+ function setStep(n){if(phase==='forward')routeStep=n;else backStep=n;renderRoute();}
+ $('#pt-route-play').addEventListener('click',()=>{if(routeTimer){stopRoute();return;}if(activeStep()===lastStep())setStep(0);route.dataset.playing='true';$('#pt-route-play').innerHTML=pair('Pause route','暂停路径');$('#pt-route-play').setAttribute('aria-pressed','true');routeTimer=setInterval(()=>{setStep(activeStep()+1);if(activeStep()===lastStep())stopRoute();},2200);});
+ $('#pt-route-next').addEventListener('click',()=>{stopRoute();setStep(Math.min(lastStep(),activeStep()+1));});
+ $('#pt-route-prev').addEventListener('click',()=>{stopRoute();setStep(Math.max(0,activeStep()-1));});
+ $('#pt-route-reset').addEventListener('click',()=>{stopRoute();setStep(0);});
+ all('[data-pt-stage]').forEach(button=>button.addEventListener('click',()=>{stopRoute();routeStep=Number(button.dataset.ptStage);renderRoute();}));
+ all('[data-pt-backstage]').forEach(button=>button.addEventListener('click',()=>{stopRoute();backStep=Number(button.dataset.ptBackstage);renderRoute();}));
+ all('[data-pt-phase]').forEach(button=>button.addEventListener('click',()=>{stopRoute();phase=button.dataset.ptPhase;if(phase==='backward')routeStep=7;renderRoute();}));
+ all('[data-pt-loss]').forEach(button=>button.addEventListener('click',()=>{stopRoute();reduction=button.dataset.ptLoss;backStep=0;renderRoute();}));
+ all('[data-pt-device]').forEach(button=>button.addEventListener('click',()=>{stopRoute();device=button.dataset.ptDevice;all('[data-pt-device]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderRoute();}));
+ all('[data-pt-grad]').forEach(button=>button.addEventListener('click',()=>{stopRoute();record=button.dataset.ptGrad==='on';backStep=0;all('[data-pt-grad]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderRoute();}));
+ new ResizeObserver(drawEdges).observe($('#pt-forward-graph'));new ResizeObserver(drawEdges).observe($('#pt-backward-graph'));
+ window.addEventListener('languagechange',()=>requestAnimationFrame(drawEdges));
+ matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',e=>{if(e.matches)stopRoute();});
+
+ const b=[7,8,9,10,11,12];
+ function renderMatrix(){
+  const a=[Number($('#pt-a00').value),2,3,4,5,6],values=Array(4).fill(0),touched=Array(4).fill(false);
+  for(let step=0;step<matrixStep;step++){const cell=Math.floor(step/3),i=Math.floor(cell/2),j=cell%2,k=step%3;values[cell]+=a[i*3+k]*b[k*2+j];touched[cell]=true;}
+  const current=Math.max(0,matrixStep-1),cell=Math.floor(current/3),i=Math.floor(cell/2),j=cell%2,k=current%3;
+  $('#pt-matrix-a').innerHTML=a.map((v,index)=>`<span class="pt-cell${matrixStep&&index===i*3+k?' pt-selected':''}">${v}</span>`).join('');
+  $('#pt-matrix-b').innerHTML=b.map((v,index)=>`<span class="pt-cell${matrixStep&&index===k*2+j?' pt-selected':''}">${v}</span>`).join('');
+  $('#pt-matrix-y').innerHTML=values.map((v,index)=>`<span class="pt-cell${matrixStep&&index===cell?' pt-output':touched[index]?' pt-done':''}">${touched[index]?v:'·'}</span>`).join('');
+  $('#pt-a00').nextElementSibling.value=String(a[0]);$('#pt-matrix-position').textContent=`${matrixStep} / 12`;
+  $('#pt-multiply').dataset.step=String(matrixStep);
+  if(!matrixStep){$('#pt-matrix-info').innerHTML=`<p class="parallel-text">${pair('Ready. A dot marks an output that has not been calculated yet. Start with row 0 of A and column 0 of B.','准备就绪。圆点表示尚未计算的输出。从 A 的第 0 行与 B 的第 0 列开始。')}</p>`;return;}
+  const previous=values[cell]-a[i*3+k]*b[k*2+j];
+  $('#pt-matrix-info').innerHTML=`<div class="pt-equation">Y[${i},${j}]: ${previous} + (${a[i*3+k]}) × (${b[k*2+j]}) = ${values[cell]}</div><p class="parallel-text">${pair(matrixStep===12?'All four outputs are complete. This is the mathematical work the backend must realize, not a trace of BLAS execution.':`Multiply A[${i},${k}] by B[${k},${j}], then add to Y[${i},${j}]. ${k===2?'This output is now complete.':'This output is still a partial sum.'}`,matrixStep===12?'四个输出均已完成。这是后端必须实现的数学运算，不是 BLAS 执行跟踪。':`将 A[${i},${k}] 与 B[${k},${j}] 相乘，再累加到 Y[${i},${j}]。${k===2?'这个输出已计算完毕。':'这个输出目前仍是部分和。'}`)}</p>`;
+ }
+ function stopMatrix(){clearInterval(matrixTimer);matrixTimer=null;$('#pt-matrix-play').innerHTML=pair('Animate arithmetic','播放计算');$('#pt-matrix-play').setAttribute('aria-pressed','false');}
+ $('#pt-matrix-play').addEventListener('click',()=>{if(matrixTimer){stopMatrix();return;}if(matrixStep===12){matrixStep=0;renderMatrix();}$('#pt-matrix-play').innerHTML=pair('Pause arithmetic','暂停计算');$('#pt-matrix-play').setAttribute('aria-pressed','true');matrixTimer=setInterval(()=>{matrixStep++;renderMatrix();if(matrixStep===12)stopMatrix();},750);});
+ $('#pt-matrix-next').addEventListener('click',()=>{stopMatrix();matrixStep=matrixStep===12?1:matrixStep+1;renderMatrix();});
+ $('#pt-matrix-reset').addEventListener('click',()=>{stopMatrix();matrixStep=0;renderMatrix();});
+ $('#pt-a00').addEventListener('input',()=>{stopMatrix();matrixStep=0;renderMatrix();});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){stopRoute();stopMatrix();}});
+ window.addEventListener('pagehide',()=>{stopRoute();stopMatrix();});
+ all('.pt-demo button,.pt-demo input').forEach(control=>control.disabled=false);
+ renderRoute();renderMatrix();
+})();
+</script></body></html>

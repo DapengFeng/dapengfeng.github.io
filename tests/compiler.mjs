@@ -30,7 +30,7 @@ try {
   assert.ok(await panel.locator('.syntax-string').count()>0);
  };
  await verifyHighlight(rust);await verifyHighlight(cpp);
- const check=async(panel,state)=>{await panel.locator('.compiler-run').click();await panel.locator(`[role="status"]`).waitFor();await page.waitForFunction(()=>![...document.querySelectorAll('.compiler-check')].some(n=>n.dataset.state==='pending'),{},{timeout:35000});assert.equal(await panel.getAttribute('data-state'),state,await panel.innerText());};
+ const check=async(panel,state)=>{await panel.locator('.compiler-run').click();await panel.locator('.compiler-status').waitFor();await page.waitForFunction(()=>![...document.querySelectorAll('.compiler-check')].some(n=>n.dataset.state==='pending'),{},{timeout:35000});assert.equal(await panel.getAttribute('data-state'),state,await panel.innerText());};
  await check(rust,'rejected');assert.match(await rust.locator('.compiler-output').innerText(),/E0502/);
  const originalDiagnostics=await rust.locator('.compiler-output').innerText();
  for(const mode of ['zh','both','en']){
@@ -77,7 +77,7 @@ try {
   }
   await page.locator('[data-language-choice="zh"]').click();assert.equal(await cpp.locator('.compiler-editor').inputValue(),edited);
   await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>window.copiedCode=text}}));
-  await page.locator('[data-copy="cpp"]').click();assert.equal(await page.evaluate(()=>window.copiedCode),edited);
+  await cpp.locator('.code-copy-block').filter({has:page.locator('.compiler-editor')}).locator('.code-copy').click();assert.equal(await page.evaluate(()=>window.copiedCode),edited);
   await cpp.locator('.compiler-reset').click();assert.equal(await cpp.locator('.compiler-results').isVisible(),false);
   assert.ok((await cpp.locator('.compiler-editor').inputValue()).includes('const int first'));
   await page.locator('[data-language-choice="en"]').click();

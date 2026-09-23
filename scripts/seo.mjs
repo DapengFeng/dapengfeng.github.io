@@ -16,9 +16,9 @@ export const sharingImage = post => `/assets/social/${post ? post.slug : 'site'}
 const json = value => JSON.stringify(value).replace(/</g, '\\u003c');
 
 // One canonical bilingual document; no fictitious hreflang alternatives for UI modes.
-export function optimizePage(html, url, post) {
+export function optimizePage(html, url, post, pageMetadata) {
   const $ = cheerio.load(html);
-  const info = post ? [post.titleEn, post.title, post.descriptionEn, post.description] : pageInfo[url];
+  const info = post ? [post.titleEn, post.title, post.descriptionEn, post.description] : pageMetadata || pageInfo[url];
   if (!info || info.some(value => typeof value !== 'string' || !value.trim())) throw Error(`Missing bilingual search metadata: ${url}`);
   const [titleEn, titleZh, descriptionEn, descriptionZh] = info;
   const title = bilingual(titleEn, titleZh), description = bilingual(descriptionEn, descriptionZh);

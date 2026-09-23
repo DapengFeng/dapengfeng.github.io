@@ -73,6 +73,23 @@ Place complete metadata in `<script type="application/json" id="article-metadata
 
 ## Equations, diagrams, and interaction / 公式、图表与交互
 
+To add an article to a learning series, include an optional `series` object in its article metadata. Use the same `id`, `titleEn`, and `title` across installments and a unique positive `part` number. The build generates `/series/<id>/`, links it from the homepage and notebook, adds it to the sitemap, and connects published installments with previous/next navigation. Drafts are excluded; planned articles should remain plain text until published. Duplicate part numbers and inconsistent series titles fail the build.
+
+若要把文章加入学习专题，在元信息中填写可选的 `series` 对象。各期使用相同的 `id`、`titleEn` 和 `title`，并填写不重复的正整数 `part`。构建自动生成 `/series/<id>/`，在首页和知识库添加入口、写入站点地图，并为已发布文章生成前后期导航。草稿不计入；未发布规划应保留为普通文字。期数重复或专题名称不一致会阻止构建。
+
+```json
+"series": {
+  "id": "pytorch-internals",
+  "titleEn": "Inside PyTorch",
+  "title": "PyTorch 源码之旅",
+  "part": 2
+}
+```
+
+`npm run test:pytorch` checks the first installment's C++ model, both animations, language modes, mobile layout, and no-JavaScript reading. Its Python/PyTorch examples require a separate local PyTorch 2.10.0 CPU environment; the website build does not install PyTorch. CPU outputs were checked against that version; CUDA diagrams are source-based illustrations rather than GPU measurements.
+
+`npm run test:pytorch` 检查第一期的 C++ 模型、两组动画、语言模式、手机排版与无 JavaScript 阅读。文中的 Python／PyTorch 示例需要独立的本地 PyTorch 2.10.0 CPU 环境，网站构建不会安装 PyTorch。CPU 输出已按该版本核对；CUDA 图示依据源码，不是 GPU 测量结果。
+
 [The article template](examples/article.html) includes bilingual paragraphs, inline and numbered AMS equations, highlighted C++ fragments, an editable complete C++ program, a shared interactive figure, a table, and explanation blocks. Copy its source into content/posts/ and build to preview the site styling and controls.
 
 [文章模板](examples/article.html)包含双语段落、行内与编号 AMS 公式、配色 C++ 片段、可编辑完整 C++ 程序、共用交互图、表格和说明块。将源码复制到 content/posts/ 后构建，即可预览站点样式和控件。
@@ -88,6 +105,10 @@ AMS 扩展支持 `align`、`gather`、`cases`、`pmatrix` 等环境，以及 `\m
 Inline CSS in standalone articles is scoped to `.legacy-content` to avoid overriding site navigation; inline scripts are preserved. Use unique IDs or article-local selectors. Shared styles live in `src/styles/`, and interaction scripts in `src/scripts/`. Publish only HTML and scripts you trust.
 
 独立文章的内联 CSS 会限定在 `.legacy-content` 范围，避免覆盖站点导航；内联脚本会保留。请使用唯一 ID 或文章局部选择器。共享样式位于 `src/styles/`，交互脚本位于 `src/scripts/`。仅发布自己信任的 HTML 和脚本。
+
+All block code (including plain `pre`, highlighted fragments, editable examples, and compiler output) receives one copy icon matching display equations. Copying preserves the current source and indentation without line numbers. Labels follow the language setting; if clipboard access is blocked, a selected text field allows manual copying. Inline code has no button. Do not add article-specific copy controls.
+
+所有块级代码（包括普通 `pre`、高亮片段、可编辑示例和编译输出）会自动添加一个与独立公式一致的复制图标。复制保留当前源码与缩进，不包含行号。提示遵循语言选择；剪贴板不可用时提供已选中的文本框供手动复制。行内代码不加按钮，无需在文章中手写复制控件。
 
 ## Verify code without leaving the article / 在文章内验证代码
 

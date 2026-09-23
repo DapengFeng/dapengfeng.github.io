@@ -6,7 +6,8 @@ import {serve} from '../scripts/serve.mjs';
 const before=process.argv.includes('--audit'),server=serve(4191);
 const browser=await chromium.launch({executablePath:chromiumExecutable(),headless:true,args:['--no-sandbox']});
 const posts=(await fs.readdir('content/posts')).filter(f=>f.endsWith('.html'));
-const urls=['/','/blog/','/categories/','/archive/','/about/','/404.html',...posts.map(p=>'/blog/'+p)];
+ const series=(await fs.readdir('dist/series').catch(()=>[])).map(id=>'/series/'+id+'/');
+const urls=['/','/blog/','/categories/','/archive/','/about/','/404.html',...series,...posts.map(p=>'/blog/'+p)];
 try{
  const page=await browser.newPage(),errors=[],tight=[];page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>localStorage.setItem('feng-language','both'));
  for(const url of urls){

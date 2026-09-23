@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>A visual note: vectors, formulas, and code</title>
   <!-- Set date to the first push date; later revisions keep date and may add updated.
-       date 使用首次推送日期；后续更新保留 date，可添加 updated。 -->
+       date 使用首次推送日期；后续更新保留 date，可添加 updated。
+       Optional series metadata: "series": {"id":"your-series", "titleEn":"Series title", "title":"专题名称", "part":1}.
+       可选 series 元信息如上；同一专题保持 id 与双语名称一致，part 使用不重复的正整数，目录和前后期导航自动生成。 -->
   <script type="application/json" id="article-metadata">
   {
     "titleEn": "A visual note: vectors, formulas, and code",
@@ -85,8 +87,8 @@
     <span lang="zh-CN" data-lang="zh">带语法配色的代码</span>
   </h2>
   <p class="parallel-text">
-    <span lang="en" data-lang="en">Use pre and code with class language-cpp for a C++ fragment. The site adds syntax colors. Escape HTML characters in code, but do not insert highlighting spans or wrap the same code in two language versions.</span>
-    <span lang="zh-CN" data-lang="zh">C++ 片段使用 pre 和带 language-cpp 类的 code，站点会自动配色。代码中的 HTML 特殊字符需要转义，但不要插入高亮用的 span，也不要为中英文重复放置同一段代码。</span>
+    <span lang="en" data-lang="en">Use pre and code with class language-cpp for a C++ fragment. The site adds syntax colors and one copy icon, styled like the equation control. Copying preserves source text and indentation, omits line numbers, and uses the current edited code in runnable examples. Do not add your own copy button. Escape HTML characters in code, but do not insert highlighting spans or wrap the same code in two language versions.</span>
+    <span lang="zh-CN" data-lang="zh">C++ 片段使用 pre 和带 language-cpp 类的 code，站点会自动配色，并添加一个与公式块样式一致的复制图标。复制保留源码与缩进、不含行号；可运行示例复制当前编辑的代码。不要手写复制按钮。代码中的 HTML 特殊字符需要转义，但不要插入高亮用的 span，也不要为中英文重复放置同一段代码。</span>
   </p>
   <pre><code class="language-cpp">double squared_length(double x, double y) {
     return x * x + y * y;

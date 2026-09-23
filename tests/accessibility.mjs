@@ -12,7 +12,8 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
  await page.addInitScript(()=>localStorage.setItem('feng-language','en'));
  const posts=(await fs.readdir('content/posts')).filter(f=>f.endsWith('.html'));
- const urls=['/','/blog/','/categories/','/archive/','/about/','/404.html',...posts.map(f=>'/blog/'+f)];
+ const series=(await fs.readdir('dist/series').catch(()=>[])).map(id=>'/series/'+id+'/');
+ const urls=['/','/blog/','/categories/','/archive/','/about/','/404.html',...series,...posts.map(f=>'/blog/'+f)];
  async function audit(url,mode){
   const violations=await page.evaluate(async()=>{
    const result=await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}});
@@ -27,6 +28,12 @@ try{
   for(const mode of ['en','zh','both']){
    await page.locator(`[data-language-choice=${mode}]`).click();
    await audit(url,mode);
+  }
+  if(url.includes('pytorch-01')){
+   await page.locator('[data-pt-phase=backward]').click();
+   await page.locator('#pt-acc-a').click();
+   for(const mode of ['en','zh','both']){await page.locator(`[data-language-choice=${mode}]`).click();await audit(url,'backward-'+mode);}
+   await page.locator('[data-pt-grad=off]').click();await audit(url,'no-grad-backward');
   }
   if(url.includes('rust-vs-cpp'))for(const button of await page.locator('[data-code-mode]').all()){
    await button.click();await audit(url,'code-'+await button.getAttribute('data-code-mode'));
