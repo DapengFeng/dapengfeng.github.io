@@ -68,7 +68,7 @@ export function localizePage(html, posts) {
  };
  visit($('body')[0]);
  // English-only supporting labels are decorative, while paired content carries both meanings.
- $('.overline,.category-en,.hero-bottom>span:first-child,.section-heading h2>span:not(.i18n):not(.small-cross):not(.category-symbol),.visual-label,.axis-caption>span').not('[data-lang]').attr('data-decorative-en','true');
+ $('.overline,.category-en,.hero-bottom>span:first-child,.section-heading h2>span:not(.i18n):not(.small-cross):not(.category-symbol),.visual-label,.axis-caption>span').not('[data-lang],.home-overline').attr('data-decorative-en','true');
  $('input[placeholder],[aria-label],button[title]').each((_,el)=>{
   if($(el).closest('.article-body').length)return;
   for(const attr of ['placeholder','aria-label','title']){const value=$(el).attr(attr);if(!value)continue;const en=english(value);if(en)$(el).attr(`data-${attr}-en`,en).attr(`data-${attr}-zh`,value).attr(attr,`${en} / ${value}`);}
