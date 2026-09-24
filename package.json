@@ -17,7 +17,7 @@
     "test:math": "node tests/math.mjs",
     "test:accessibility": "node tests/accessibility.mjs",
     "test:reading": "node tests/reading.mjs",
-    "test:browsers": "npm run test:browser && npm run test:compiler && npm run test:language && npm run test:lessons && npm run test:cuda && npm run test:math && npm run test:reading && npm run test:layout && npm run test:accessibility && npm run test:pytorch && npm run test:code-copy && npm run test:tensor && npm run test:reading-demos && npm run test:process-demos",
+    "test:browsers": "node scripts/check-browsers.mjs",
     "test:pytorch": "node tests/pytorch.mjs",
     "test:code-copy": "node tests/code-copy.mjs",
     "test:tensor": "node tests/tensor.mjs",

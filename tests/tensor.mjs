@@ -13,7 +13,7 @@ const temp=await fs.mkdtemp(path.join(os.tmpdir(),'feng-tensor-'));
 try{
  await fs.writeFile(path.join(temp,'model.cpp'),source('#tensor-cpp-model').text());
  execFileSync(process.env.CXX||'g++',['-std=c++17','-O2','-Wall','-Wextra',path.join(temp,'model.cpp'),'-o',path.join(temp,'model')],{timeout:30000});
- assert.equal(execFileSync(path.join(temp,'model'),{encoding:'utf8'}).trim(),'6 7\n60 60');
+ assert.equal(execFileSync(path.join(temp,'model'),{encoding:'utf8',timeout:10000}).trim(),'6 7\n60 60');
 }finally{await fs.rm(temp,{recursive:true,force:true});}
 assert.equal(source('[data-lang] .tl-demo,[data-lang] .shared-equation').length,0);
 // Expected address traces independently verified with PyTorch 2.10.0+cpu.

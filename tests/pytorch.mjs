@@ -93,11 +93,11 @@ try{
    await page.locator('#pt-route-reset').click();
    const count=direction==='forward'?7:5;
    for(let i=0;i<count;i++)await page.locator('#pt-route-next').click();
-   await page.waitForTimeout(50);
-   assert.ok(await page.locator(`#pt-${direction}-scroll`).evaluate(region=>{
+   await page.waitForFunction(direction=>{
+    const region=document.querySelector(`#pt-${direction}-scroll`);
     const n=region.querySelector('[aria-current=step]').getBoundingClientRect(),r=region.getBoundingClientRect();
     return n.top>=r.top&&n.bottom<=r.bottom+1&&n.left>=r.left&&n.right<=r.right+1;
-   }),`active node follows ${direction}/${width}/${language}`);
+   },direction);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   }
 

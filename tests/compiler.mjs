@@ -1,5 +1,5 @@
 import {chromiumExecutable} from './browser-options.mjs';
-import {chromium} from '@playwright/test';
+import {chromium,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {serve} from '../scripts/serve.mjs';
@@ -95,8 +95,10 @@ try {
   await page.locator('[data-language-choice="en"]').click();
  if(!live){
   offline=true;await check(rust,'error');assert.equal(await rust.locator('.compiler-run').isEnabled(),true);offline=false;
-  hold=true;await rust.locator('.compiler-run').click();await page.waitForTimeout(30);assert.ok(held);
-  await rust.locator('.compiler-editor').fill('fn main() { println!("new draft"); }');release();await page.waitForTimeout(30);hold=false;
+  hold=true;await rust.locator('.compiler-run').click();await expect.poll(()=>held).toBe(true);
+  const cancelled=page.waitForEvent('requestfailed',{predicate:request=>request.url().startsWith('https://godbolt.org/api/compiler/')});
+  await rust.locator('.compiler-editor').fill('fn main() { println!("new draft"); }');release();await cancelled;hold=false;
+  await expect(rust.locator('.compiler-run')).toBeEnabled();
   assert.equal(await rust.locator('.compiler-results').isVisible(),false,'discard old in-flight result on code changes');
   assert.equal(await rust.locator('.compiler-run').isEnabled(),true);
   await page.locator('[data-code-mode="bad"]').click();assert.ok((await rust.locator('.compiler-editor').inputValue()).includes('let first = &items[0]'));

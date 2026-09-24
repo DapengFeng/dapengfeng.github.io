@@ -51,10 +51,11 @@ test('English precedes its Chinese counterpart without separate full-article edi
 });
 
 test('one bilingual HTML is sufficient for discovery, metadata, contents and search',async()=>{
- const file='content/posts/single-file-workflow-check.html';
+ const directory=await fs.mkdtemp(path.join(os.tmpdir(),'feng-discovery-'));
+ const file=path.join(directory,'single-file-workflow-check.html');
  try {
   await fs.copyFile('examples/article.html',file);
-  const discovered=(await loadContent()).find(p=>p.slug==='single-file-workflow-check');
+  const discovered=(await loadContent(directory)).find(p=>p.slug==='single-file-workflow-check');
   assert.ok(discovered);
   assert.equal(discovered.titleEn,'A visual note: vectors, formulas, and code');
   assert.equal(discovered.title,'可视化笔记：向量、公式与代码');
@@ -68,7 +69,7 @@ test('one bilingual HTML is sufficient for discovery, metadata, contents and sea
   const raw=await fs.readFile(file,'utf8');
   await fs.writeFile(file,raw.replaceAll('data-lang="zh"','data-unused="zh"'));
   await assert.rejects(()=>parseContent(file),/include both English and Chinese/);
- } finally { await fs.rm(file,{force:true}); }
+ } finally { await fs.rm(directory,{recursive:true,force:true}); }
 });
 
 test('full explanations are paired and preserve the same inline formulas',()=>{

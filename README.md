@@ -22,9 +22,9 @@ npm test
 npm run test:browsers
 ```
 
-Browser checks use Playwright. Install Chromium with `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing Chromium executable. Run `npm run test:browsers` for interaction, language, sorting, layout, formula, and accessibility checks. The compiler tests use isolated API responses; add `--live` to `node tests/compiler.mjs` to verify Godbolt itself. Static output is written to `dist/` and requires no server-side application.
+Browser checks use the Chromium version pinned by Playwright, matching CI by default. Install Chromium with `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing Chromium executable. Run `npm run test:browsers` for interaction, language, sorting, layout, formula, and accessibility checks. Every configured suite runs even if an earlier one fails; each has a five-minute limit. Per-suite logs and the result summary are saved under `test-results/browser/`; any failure makes the command exit nonzero. The compiler tests use isolated API responses; add `--live` to `node tests/compiler.mjs` to verify Godbolt itself. Static output is written to `dist/` and requires no server-side application.
 
-浏览器检查使用 Playwright。可执行 `npx playwright install chromium` 安装 Chromium，或通过 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 指定已安装的 Chromium。`npm run test:browsers` 检查交互、语言、排序、排版、公式和无障碍。编译器测试使用隔离的接口响应；运行 `node tests/compiler.mjs --live` 可验证 Godbolt 本身。静态产物输出到 `dist/`，无需服务器端程序。
+浏览器检查默认使用 Playwright 锁定版本的 Chromium，与 CI 保持一致。可执行 `npx playwright install chromium` 安装 Chromium，或通过 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 指定已安装的 Chromium。`npm run test:browsers` 检查交互、语言、排序、排版、公式和无障碍。前面的测试失败后仍会继续检查后续项目；每项限时五分钟，逐项日志和结果汇总保存在 `test-results/browser/`，任意一项失败都会使命令返回非零状态。编译器测试使用隔离的接口响应；运行 `node tests/compiler.mjs --live` 可验证 Godbolt 本身。静态产物输出到 `dist/`，无需服务器端程序。
 
 ## Publish an HTML article / 发布 HTML 文章
 
@@ -187,9 +187,9 @@ These improvements support crawling, understanding, and attribution; they do not
 
 ## Deploy to GitHub Pages / 部署到 GitHub Pages
 
-In the repository, go to Settings → Pages → Build and deployment → Source and select **GitHub Actions**. Pushes to `main` or `master` then trigger `.github/workflows/deploy.yml` to build, check, and deploy `dist/`. The workflow installs Chromium and requires all browser checks to pass before publishing. Accessibility failure details are saved as a build artifact. Manual runs are available through `workflow_dispatch`. Local edits do not push or publish themselves.
+In the repository, go to Settings → Pages → Build and deployment → Source and select **GitHub Actions**. Pushes to `main` or `master` then trigger `.github/workflows/deploy.yml` to build, check, and deploy `dist/`. Pull requests into these branches also build and check the site, without publishing. The workflow installs the pinned Chromium and requires unit and browser checks to pass before publishing. Logs, suite results, and available accessibility or layout details are retained as artifacts for 14 days. Build and deployment jobs are limited to 30 and 10 minutes respectively; Pages write permissions belong only to the deployment job. Manual runs are available through `workflow_dispatch`, and only `main` or `master` can publish. Local edits do not push or publish themselves.
 
-在仓库 Settings → Pages → Build and deployment → Source 中选择 **GitHub Actions**。随后向 `main` 或 `master` 推送，会触发 `.github/workflows/deploy.yml` 自动构建、检查并部署 `dist/`。工作流会安装 Chromium，浏览器检查全部通过后才发布；无障碍检查失败的明细会保存在构建附件中。也支持通过 `workflow_dispatch` 手动运行。本地修改不会自行推送或发布。
+在仓库 Settings → Pages → Build and deployment → Source 中选择 **GitHub Actions**。随后向 `main` 或 `master` 推送，会触发 `.github/workflows/deploy.yml` 自动构建、检查并部署 `dist/`。合入这些分支的 PR 也会构建和检查，但不会发布。工作流安装锁定版本的 Chromium，单元测试和浏览器检查全部通过后才发布；日志、逐项结果及可用的无障碍或排版明细会作为附件保留 14 天。构建和部署分别限时 30 分钟、10 分钟，只有部署任务具有 Pages 写权限。也支持通过 `workflow_dispatch` 手动运行，只有 `main` 或 `master` 分支允许发布。本地修改不会自行推送或发布。
 
 The site uses the root path `/` and targets `https://dapengfeng.github.io`. A project site under a subpath requires a consistent path prefix. Historical date-based article URLs retain redirects. The three newly added HTML articles use the first-push date `2026-09-23`; historical notes retain their recorded dates.
 

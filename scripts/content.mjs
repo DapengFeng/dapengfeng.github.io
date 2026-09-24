@@ -104,8 +104,8 @@ async function walk(dir) {
   const nested = await Promise.all(entries.map(e => e.isDirectory() ? walk(path.join(dir,e.name)) : path.join(dir,e.name)));
   return nested.flat().filter(f => /\.html$/.test(f) && path.basename(f) !== 'index.html').sort();
 }
-export async function loadContent() {
-  const files = await walk('content/posts');
+export async function loadContent(directory='content/posts') {
+  const files = await walk(directory);
   const posts = (await Promise.all(files.map(file => parseContent(file)))).filter(Boolean);
   const seen = new Set();
   for (const p of posts) { if (seen.has(p.slug)) throw new Error(`Duplicate article slug: ${p.slug}`); seen.add(p.slug); }

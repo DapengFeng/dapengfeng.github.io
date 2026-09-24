@@ -1,10 +1,5 @@
-import {existsSync} from 'node:fs';
-
-// Honor an explicit executable; otherwise use the desktop browser when available,
-// or let Playwright select the version installed by CI.
+// Use Playwright's pinned Chromium locally and in CI. An alternate browser must
+// be selected explicitly so an installed desktop browser cannot mask CI failures.
 export function chromiumExecutable() {
- const explicit=process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
- if(explicit)return explicit;
- const desktop='/home/jarvis/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome';
- return existsSync(desktop)?desktop:undefined;
+ return process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined;
 }

@@ -8,6 +8,19 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
  page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>localStorage.setItem('feng-language','en'));
  await page.clock.install();
+ // CSS smooth scrolling runs on the compositor, outside Playwright's fake clock.
+ // Wait for an actual offscreen observation before advancing animation timers.
+ const scrollOffscreen=async selector=>{
+  await page.evaluate(selector=>{
+   window.testOffscreenObserved=false;
+   const observer=new IntersectionObserver(([entry])=>{
+    if(!entry.isIntersecting){observer.disconnect();window.testOffscreenObserved=true;}
+   });
+   observer.observe(document.querySelector(selector));
+   scrollTo({top:0,left:0,behavior:'instant'});
+  },selector);
+  await page.waitForFunction(()=>window.testOffscreenObserved===true);
+ };
  for(const [slug,id]of [['matrix-multiplication','matrix-lab'],['frank-wolfe-algorithm','fw-lab'],['pytorch-01-what-is-pytorch','pt-route'],['pytorch-02-tensor-strides-storage','tensor-layout'],['rust-vs-cpp-blog','memory-map']]){
   await page.goto(`http://localhost:4210/blog/${slug}.html`);
   const root=id==='memory-map'?page.locator('.memory-demo'):page.locator('#'+id);
@@ -36,12 +49,15 @@ try{
  await page.goto('http://localhost:4210/blog/matrix-multiplication.html');
  await page.locator('#matrix-comparison').scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('#matrix-lab').dataset.demoPlaying==='true');await page.clock.runFor(1500);
  assert.equal(await page.locator('#matrix-lab').getAttribute('data-demo-playing'),'true');
- await page.evaluate(()=>scrollTo(0,0));await page.clock.runFor(100);
- const paused=await page.locator('#matrix-lab').getAttribute('data-demo-frame');await page.clock.runFor(5000);
+ await scrollOffscreen('#matrix-comparison');
+ const paused=await page.locator('#matrix-lab').getAttribute('data-demo-frame');
+ assert.notEqual(paused,'complete','pause check must start during playback');
+ assert.ok(await page.locator('#matrix-comparison').evaluate(el=>el.getBoundingClientRect().top>=innerHeight),'diagram is below the viewport');
+ await page.clock.runFor(5000);
  assert.equal(await page.locator('#matrix-lab').getAttribute('data-demo-frame'),paused,'offscreen pauses');
  await page.locator('#matrix-comparison').scrollIntoViewIfNeeded();await page.waitForFunction(old=>document.querySelector('#matrix-lab').dataset.demoFrame!==old,paused);await page.clock.runFor(8000);
  assert.equal(await page.locator('#matrix-lab').getAttribute('data-demo-frame'),'complete');
- await page.evaluate(()=>scrollTo(0,0));await page.clock.runFor(100);await page.locator('#matrix-comparison').scrollIntoViewIfNeeded();await page.clock.runFor(3000);
+ await scrollOffscreen('#matrix-comparison');await page.locator('#matrix-comparison').scrollIntoViewIfNeeded();await page.clock.runFor(3000);
  assert.equal(await page.locator('#matrix-lab').getAttribute('data-demo-frame'),'complete','autoplay only once');
  await page.locator('.reading-playback button').first().click();await page.clock.runFor(800);await page.emulateMedia({reducedMotion:'reduce'});
  await page.waitForFunction(()=>document.querySelector('#matrix-lab').dataset.demoFrame==='complete');
