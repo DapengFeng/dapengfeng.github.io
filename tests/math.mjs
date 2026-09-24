@@ -11,7 +11,7 @@ try{
   localStorage.setItem('feng-language','both');
   Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{if(window.failCopy)throw Error('Denied');window.copiedMath=text;}}});
  });
- for(const slug of ['band-storage-gaxpy','spike_notes']){
+ for(const slug of ['matrix-multiplication','band-storage-gaxpy','spike_notes']){
   await page.goto(`http://localhost:4194/blog/${slug}.html`);
   await page.evaluate(()=>document.querySelectorAll('details').forEach(n=>n.open=true));
   const formula=page.locator('.formula-block').first(), button=formula.locator('.formula-copy');
@@ -34,7 +34,7 @@ try{
   assert.equal(await formula.locator('textarea').count(),0);
   for(const width of [1440,768,390,320]){
    await page.setViewportSize({width,height:1000});
-   await page.evaluate(()=>new Promise(requestAnimationFrame));
+   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${slug}/${width}: page overflow`);
    assert.ok(await page.locator('.formula-scroll').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).overflowX==='auto')));
    assert.deepEqual(await page.locator('.formula-block').evaluateAll(nodes=>nodes.filter(n=>n.getBoundingClientRect().height>0).flatMap(block=>{
@@ -45,11 +45,28 @@ try{
     return contained&&n.left>=f.right-1&&n.top>=copy.bottom&&block.querySelectorAll('.eq-number').length===0?[]:[{number:number.id,contained,right:n.left>=f.right-1,copyClear:n.top>=copy.bottom}];
    })),[],`${slug}/${width}: native AMS tags must stay inside the formula and clear of the copy button`);
 
+   if(slug==='matrix-multiplication'){
+    const alignment=await page.locator('.formula-block').evaluateAll(nodes=>nodes.map(block=>{
+     const viewport=block.querySelector('.formula-scroll').getBoundingClientRect();
+     const math=block.querySelector('mjx-container').getBoundingClientRect();
+     const formula=block.querySelector('g[data-mml-node=mlabeledtr]').getBoundingClientRect();
+     const number=block.querySelector('svg[data-labels] g[id]').getBoundingClientRect();
+     return {id:block.dataset.equationNumber,fits:math.width<=viewport.width+1,
+      centerError:Math.abs((formula.left+formula.right-math.left-math.right)/2),
+      rightGap:math.right-number.right};
+    }));
+    for(const item of alignment){
+     if(item.fits)assert.ok(item.centerError<2,`${slug}/${width}/${item.id}: center the expression within its block`);
+     assert.ok(item.rightGap>=0&&item.rightGap<4,`${slug}/${width}/${item.id}: align the native tag to the right`);
+    }
+   }
+
    if([1440,390].includes(width)){
     await formula.scrollIntoViewIfNeeded();
     await page.screenshot({path:`/tmp/feng-math-${slug}-${width}.png`});
    }
   }
+
  }
  const offline=await browser.newPage({javaScriptEnabled:false});
  await offline.goto('http://localhost:4194/blog/spike_notes.html');

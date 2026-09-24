@@ -1,8 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CUDA Rust: from threads to tiles</title><script type="application/json" id="article-metadata">{
   "title": "CUDA Rust：从线程到 Tile，理解两条 Kernel 路线",
   "titleEn": "CUDA Rust: from threads to tiles",
-  "description": "用同一个向量计算理解 SIMT 与 Tile：交互索引、Rust 写入权限、C++ 边界验证，以及真实 GPU 基准测试的测量方法。",
-  "descriptionEn": "One vector operation, two programming models: interactive indexing, Rust write ownership, C++ boundary checks, and a GPU measurement plan.",
+  "description": "SIMT 内核为单个线程分配标量计算，Tile 内核则描述数据块上的运算，由编译器组织线程映射。正确的输出分区与边界处理避免重复写入和遗漏，访存方式与数据复用影响性能表现。",
+  "descriptionEn": "SIMT kernels assign scalar work to individual threads; tile kernels express operations over data blocks and leave thread mapping to the compiler. Correct output partitioning and boundary handling prevent duplicate writes and omissions, while memory access and data reuse shape performance.",
   "date": "2026-09-23",
   "dateKind": "published",
   "category": "systems",

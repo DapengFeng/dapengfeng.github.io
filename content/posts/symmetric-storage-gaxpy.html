@@ -7,8 +7,8 @@
 {
   "title": "对称矩阵的压缩存储",
   "titleEn": "Symmetric Storage GAXPY",
-  "description": "追踪镜像元素如何共用压缩槽位，用 C++ 校验两路更新，区分存储节省与算术成本。",
-  "descriptionEn": "Trace mirrored entries into one packed array and verify both output updates with C++.",
+  "description": "实对称矩阵只需保存下三角的 n(n+1)/2 个元素。GAXPY 中，每个非对角元素都要贡献到两个输出分量，因此存储量接近减半，运算量仍为 O(n²)。",
+  "descriptionEn": "A real symmetric matrix can store its lower triangle in n(n+1)/2 entries. In GAXPY, each off-diagonal entry contributes to two output components, so storage is nearly halved while arithmetic work remains O(n²).",
   "date": "2021-07-19",
   "dateKind": "published",
   "category": "systems",

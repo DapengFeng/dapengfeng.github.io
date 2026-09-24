@@ -21,6 +21,8 @@
  function mount(target,source){
   if(mounted.has(target))return;mounted.add(target);
   const block=document.createElement('div');block.className='code-copy-block';
+  const editor=target.matches('.compiler-editor')?target:target.querySelector('.compiler-editor');
+  if(editor)block.classList.add('code-editor-block');
   const tools=document.createElement('div');tools.className='code-copy-tools';
   const language=languageOf(target),badge=document.createElement('span');badge.className='code-language';badge.dataset.codeLanguage=language;
   if(['text','plaintext','plain','none'].includes(language))badge.innerHTML=pair('Text','文本');
@@ -29,7 +31,16 @@
   const status=document.createElement('span');status.className='code-copy-status sr-only';status.setAttribute('role','status');
   const button=document.createElement('button');button.type='button';button.className='code-copy';
   button.innerHTML=icon+'<span class="code-copy-label sr-only"></span>';
-  tools.append(badge,status,button);target.before(block);block.append(tools,target);
+  tools.append(badge,status);
+  if(editor){
+   const edit=document.createElement('button');edit.type='button';edit.className='code-edit';
+   edit.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6Z"></path><path d="m13 6 5 5M4 15l5 5"></path></svg><span class="sr-only">'+pair('Edit code','编辑代码')+'</span>';
+   const title=()=>{const lang=document.documentElement.dataset.language;edit.title=lang==='en'?'Edit code':lang==='zh'?'编辑代码':'Edit code / 编辑代码';};
+   title();window.addEventListener('languagechange',title);edit.addEventListener('click',()=>editor.focus());tools.append(edit);
+  }
+  tools.append(button);
+  if(editor){const actions=editor.closest('.compiler-check')?.querySelector('.compiler-actions');if(actions)tools.append(actions);}
+  target.before(block);block.append(tools,target);
   let timer;
   function feedback(copied=false){
    button.dataset.copied=String(copied);

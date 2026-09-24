@@ -7,8 +7,8 @@
 {
   "title": "带状矩阵的紧凑存储",
   "titleEn": "Band Storage GAXPY",
-  "description": "把稠密矩阵元素搬进带状存储，用交互映射与 C++ 校验理解索引、边界和运算成本。",
-  "descriptionEn": "Move entries between a dense matrix and its band storage, then verify a C++ GAXPY implementation.",
+  "description": "带状存储只保留上下带宽以内的对角线，使 GAXPY 跳过带外元素。对于 n×n 窄带矩阵，若存储带宽为 w，存储量与运算量均由 O(n²) 降为 O(nw)。",
+  "descriptionEn": "Band storage keeps only diagonals within the lower and upper bandwidths, allowing GAXPY to skip entries outside the band. For an n×n narrow-band matrix with stored band width w, storage and arithmetic work scale as O(nw) rather than O(n²).",
   "date": "2021-07-19",
   "dateKind": "published",
   "category": "systems",

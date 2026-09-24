@@ -70,6 +70,9 @@ export async function parseContent(file) {
   const isPaired = $('#paired-terms,#article-terms').length > 0;
   const textCopy = $.root().clone(); textCopy.find('script,style,nav,header,footer').remove();
   const plain = textCopy.text().replace(/\s+/g, ' ').trim();
+  const relatedCopy = textCopy.clone();
+  relatedCopy.find('pre,code,button,input,select,svg,[data-series-preview],[data-citation]').remove();
+  const relatedText = relatedCopy.text().replace(/\s+/g, ' ').trim();
   const headings = addHeadings($);
   renderMath($, headings);
   const styles = [];
@@ -93,7 +96,7 @@ export async function parseContent(file) {
     description: data.description || plain.slice(0, 130),
     hasTranslation, isPaired, hasCompiler: $('code[data-godbolt]').length > 0, lab: data.lab, minutes: Math.max(1, Math.ceil((plain.match(/[\u3400-\u9fff]/g)?.length || 0) / 400 + plain.split(/\s+/).filter(w=>/[a-z]{2}/i.test(w)).length / 220)),
     url: `/blog/${slug}.html`, html, styles: styles.join('\n'), headings, isHtml,
-    searchText: plain.slice(0, 65000), dateKind: data.dateKind || 'published',
+    relatedText, searchText: plain.slice(0, 65000), dateKind: data.dateKind || 'published',
   };
 }
 async function walk(dir) {

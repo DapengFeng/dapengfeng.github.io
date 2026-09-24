@@ -125,7 +125,9 @@ try{
   assert.equal((await page.locator('.compiler-stdout').innerText()).trim(),'58 64\n139 154');
  }
  await page.goto('http://localhost:4199/series/pytorch-internals/');
- assert.equal(await page.locator('.series-episodes a').count(),1);
+ assert.ok(await page.locator('.series-episodes a').count()>=2);
+ for(const slug of ['pytorch-01-what-is-pytorch','pytorch-02-tensor-strides-storage'])
+  assert.equal(await page.locator(`.series-episodes a[href="/blog/${slug}.html"]`).count(),1);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'series mobile overflow');
  const context=await browser.newContext({javaScriptEnabled:false});
  const staticPage=await context.newPage();await staticPage.goto('http://localhost:4199/blog/pytorch-01-what-is-pytorch.html');

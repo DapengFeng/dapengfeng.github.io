@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tensor, strides, and storage: why a transpose can be free</title>
+<script type="application/json" id="article-metadata">{
+  "titleEn": "Tensor, strides, and storage: why a transpose can be free",
+  "title": "Tensor、步幅与存储：转置为什么可以不搬数据",
+  "descriptionEn": "For a dense strided tensor, strides and storage_offset map logical indices to storage locations. Transpose shares the original storage by swapping sizes and strides; making a noncontiguous result contiguous requires copying its data.",
+  "description": "对稠密步幅张量，strides 与 storage_offset 决定逻辑索引对应的存储位置。转置通过交换形状和步幅共享原存储；将非连续结果转为连续布局则需要复制数据。",
+  "date": "2026-09-24",
+  "category": "systems",
+  "tags": [
+    "PyTorch",
+    "Tensor",
+    "Memory layout",
+    "C++"
+  ],
+  "art": "matrix",
+  "featured": 3,
+  "series": {
+    "id": "pytorch-internals",
+    "titleEn": "Inside PyTorch",
+    "title": "PyTorch 源码之旅",
+    "part": 2
+  }
+}</script>
+<style>.tl-demo{margin-block:28px;border:1px solid #536858;border-radius:16px;padding:clamp(12px,2vw,24px);background:#141e19;overflow:hidden}
+.tl-demo [data-lang],.tl-ownership [data-lang],.tl-answer summary [data-lang]{display:block}
+.tl-demo button{font:inherit;font-size:17px;line-height:1.5;min-height:44px;border:1px solid #687d6e;background:#223229;color:#edf4e8;border-radius:8px;padding:8px 12px;cursor:pointer}
+.tl-demo button:focus-visible{outline:3px solid #94c9ff;outline-offset:3px}.tl-demo button[aria-pressed=true]{background:#c0f47b;color:#142010;border-color:#c0f47b}
+.tl-modes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.tl-modes button{flex:1 1 140px}.tl-modes code{color:inherit;font-size:16px;background:none}
+.tl-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:24px}
+.tl-demo figure{margin:0;min-width:0}.tl-demo figcaption{font-size:18px;line-height:1.7;margin-bottom:12px}
+.tl-matrix{display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:6px;max-width:260px;margin:auto}
+.tl-matrix button{padding:6px 2px;font:20px/1.5 var(--mono);transition:background .2s,border-color .2s}.tl-matrix button[data-alias=true]{border-color:#ffbd91;box-shadow:inset 0 0 0 1px #ffbd91}
+.tl-meta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;margin:0;font:17px/1.6 var(--mono)}.tl-meta dt,.tl-meta dd{margin:0;overflow-wrap:anywhere}.tl-meta dt{color:#a9c5b3}.tl-meta dd{color:#f1f6eb}
+.tl-map{position:relative;isolation:isolate}.tl-link{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible;z-index:-1;pointer-events:none}.tl-map>.tl-memory{margin-top:52px}.tl-map figcaption,.tl-meta{background:#141e19}.tl-map figcaption{position:relative}.tl-link path{stroke:#c0f47b;stroke-width:2.5;fill:none}.tl-link circle{fill:#c0f47b}
+.tl-storage{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.tl-slot{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border:1px solid #54695a;border-radius:6px;background:#1c2b22;font:20px/1.5 var(--mono);color:#ecf3e5}.tl-slot span{font-size:16px;color:#b9cdbf}.tl-slot[data-active=true]{background:#c0f47b;color:#142010;border-color:#c0f47b}.tl-slot[data-active=true] span{color:#21361b}
+.tl-demo .tl-equation{font:18px/1.8 var(--mono);overflow-wrap:anywhere;margin:18px 0!important;color:#c4e3ff}
+.tl-actions{display:flex;flex-wrap:wrap;gap:10px;margin-block:18px}.tl-note{font-size:18px;line-height:1.8;margin-block:18px!important}.tl-note [data-lang]+[data-lang]{margin-top:8px}
+.tl-original{padding-top:16px;margin-top:20px;border-top:1px dashed #687d6e}.tl-trace{font:17px/1.8 var(--mono);overflow-wrap:anywhere;word-break:normal;margin-top:12px}
+.tl-ownership{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-block:28px}.tl-ownership>div{border:1px solid #576e60;padding:18px;border-radius:12px;background:#18251e;min-width:0;overflow-wrap:anywhere;font-size:18px;line-height:1.8}.tl-ownership code,.tl-ownership b{display:block}.tl-shared{grid-column:1/-1;text-align:center;border-color:#c0f47b!important}.tl-answer{margin-block:28px;padding:18px;border:1px solid #576e60;border-radius:12px}.tl-answer summary{cursor:pointer;font-size:18px;line-height:1.8}
+@media(max-width:600px){.tl-top{grid-template-columns:1fr;gap:20px}.tl-meta{grid-row:1}.tl-ownership{grid-template-columns:1fr}.tl-storage{gap:4px}.tl-slot{font-size:18px}.tl-modes button{flex-basis:110px}.tl-ownership>div{padding:14px}}
+@media(prefers-reduced-motion:reduce){.tl-matrix button{transition:none}}
+</style></head><body><div class="lesson tensor-lesson">
+<h2 class="parallel-text" id="one-buffer"><span data-lang="en" lang="en">One buffer, two matrices</span><span data-lang="zh" lang="zh-CN">一块存储，两种矩阵</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">In part 1, <code>torch.matmul(a, b)</code> passed through dispatch and reached a numerical kernel. Now inspect the operands. A tensor needs both values and a rule for locating those values. For an ordinary dense strided tensor, changing that rule can change its logical shape without moving its elements.</span><span data-lang="zh" lang="zh-CN">第一期中，<code>torch.matmul(a, b)</code> 经过调度进入数值内核。这一期先拆开它的输入：张量既需要数值，也需要定位这些数值的规则。对于普通的稠密步幅张量，改变寻址规则就可能改变逻辑形状，而不必搬动元素。</span></p>
+<pre tabindex="0"><code class="language-python" id="tensor-intro">import torch
+
+a = torch.arange(12, dtype=torch.float32).reshape(3, 4)
+b = a.T
+print(a.shape, a.stride())  # torch.Size([3, 4]) (4, 1)
+print(b.shape, b.stride())  # torch.Size([4, 3]) (1, 4)
+print(a.untyped_storage().data_ptr() == b.untyped_storage().data_ptr())
+# True</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><strong>The transpose changes the coordinate system, not the stored sequence.</strong> Reading <code>b[2, 1]</code> reaches the same element as <code>a[1, 2]</code>: value 6. The following experiment makes the logical coordinates and physical offsets visible at the same time.</span><span data-lang="zh" lang="zh-CN"><strong>转置改变的是坐标解释方式，存储中的数值顺序并没有变化。</strong>读取 <code>b[2, 1]</code> 与读取 <code>a[1, 2]</code> 会到达同一个元素：数值 6。下面的实验同时显示逻辑坐标与物理偏移。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Source baseline: <strong>PyTorch 2.10.0</strong>, commit <code>449b17684101</code>, matching part 1. Python examples were checked with <code>2.10.0+cpu</code>. Scope: eager execution, nonempty dense strided tensors with ordinary numeric dtypes. Sparse layouts, tensor subclasses and symbolic shapes have additional rules.</span><span data-lang="zh" lang="zh-CN">源码基线：<strong>PyTorch 2.10.0</strong>，提交 <code>449b17684101</code>，与第一期一致。Python 示例已在 <code>2.10.0+cpu</code> 中核验。本文讨论 eager 模式下、普通数值类型的非空稠密步幅张量；稀疏布局、张量子类和符号形状另有规则。</span></p>
+<h2 class="parallel-text" id="layout-lab"><span data-lang="en" lang="en">Follow an element to memory</span><span data-lang="zh" lang="zh-CN">跟着一个元素找到内存</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Choose a layout, then click a matrix entry. The highlighted storage slot and the address calculation refer to that exact entry. “Scan” walks through logical rows: watch whether addresses advance by one, jump, or repeat. It is an address-mapping model in JavaScript, not PyTorch running in the browser.</span><span data-lang="zh" lang="zh-CN">选择布局，再点击矩阵元素。高亮存储格与寻址计算会指向同一个元素。“扫描”按逻辑行依次访问：观察地址是连续递增、跳跃还是重复。这里运行的是 JavaScript 寻址模型，不是在浏览器里运行 PyTorch。</span></p>
+<div class="tl-demo" id="tensor-layout">
+<div class="tl-interactive" hidden>
+<div class="tl-modes" role="group" aria-label="Tensor layout / 张量布局">
+<button type="button" data-layout="base" aria-pressed="true"><code>a</code><span data-lang="en">Original</span><span data-lang="zh">原张量</span></button>
+<button type="button" data-layout="transpose" aria-pressed="false"><code>a.T</code><span data-lang="en">Transpose</span><span data-lang="zh">转置视图</span></button>
+<button type="button" data-layout="slice" aria-pressed="false"><code>a[:, 1::2]</code><span data-lang="en">Stepped slice</span><span data-lang="zh">间隔切片</span></button>
+<button type="button" data-layout="copy" aria-pressed="false"><code>a.T.contiguous()</code><span data-lang="en">Contiguous copy</span><span data-lang="zh">连续副本</span></button>
+<button type="button" data-layout="expand" aria-pressed="false"><code>a[:1].expand(3,4)</code><span data-lang="en">Zero stride</span><span data-lang="zh">零步幅扩展</span></button>
+</div>
+<div class="tl-map"><div class="tl-top"><figure><figcaption><span data-lang="en">Logical matrix · select an element</span><span data-lang="zh">逻辑矩阵 · 点击元素</span></figcaption><div class="tl-matrix" id="tl-matrix"></div></figure><dl class="tl-meta" id="tl-meta"></dl></div>
+<svg class="tl-link" id="tl-link" aria-hidden="true"><path></path><circle r="4"></circle></svg>
+<figure class="tl-memory"><figcaption id="tl-storage-label"></figcaption><div class="tl-storage" id="tl-storage"></div></figure></div>
+<p class="tl-equation" id="tl-equation"></p>
+<div class="tl-actions"><button type="button" id="tl-scan" aria-pressed="false"><span data-lang="en">Scan</span><span data-lang="zh">扫描</span></button><button type="button" id="tl-next"><span data-lang="en">Next element</span><span data-lang="zh">下一个元素</span></button><button type="button" id="tl-reset"><span data-lang="en">Reset</span><span data-lang="zh">重置</span></button></div>
+<div id="tl-readout" class="tl-note" role="status" aria-live="polite"></div>
+<div><span data-lang="en">Full row-major traversal · storage offsets, not values</span><span data-lang="zh">完整逐行访问序列 · 以下为存储偏移，不是数值</span><div class="tl-trace" id="tl-trace"></div></div>
+<figure class="tl-original" id="tl-original" hidden><figcaption><span data-lang="en">Original buffer A · retained for comparison</span><span data-lang="zh">原存储 A · 保留供对照</span></figcaption><div class="tl-storage" id="tl-original-cells"></div></figure>
+</div>
+<p class="tl-fallback parallel-text"><span data-lang="en">For a = [[0,1,2,3],[4,5,6,7],[8,9,10,11]], a.T has shape (4,3), strides (1,4), and uses the same storage. Reading [2,1] gives offset 6 and value 6. Enable JavaScript to compare all five layouts interactively.</span><span data-lang="zh">a = [[0,1,2,3],[4,5,6,7],[8,9,10,11]]，a.T 的形状为 (4,3)、步幅为 (1,4)，共享原存储。[2,1] 对应偏移 6，数值为 6。启用 JavaScript 后可交互对比五种布局。</span></p>
+</div>
+
+<p class="parallel-text"><span data-lang="en" lang="en">In the contiguous-copy mode, compare values in the new buffer B with their original positions in A. For example, logical <code>[0, 1]</code> contains 4: the transpose reads A[4], while its contiguous copy reads B[1]. The value is unchanged; the storage and stride are different.</span><span data-lang="zh" lang="zh-CN">在连续化复制模式中，对照新存储 B 与原存储 A 中的数值位置。例如逻辑元素 <code>[0, 1]</code> 的值为 4：转置视图读取 A[4]，其连续副本读取 B[1]。数值没有变化，存储对象和步幅发生了变化。</span></p>
+<h2 class="parallel-text" id="objects"><span data-lang="en" lang="en">Tensor → TensorImpl → StorageImpl</span><span data-lang="zh" lang="zh-CN">从 Tensor 追到 StorageImpl</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The Python tensor wraps a C++ tensor handle. <code>TensorBase</code> holds an intrusive reference-counted pointer to <code>TensorImpl</code>. For the strided path studied here, TensorImpl carries sizes, strides, storage offset, dtype, device and dispatch information; it also connects to autograd metadata. A <code>Storage</code> handle refers to <code>StorageImpl</code>, which manages the data pointer and storage size. These layers separate a tensor’s interpretation from the lifetime of its allocation.</span><span data-lang="zh" lang="zh-CN">Python 张量封装了 C++ 张量句柄。<code>TensorBase</code> 通过侵入式引用计数指针持有 <code>TensorImpl</code>。在本文的步幅布局路径中，TensorImpl 包含形状、步幅、存储偏移、数据类型、设备和调度信息，也关联自动求导元数据。<code>Storage</code> 句柄则指向 <code>StorageImpl</code>，后者管理数据指针与存储大小。这几层结构把张量的解释方式与存储分配的生命周期分开。</span></p>
+<div class="tl-ownership"><div><b>a → TensorImpl A</b><code>size=(3,4) · stride=(4,1)</code></div><div><b>b → TensorImpl B</b><code>size=(4,3) · stride=(1,4)</code></div><div class="tl-shared"><b>↘ Storage → StorageImpl ← ↙</b><span data-lang="en" lang="en">Shared allocation: 12 × float32 = 48 bytes</span><span data-lang="zh" lang="zh-CN">共享分配：12 × float32 = 48 字节</span></div></div>
+<p class="parallel-text"><span data-lang="en" lang="en">Read these declarations in order: <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/TensorBase.h#L955">TensorBase::impl_</a> → <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/core/TensorImpl.h#L2888">TensorImpl fields</a> → <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/core/StorageImpl.h#L337">StorageImpl fields</a>. The diagram describes ownership links, not a byte-accurate C++ object layout. Reference counts allow the shared storage to remain alive after one view is destroyed.</span><span data-lang="zh" lang="zh-CN">按顺序阅读这些声明：<a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/TensorBase.h#L955">TensorBase::impl_</a> → <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/core/TensorImpl.h#L2888">TensorImpl 字段</a> → <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/core/StorageImpl.h#L337">StorageImpl 字段</a>。上图表示持有关系，并非精确的 C++ 对象字节布局。引用计数使一个视图销毁后，共享存储仍可由其他张量继续持有。</span></p>
+<pre tabindex="0"><code class="language-cpp">// Selected declarations from separate PyTorch classes; not one compilable struct.
+// TensorBase
+c10::intrusive_ptr&lt;TensorImpl, UndefinedTensorImpl&gt; impl_;
+
+// TensorImpl
+Storage storage_;
+c10::impl::SizesAndStrides sizes_and_strides_;
+int64_t storage_offset_ = 0;
+
+// StorageImpl
+DataPtr data_ptr_;
+SymInt size_bytes_;</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Copying a C++ tensor handle generally shares its TensorImpl. Creating a transpose view gives a different tensor interpretation while sharing storage. Neither operation means “duplicate all numeric elements.” Conversely, a tiny slice can keep a large backing allocation alive.</span><span data-lang="zh" lang="zh-CN">复制 C++ 张量句柄通常会共享 TensorImpl；创建转置视图则得到不同的张量解释方式，同时共享存储。这两种操作都不等于“复制所有数值元素”。反过来，即使一个切片很小，也可能让背后的大块分配一直存活。</span></p>
+<h2 class="parallel-text" id="address"><span data-lang="en" lang="en">Shape tells you the bounds; strides tell you the route</span><span data-lang="zh" lang="zh-CN">形状给出边界，步幅给出路径</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Let i be a valid index, o the storage offset, and s the strides. Strides and storage offset are measured in <strong>elements</strong>, not bytes. Multiply by the dtype’s element size only when converting the element offset into a byte address.</span><span data-lang="zh" lang="zh-CN">设 i 为合法索引，o 为存储偏移，s 为步幅。步幅和存储偏移的单位是<strong>元素</strong>，不是字节。只有把元素偏移换成字节地址时，才乘以数据类型的元素大小。</span></p>
+<div class="shared-equation" data-math="\operatorname{offset}(i_0,\ldots,i_{n-1})=o+\sum_{k=0}^{n-1} i_k s_k"></div>
+<div class="shared-equation" data-math="\operatorname{address}(i)=\operatorname{storage\_base}+\operatorname{sizeof}(\mathrm{dtype})\,\operatorname{offset}(i)"></div>
+<p class="parallel-text"><span data-lang="en" lang="en">For <code>a</code>, moving down one row skips four elements; moving right skips one. After transposition, <code>b[2,1]</code> has element offset <code>0 + 2×1 + 1×4 = 6</code>. For float32 this is 24 bytes after the storage base. No copy is needed to compute a different address.</span><span data-lang="zh" lang="zh-CN">对 <code>a</code> 而言，向下一行跨过 4 个元素，向右一列跨过 1 个元素。转置后的 <code>b[2,1]</code> 对应元素偏移 <code>0 + 2×1 + 1×4 = 6</code>。对于 float32，它位于存储起点之后 24 字节。通过另一套规则计算地址，并不需要复制数据。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">A slice introduces another distinction: <code>data_ptr()</code> points to the tensor’s first element, whereas <code>untyped_storage().data_ptr()</code> points to the storage base. In <code>a[:,1::2]</code>, offset is 1 and strides are (4,2); the first element pointer is four bytes after the base. Comparing tensor data pointers alone is therefore not a general alias test.</span><span data-lang="zh" lang="zh-CN">切片还引入一个区别：<code>data_ptr()</code> 指向张量的第一个元素，<code>untyped_storage().data_ptr()</code> 指向存储起点。对于 <code>a[:,1::2]</code>，偏移为 1，步幅为 (4,2)，首元素指针比存储起点晚 4 字节。因此，仅比较张量的 data_ptr 并不能普遍判断是否共享存储。</span></p>
+<pre tabindex="0"><code class="language-python" id="tensor-offset">s = a[:, 1::2]
+print(s.stride(), s.storage_offset())  # (4, 2) 1
+print(s.data_ptr() - a.data_ptr())     # 4 bytes
+print(s.untyped_storage().data_ptr() == a.untyped_storage().data_ptr())
+# True</code></pre>
+<h2 class="parallel-text" id="transpose-source"><span data-lang="en" lang="en">Read the transpose implementation</span><span data-lang="zh" lang="zh-CN">读懂转置的源码路径</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">In <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/TensorShape.cpp#L3815">TensorShape.cpp::transpose</a>, separate branches handle sparse and MKLDNN layouts. After those checks, the ordinary strided path swaps the two size entries and the corresponding stride entries, then constructs an <code>as_strided</code> view. The existing storage offset is retained. This is why “transpose is a view” needs a layout qualification.</span><span data-lang="zh" lang="zh-CN">在 <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/TensorShape.cpp#L3815">TensorShape.cpp::transpose</a> 中，稀疏布局与 MKLDNN 布局先进入各自的分支。通过这些检查后，普通步幅布局路径交换两个维度的大小与对应步幅，再构造 <code>as_strided</code> 视图，保留原有存储偏移。因此，“转置是视图”需要说明所讨论的布局。</span></p>
+<pre tabindex="0"><code class="language-cpp">std::swap(sizes[dim0], sizes[dim1]);
+std::swap(strides[dim0], strides[dim1]);
+auto result = self.as_strided_symint(sizes, strides);</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">These are three selected source lines; creation of the local size/stride vectors and checks is omitted. A standalone C++ model below implements the same address arithmetic without depending on LibTorch. It is deliberately limited to two dimensions and fixed storage; it does not implement dispatch, autograd or PyTorch ownership.</span><span data-lang="zh" lang="zh-CN">以上摘取了三行源码，省略了局部形状／步幅向量的创建及检查。下面的独立 C++ 模型实现同一套寻址计算，不依赖 LibTorch。它仅处理二维和固定存储，没有实现调度、自动求导或 PyTorch 的所有权机制。</span></p>
+<pre tabindex="0"><code class="language-cpp" id="tensor-cpp-model" data-godbolt="c++">#include &lt;array&gt;
+#include &lt;cstddef&gt;
+#include &lt;iostream&gt;
+
+struct View2D {
+    const std::array&lt;float, 12&gt;&amp; storage;
+    std::array&lt;std::size_t, 2&gt; shape, stride;
+    std::size_t offset;
+
+    float at(std::size_t i, std::size_t j) const {
+        if (i &gt;= shape[0] || j &gt;= shape[1]) throw &quot;index out of range&quot;;
+        return storage.at(offset + i * stride[0] + j * stride[1]);
+    }
+    View2D transpose() const {
+        return {storage, {shape[1], shape[0]},
+                {stride[1], stride[0]}, offset};
+    }
+};
+
+int main() {
+    std::array&lt;float, 12&gt; values{};
+    for (std::size_t k = 0; k &lt; values.size(); ++k) values[k] = float(k);
+    const View2D a{values, {3, 4}, {4, 1}, 0};
+    const auto b = a.transpose();
+    const View2D s{values, {3, 2}, {4, 2}, 1};
+    std::cout &lt;&lt; b.at(2, 1) &lt;&lt; &#x27; &#x27; &lt;&lt; s.at(1, 1) &lt;&lt; &#x27;\n&#x27;;
+    values[6] = 60;
+    std::cout &lt;&lt; a.at(1, 2) &lt;&lt; &#x27; &#x27; &lt;&lt; b.at(2, 1) &lt;&lt; &#x27;\n&#x27;;
+}</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Verified with GCC 14.2 on Godbolt using C++17 and -O2. Standard output:</span><span data-lang="zh" lang="zh-CN">已在 Godbolt 上使用 GCC 14.2、C++17 与 -O2 编译运行。标准输出：</span></p>
+<pre tabindex="0"><code class="language-text">6 7
+60 60</code></pre>
+<h2 class="parallel-text" id="view-copy"><span data-lang="en" lang="en">view, reshape, and contiguous answer different questions</span><span data-lang="zh" lang="zh-CN">view、reshape 与 contiguous 回答不同问题</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>view</code> asks whether the requested shape can be described by new strides over the existing storage. <code>reshape</code> asks for the requested shape and may copy when a view is not possible. <code>contiguous</code> asks for a particular memory format: if already satisfied it returns the input, otherwise it copies. The default format here is <code>torch.contiguous_format</code>.</span><span data-lang="zh" lang="zh-CN"><code>view</code> 判断能否用新的步幅在原存储上表达目标形状；<code>reshape</code> 要求得到目标形状，无法构造视图时可以复制；<code>contiguous</code> 要求指定的内存格式，已满足则返回输入，否则复制。这里讨论的默认格式为 <code>torch.contiguous_format</code>。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The concrete decisions are visible in <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/TensorShape.cpp#L4092">view_impl</a> (infer shape → compute strides → check → alias), <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/TensorUtils.cpp#L327">computeStride_impl</a> (match contiguous subspaces), and <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/TensorProperties.cpp#L119">contiguous</a> (return input or clone). The <a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.Tensor.view.html">view API contract</a> explains which adjacent dimensions can be merged.</span><span data-lang="zh" lang="zh-CN">具体判断可沿着 <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/TensorShape.cpp#L4092">view_impl</a>（推导形状 → 计算步幅 → 检查 → 共享存储）、<a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/TensorUtils.cpp#L327">computeStride_impl</a>（匹配连续子空间）和 <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/TensorProperties.cpp#L119">contiguous</a>（返回输入或 clone）阅读。<a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.Tensor.view.html">view 的 API 约定</a>说明了相邻维度何时可以合并。</span></p>
+<div class="shared-equation" data-math="s_k=s_{k+1}\,\mathrm{size}_{k+1}"></div>
+<p class="parallel-text"><span data-lang="en" lang="en">For adjacent nonsingleton dimensions that must be merged, this stride relation preserves the traversal order. In <code>a.T</code>, the relation would require <code>1 = 4×3</code>, so flattening with <code>view(-1)</code> fails. The stepped slice is more interesting: <code>(4,2)</code> with shape <code>(3,2)</code> satisfies <code>4 = 2×2</code>, so it can flatten into a stride-2 view even though it is not contiguous. <strong>Non-contiguous does not mean “view always fails.”</strong> Singleton and empty dimensions need the full implementation’s special handling.</span><span data-lang="zh" lang="zh-CN">对于需要合并的相邻非单例维度，这个步幅关系保证遍历顺序不变。<code>a.T</code> 若想合并两维，需要满足 <code>1 = 4×3</code>，因此 <code>view(-1)</code> 失败。间隔切片更有意思：形状 <code>(3,2)</code>、步幅 <code>(4,2)</code> 满足 <code>4 = 2×2</code>，所以它虽然不连续，仍能展平为步幅为 2 的视图。<strong>不连续并不意味着 view 一定失败。</strong>单例维度与空维度还需要完整实现中的特殊处理。</span></p>
+<pre tabindex="0"><code class="language-python" id="tensor-copy">try:
+    b.view(-1)
+except RuntimeError:
+    print(&quot;transpose view(-1): incompatible strides&quot;)
+print(s.view(-1).stride())      # (2,)
+print(b.reshape(-1).tolist())   # a copy for this particular b
+# [0., 4., 8., 1., 5., 9., 2., 6., 10., 3., 7., 11.]
+c = b.contiguous()
+print(c.stride(), c.is_contiguous())  # (3, 1) True
+print(c.untyped_storage().data_ptr() == a.untyped_storage().data_ptr())
+# False</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">A transpose is typically cheap to create, but that says little about the cost of the next operation. A backend may consume strided data directly, interpret a transpose flag, or materialize a suitable layout. Calling <code>contiguous()</code> preemptively can add an unnecessary allocation and copy. Measure the complete operation sequence; the scan above visualizes addresses, not cache misses or GPU transactions.</span><span data-lang="zh" lang="zh-CN">转置通常创建成本较低，但这不能直接说明后续算子的成本。后端可能直接处理步幅数据、使用转置标志，也可能物化合适的布局。提前调用 <code>contiguous()</code> 可能反而增加不必要的分配与复制。应测量完整算子序列；上方扫描展示的是地址，不是缓存未命中或 GPU 内存事务。</span></p>
+<h2 class="parallel-text" id="alias-autograd"><span data-lang="en" lang="en">Shared storage is observable, including during backward</span><span data-lang="zh" lang="zh-CN">共享存储会影响写入，也会影响反向计算</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Use a fresh tensor without gradient recording to isolate aliasing. Writing through the transpose changes the original; writing through a contiguous copy does not. The <a data-citation href="https://docs.pytorch.org/docs/2.10/tensor_view.html">Tensor Views documentation</a> also distinguishes basic indexing (views) from advanced indexing (copies). Do not infer copying just from bracket syntax.</span><span data-lang="zh" lang="zh-CN">先用一个不记录梯度的新张量单独观察别名行为。通过转置视图写入会改变原张量，通过连续副本写入则不会。<a data-citation href="https://docs.pytorch.org/docs/2.10/tensor_view.html">Tensor Views 文档</a>还区分了基本索引（视图）和高级索引（复制），不能仅凭方括号语法判断是否复制。</span></p>
+<pre tabindex="0"><code class="language-python" id="tensor-alias">a = torch.arange(12, dtype=torch.float32).reshape(3, 4)
+b = a.T
+c = b.contiguous()
+b[2, 1] = 60
+print(a[1, 2].item(), c[2, 1].item())  # 60.0 6.0</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">A view can also remain part of the autograd graph. For a transpose, backward maps the incoming gradient back with the inverse transpose. For an expanded dimension, several output positions depend on one input position, so backward sums their contributions. Sharing storage does not imply sharing a <code>.grad</code> field.</span><span data-lang="zh" lang="zh-CN">视图也可以保留在自动求导图中。对于转置，反向计算用逆转置把传入梯度映射回去；对于扩展维度，多个输出位置依赖同一个输入位置，因此反向计算会将这些位置的梯度相加。共享存储不意味着共享同一个 <code>.grad</code> 字段。</span></p>
+<pre tabindex="0"><code class="language-python" id="tensor-grad">x = torch.arange(6., requires_grad=True)  # leaf
+x.reshape(2, 3).T.sum().backward()
+print(x.grad.tolist())  # [1., 1., 1., 1., 1., 1.]
+
+v = torch.tensor([[1., 2.]], requires_grad=True)
+v.expand(3, 2).sum().backward()
+print(v.grad.tolist())  # [[3., 3.]]</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">In the experiment’s expand mode, stride 0 along the first dimension makes all rows refer to the same four slots. No three-row copy is created. Avoid in-place writes to such overlapping views; clone first if independent writable elements are needed. See the <a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.Tensor.expand.html">expand contract</a>. Autograd also tracks version counters and rejects certain in-place modifications, especially views of leaf tensors requiring gradients or values saved for backward.</span><span data-lang="zh" lang="zh-CN">实验中的 expand 模式把第一维步幅设为 0，于是所有行都指向同样的四个存储格，没有创建三行副本。应避免向这种重叠视图原地写入；需要独立可写元素时先 clone，参见 <a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.Tensor.expand.html">expand 约定</a>。自动求导还会追踪版本计数，并拒绝某些原地修改，尤其是需要梯度的叶子张量视图，或反向计算保存过的数值。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The backward rules are declared in <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/derivatives.yaml#L1768">derivatives.yaml: transpose</a> and <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/derivatives.yaml#L665">expand</a>: one transposes the gradient, the other reduces it to the input shape.</span><span data-lang="zh" lang="zh-CN">反向规则声明在 <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/derivatives.yaml#L1768">derivatives.yaml 的 transpose 条目</a>与 <a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/derivatives.yaml#L665">expand 条目</a>中：前者对梯度转置，后者将梯度归约至输入形状。</span></p>
+<h2 class="parallel-text" id="practice"><span data-lang="en" lang="en">Predict first, then inspect</span><span data-lang="zh" lang="zh-CN">先预测，再验证</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Try three questions before running Python: (1) what are the strides and offset of <code>a[1:, ::2]</code>? (2) does <code>a.contiguous()</code> require a copy? (3) can a transpose followed by another transpose restore the original layout? Explain each answer using addresses rather than printed matrix values.</span><span data-lang="zh" lang="zh-CN">运行 Python 前先回答三个问题：（1）<code>a[1:, ::2]</code> 的步幅和偏移是多少？（2）<code>a.contiguous()</code> 需要复制吗？（3）连续做两次转置能恢复原布局吗？请用寻址规则解释，不要只比较打印出来的矩阵数值。</span></p>
+<details class="tl-answer"><summary><span data-lang="en" lang="en">Check the reasoning</span><span data-lang="zh" lang="zh-CN">查看推导</span></summary>
+<p class="parallel-text"><span data-lang="en" lang="en">For a fresh contiguous (3,4) tensor, the slice has shape (2,2), strides (4,2), offset 4, and reads [4,6;8,10]. The original already satisfies the default contiguous format, so its contiguous call returns itself. Swapping the same two axes twice restores both sizes and strides, while retaining the same storage.</span><span data-lang="zh" lang="zh-CN">对于新的连续 (3,4) 张量，切片形状为 (2,2)、步幅为 (4,2)、偏移为 4，读取 [4,6;8,10]。原张量已满足默认连续格式，因此 contiguous 返回自身。对同一对轴交换两次，会恢复形状和步幅，并继续使用同一存储。</span></p>
+</details>
+<p class="parallel-text"><span data-lang="en" lang="en">For a dense strided tensor, the logical index, strides and storage offset determine which element of the backing storage is accessed. A view changes that mapping while sharing storage; materializing a contiguous copy changes where the values are stored.</span><span data-lang="zh" lang="zh-CN">对于稠密步幅张量，逻辑索引、步幅与存储偏移共同决定访问底层存储中的哪个元素。视图在共享存储的同时改变映射方式；物化为连续副本则改变数值的存放位置。</span></p>
+</div><script>(()=>{
+ const root=document.getElementById('tensor-layout');if(!root)return;
+ const q=s=>root.querySelector(s),pair=(en,zh)=>`<span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span>`;
+ const base=Array.from({length:12},(_,i)=>i),copied=[0,4,8,1,5,9,2,6,10,3,7,11];
+ const modes={
+  base:{shape:[3,4],stride:[4,1],offset:0,contiguous:true,buffer:'A',values:base,en:'Original: adjacent columns read adjacent elements. view(-1) succeeds with stride (1,).',zh:'原张量：相邻列访问相邻元素。view(-1) 成功，步幅为 (1,)。'},
+  transpose:{shape:[4,3],stride:[1,4],offset:0,contiguous:false,buffer:'A',values:base,en:'Transpose: sizes and strides changed; buffer A did not move. view(-1) fails because its two dimensions cannot be merged.',zh:'转置：形状与步幅发生改变，存储 A 未搬动。两维无法合并，因此 view(-1) 失败。'},
+  slice:{shape:[3,2],stride:[4,2],offset:1,contiguous:false,buffer:'A',values:base,en:'Slice: start at A[1] and skip one element at a time. Despite being non-contiguous, view(-1) succeeds with stride (2,).',zh:'切片：从 A[1] 开始，每次间隔一个元素。虽然不连续，view(-1) 仍然成功，步幅为 (2,)。'},
+  copy:{shape:[4,3],stride:[3,1],offset:0,contiguous:true,buffer:'B',values:copied,en:'Copy: new buffer B stores the transpose in row-major order. Values match a.T, but there is no storage alias with A.',zh:'复制：新存储 B 按逐行顺序存放转置结果。数值与 a.T 相同，但不再与 A 共享存储。'},
+  expand:{shape:[3,4],stride:[0,1],offset:0,contiguous:false,buffer:'A',values:base,en:'Expand: all rows share four slots. Outlined entries alias the selected address. No new element buffer; view(-1) fails.',zh:'扩展：所有行共用四个存储格。描边元素与所选元素指向同一地址。没有新建元素存储；view(-1) 失败。'}
+ };
+ let mode='base',selected=0,timer=null;
+ const offset=(m,n)=>m.offset+Math.floor(n/m.shape[1])*m.stride[0]+n%m.shape[1]*m.stride[1];
+ function storageHTML(values,active){return values.map((v,k)=>`<div class="tl-slot" data-slot="${k}" data-active="${k===active}"><span>[${k}]</span><b>${v}</b></div>`).join('');}
+ function draw(){
+  const selectedCell=q('#tl-matrix [aria-pressed=true]'),slot=q('#tl-storage [data-active=true]');if(!selectedCell||!slot)return;
+  const svg=q('#tl-link'),r=svg.getBoundingClientRect(),a=selectedCell.getBoundingClientRect(),b=slot.getBoundingClientRect();
+  const x1=a.left+a.width/2-r.left,x2=b.left+b.width/2-r.left;
+  const y1=a.bottom-r.top+3,y2=b.top-r.top-3;
+  const lane=Math.min(q("#tl-matrix").getBoundingClientRect().left,q("#tl-storage").getBoundingClientRect().left)-r.left-7;
+  svg.setAttribute('viewBox',`0 0 ${Math.max(1,r.width)} ${Math.max(1,r.height)}`);
+  svg.querySelector('path').setAttribute('d',`M ${x1} ${y1-2} V ${y1} H ${lane} V ${y2} H ${x2}`);
+  svg.querySelector('circle').setAttribute('cx',x2);svg.querySelector('circle').setAttribute('cy',y2);
+ }
+ function render(rebuild=false){
+  const m=modes[mode],addr=offset(m,selected),i=Math.floor(selected/m.shape[1]),j=selected%m.shape[1];
+  root.dataset.layout=mode;root.dataset.selected=selected;root.dataset.offset=addr;
+  q('#tl-matrix').style.setProperty('--cols',m.shape[1]);
+  if(rebuild)q('#tl-matrix').innerHTML=Array.from({length:m.shape[0]*m.shape[1]},(_,n)=>`<button type="button" data-index="${n}" aria-label="[${Math.floor(n/m.shape[1])}, ${n%m.shape[1]}] = ${m.values[offset(m,n)]}">${m.values[offset(m,n)]}</button>`).join('');
+  for(const b of q('#tl-matrix').children){const n=Number(b.dataset.index);b.setAttribute('aria-pressed',String(n===selected));b.dataset.alias=String(n!==selected&&offset(m,n)===addr);}
+  q('#tl-meta').innerHTML=`<dt>shape</dt><dd>(${m.shape.join(', ')})</dd><dt>stride</dt><dd>(${m.stride.join(', ')})</dd><dt>offset</dt><dd>${m.offset}</dd><dt>contiguous</dt><dd>${m.contiguous?'True':'False'}</dd><dt>dtype</dt><dd>float32</dd>`;
+  q('#tl-storage-label').innerHTML=pair(`Storage ${m.buffer} · [element offset] / value`,`存储 ${m.buffer} · [元素偏移] / 数值`);
+  q('#tl-storage').innerHTML=storageHTML(m.values,addr);
+  q('#tl-equation').textContent=`[${i}, ${j}] → ${m.offset} + ${i} × ${m.stride[0]} + ${j} × ${m.stride[1]} = ${addr} → ${m.buffer}[${addr}] = ${m.values[addr]} · ${addr} × 4 = ${addr*4} B`;
+  q('#tl-readout').innerHTML=pair(m.en,m.zh);
+  q('#tl-trace').textContent=Array.from({length:m.shape[0]*m.shape[1]},(_,n)=>offset(m,n)).join(' → ');
+  q('#tl-original').hidden=mode!=='copy';if(mode==='copy')q('#tl-original-cells').innerHTML=storageHTML(base,m.values[addr]);
+  root.querySelectorAll('[data-layout]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.layout===mode)));
+  requestAnimationFrame(draw);
+ }
+ function stop(){clearInterval(timer);timer=null;q('#tl-scan').setAttribute('aria-pressed','false');q('#tl-scan').innerHTML=pair('Scan','扫描');}
+ function next(){const m=modes[mode];selected=(selected+1)%(m.shape[0]*m.shape[1]);render();}
+ root.addEventListener('click',e=>{
+  const button=e.target.closest('button');if(!button)return;
+  if(button.dataset.layout){stop();mode=button.dataset.layout;selected=0;render(true);}
+  if(button.dataset.index!==undefined){stop();selected=Number(button.dataset.index);render();}
+ });
+ q('#tl-next').addEventListener('click',()=>{stop();next();});
+ q('#tl-reset').addEventListener('click',()=>{stop();selected=0;render();});
+ q('#tl-scan').addEventListener('click',()=>{
+  if(timer){stop();return;}q('#tl-scan').setAttribute('aria-pressed','true');q('#tl-scan').innerHTML=pair('Pause','暂停');
+  next();timer=setInterval(()=>{if(selected===modes[mode].shape[0]*modes[mode].shape[1]-1){stop();return;}next();},900);
+ });
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
+ const motion=matchMedia('(prefers-reduced-motion: reduce)');motion.addEventListener('change',stop);
+ new ResizeObserver(draw).observe(root);
+ q('.tl-interactive').hidden=false;q('.tl-fallback').hidden=true;render(true);
+})();
+</script></body></html>

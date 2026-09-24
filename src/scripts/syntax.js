@@ -55,13 +55,36 @@
   }
   function mount(editor, language) {
     const surface = document.createElement('div'); surface.className = 'compiler-editor-surface';
+    const gutter = document.createElement('div'); gutter.className = 'compiler-gutter'; gutter.setAttribute('aria-hidden', 'true');
+    const numbers = document.createElement('div'); numbers.className = 'compiler-line-numbers'; gutter.append(numbers);
+    const active = document.createElement('div'); active.className = 'compiler-active-line'; active.setAttribute('aria-hidden', 'true');
     const paint = document.createElement('pre'); paint.className = 'compiler-highlight'; paint.setAttribute('aria-hidden', 'true');
     const code = document.createElement('code'); paint.append(code);
-    editor.before(surface); surface.append(paint, editor);
-    function scroll() { paint.scrollTop = editor.scrollTop; paint.scrollLeft = editor.scrollLeft; }
+    editor.before(surface); surface.append(active, paint, gutter, editor);
+    let activeNumber;
+    function selection() {
+      const end = editor.selectionDirection === 'backward' ? editor.selectionStart : editor.selectionEnd;
+      const line = editor.value.slice(0, end).split('\n').length - 1;
+      const style = getComputedStyle(editor);
+      active.style.top = `${editor.clientTop + parseFloat(style.paddingTop) + line * parseFloat(style.lineHeight) - editor.scrollTop}px`;
+      activeNumber?.classList.remove('is-current');
+      activeNumber = numbers.children[line]; activeNumber?.classList.add('is-current');
+    }
+    function scroll() {
+      paint.scrollTop = editor.scrollTop; paint.scrollLeft = editor.scrollLeft;
+      numbers.style.transform = `translateY(${-editor.scrollTop}px)`; selection();
+    }
     function size() { paint.style.width = `${editor.clientWidth}px`; paint.style.height = `${editor.clientHeight}px`; scroll(); }
-    function refresh() { code.innerHTML = highlight(editor.value, language) + '\n'; scroll(); }
+    function refresh() {
+      code.innerHTML = highlight(editor.value, language) + '\n';
+      const count = editor.value.split('\n').length;
+      surface.style.setProperty('--editor-gutter', `${Math.max(2, String(count).length)}ch`);
+      numbers.innerHTML = Array.from({length:count}, (_, i) => `<span>${i + 1}</span>`).join('');
+      scroll();
+    }
     editor.addEventListener('scroll', scroll, {passive:true});
+    for (const event of ['select', 'click', 'keyup', 'focus']) editor.addEventListener(event, selection);
+    document.addEventListener('selectionchange', () => { if (document.activeElement === editor) selection(); });
     new ResizeObserver(size).observe(editor);
     refresh(); size();
     return refresh;

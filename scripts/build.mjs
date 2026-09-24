@@ -6,15 +6,16 @@ import {loadContent} from './content.mjs';
 import {site,categories,escape as e} from './config.mjs';
 import * as templates from './templates.mjs';
 import {collectSeries,seriesMetadata} from './series.mjs';
+import {createRelatedRecommender} from './related.mjs';
 import {localizePage,dictionary} from './i18n.mjs';
 import {optimizePage,renderSharingImage,sharingImage} from './seo.mjs';
 export async function build(){
- const posts=await loadContent(),series=collectSeries(posts);
+ const posts=await loadContent(),series=collectSeries(posts),recommend=createRelatedRecommender(posts);
  await fs.rm('dist',{recursive:true,force:true});await fs.mkdir('dist/assets',{recursive:true});
  async function write(file,content){await fs.mkdir(path.dirname('dist/'+file),{recursive:true});await fs.writeFile('dist/'+file,content);}
  const pages=[['index.html',templates.home(posts)],['blog/index.html',templates.library(posts)],['categories/index.html',templates.categoryPage(posts)],['archive/index.html',templates.archive(posts)],['about/index.html',templates.about()],['404.html',templates.shell({title:'未找到页面',body:'<main id="main" class="site-width page-heading"><span class="overline">404 / UNCHARTED TERRITORY</span><h1>这里还没有留下笔记。</h1><a class="lime-button" href="/">返回首页 →</a></main>'})]];
  for(const group of series)pages.push([group.url.slice(1)+'index.html',templates.seriesPage(group)]);
- for(const p of posts)pages.push([p.url.slice(1),templates.article(p,posts)]);
+ for(const p of posts)pages.push([p.url.slice(1),templates.article(p,posts,recommend(p))]);
  for(const [file,html]of pages){
   const url=file==='index.html'?'/':'/'+file.replace(/index\.html$/, '');
   const group=series.find(group=>group.url===url);

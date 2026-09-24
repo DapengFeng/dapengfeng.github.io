@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {load} from 'cheerio';
-import {collectSeries} from '../scripts/series.mjs';
+import {collectSeries,renderSeriesPreviews} from '../scripts/series.mjs';
 import {seriesNavigation} from '../scripts/templates.mjs';
 
 const first={slug:'first',url:'/blog/first.html',series:{id:'example-series',title:'示例专题',titleEn:'Example series',part:1}};
@@ -21,12 +21,67 @@ test('series order and neighboring links follow published installment numbers',(
 });
 test('PyTorch series is discoverable and contains only published episodes',async()=>{
  const $=load(await fs.readFile('dist/series/pytorch-internals/index.html','utf8'));
- assert.equal($('.series-episodes li').length,1);
+ assert.equal($('.series-episodes li').length,2);
+ assert.equal($('.series-episodes li').eq(1).attr('value'),'2');
+ assert.equal($('.series-episodes a').eq(1).attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
  assert.equal($('.series-episodes li').attr('value'),'1');
  assert.equal($('.series-episodes a').attr('href'),'/blog/pytorch-01-what-is-pytorch.html');
+ const second=load(await fs.readFile('dist/blog/pytorch-02-tensor-strides-storage.html','utf8'));
+ assert.equal(second('a[rel=prev]').attr('href'),'/blog/pytorch-01-what-is-pytorch.html');
+ const firstPage=load(await fs.readFile('dist/blog/pytorch-01-what-is-pytorch.html','utf8'));
+ assert.equal(firstPage('a[rel=next]').attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
+ assert.equal(firstPage('.series-preview [data-series-part=2]').attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
+ assert.equal(firstPage('.series-preview [data-series-part=2] time').attr('datetime'),'2026-09-24');
+ assert.equal(firstPage('.series-preview [data-series-part=3]').is('div'),true);
+ assert.equal(firstPage('.series-preview [data-series-part=3] a').length,0);
+ for(const [page,part]of [[firstPage,1],[second,2]]){
+  assert.equal(page('.series-directory').length,1);
+  assert.equal(page('.series-directory [data-series-part]').length,6);
+  assert.equal(page('.series-directory [aria-current=page]').attr('data-series-part'),String(part));
+  assert.equal(page('#article-content .series-preview').length,0,'no duplicated contents in article body');
+  assert.equal(page('.series-navigation .series-directory').length,0,'keep full directory out of the reading entrance');
+  assert.equal(page('.reading-layout').next().hasClass('series-footer'),true,'directory follows the complete article');
+  assert.equal(page('.series-footer').next().hasClass('related-section'),true,'series comes before broader related reading');
+ }
+ assert.equal(firstPage('.series-directory').text(),second('.series-directory').text());
  assert.ok((await fs.readFile('dist/sitemap.xml','utf8')).includes('/series/pytorch-internals/'));
  for(const file of ['index.html','blog/index.html','blog/pytorch-01-what-is-pytorch.html']){
   const page=load(await fs.readFile('dist/'+file,'utf8'));
   assert.ok(page('a[href="/series/pytorch-internals/"]').length,file);
  }
+});
+
+test('a roadmap declared once is inherited by other installments and replaced on publication',()=>{
+ const roadmap=[{part:3,titleEn:'Planned third part',title:'第三期规划'}];
+ const owner={...first,series:{...first.series,roadmap}};
+ const reader={slug:'second',series:{...first.series,part:2},html:'<div data-series-preview></div>'};
+ let page=load(renderSeriesPreviews(reader,[owner,reader]));
+ assert.equal(page('[data-series-part=3]').attr('data-state'),'planned');
+ assert.equal(page('[data-series-part=3] [data-lang=en]').first().text(),'Planned third part');
+ const published={...third,titleEn:'Actual title',title:'实际标题',date:'2026-09-24'};
+ page=load(renderSeriesPreviews(reader,[owner,reader,published]));
+ assert.equal(page('[data-series-part=3]').attr('href'),third.url);
+ assert.equal(page('[data-series-part=3] [data-lang=en]').first().text(),'Actual title');
+ assert.throws(()=>collectSeries([{...owner,series:{...owner.series,roadmap:[{part:0}]}}]),/roadmap requires/);
+});
+
+test('roadmap links, titles and dates follow publication and removal automatically',()=>{
+ const post={...first,titleEn:'First',title:'第一期',date:'2026-09-23',html:'<div data-series-preview><div data-series-part="3"><span data-lang="en">Planned topic</span><span data-lang="zh">规划主题</span></div></div><script>const n = 1 < 2;</script>'};
+ const published={...third,titleEn:'Published & revised',title:'实际标题',date:'2026-09-24'};
+ let page=load(renderSeriesPreviews(post,[post]));
+ assert.equal(page('[data-series-part=3]').is('div'),true);
+ assert.equal(page('[data-series-part=3] [data-lang=en]').first().text(),'Planned topic');
+ page=load(renderSeriesPreviews(post,[post,published]));
+ assert.equal(page('[data-series-part=3]').attr('href'),third.url);
+ assert.equal(page('[data-series-part=3] [data-lang=en]').first().text(),'Published & revised');
+ assert.equal(page('[data-series-part=3] time').text(),'2026-09-24');
+ assert.equal(page('[data-series-part=1]').attr('aria-current'),'page');
+ assert.equal(page('script').text(),'const n = 1 < 2;');
+ const later={...published,slug:'later',url:'/blog/later.html',series:{...published.series,part:8}};
+ page=load(renderSeriesPreviews(post,[later,published,post]));
+ assert.deepEqual(page('[data-series-part]').map((_,el)=>Number(page(el).attr('data-series-part'))).get(),[1,3,8]);
+ page=load(renderSeriesPreviews(post,[post]));
+ assert.equal(page('[data-series-part=3]').attr('href'),undefined);
+ assert.equal(page('[data-series-part=3] time').length,0);
+ assert.throws(()=>renderSeriesPreviews({...post,html:'<div data-series-preview="missing"></div>'},[post]),/unknown preview series/);
 });

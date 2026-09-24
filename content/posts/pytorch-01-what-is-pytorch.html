@@ -1,8 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>What is PyTorch? Inside torch.matmul</title><script type="application/json" id="article-metadata">{
   "titleEn": "What is PyTorch? Inside torch.matmul",
   "title": "PyTorch 到底是什么？跟踪一次 torch.matmul",
-  "descriptionEn": "Trace a real matrix multiplication from Python through ATen, dispatch, autograd, and CPU or CUDA kernels, with source links and two interactive animations.",
-  "description": "从一行矩阵乘法追踪 Python、ATen、调度器、自动求导与 CPU／CUDA 内核，结合固定版本源码、实测输出与两组交互动画。",
+  "descriptionEn": "For dense 2-D inputs in eager mode, torch.matmul calls mm and dispatches to a CPU or CUDA implementation. With gradient recording enabled and inputs requiring gradients, autograd records dependencies for backward to apply the chain rule and accumulate leaf gradients.",
+  "description": "在即时执行模式下，稠密二维张量的 torch.matmul 调用 mm，并分派到 CPU 或 CUDA 实现。开启梯度记录且输入需要梯度时，autograd 记录依赖关系，供反向传播应用链式法则并累积叶子张量的梯度。",
   "date": "2026-09-23",
   "category": "systems",
   "tags": [
@@ -18,7 +18,29 @@
     "id": "pytorch-internals",
     "titleEn": "Inside PyTorch",
     "title": "PyTorch 源码之旅",
-    "part": 1
+    "part": 1,
+    "roadmap": [
+      {
+        "part": 3,
+        "titleEn": "Operator registration and dispatch keys",
+        "title": "算子注册与调度键"
+      },
+      {
+        "part": 4,
+        "titleEn": "Autograd nodes and the backward engine",
+        "title": "Autograd 节点与反向引擎"
+      },
+      {
+        "part": 5,
+        "titleEn": "CUDA streams, kernels and measurement",
+        "title": "CUDA 流、内核与测量"
+      },
+      {
+        "part": 6,
+        "titleEn": "Code generation and compiled execution",
+        "title": "代码生成与编译执行"
+      }
+    ]
   }
 }</script>
 <style>.pytorch-lesson{--pt-orange:#ffb087;--pt-blue:#94c9ff;--pt-line:#4a574d}
@@ -29,11 +51,11 @@
 .pt-options{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;margin-bottom:24px}.pt-toolbar{display:flex;flex-wrap:wrap;gap:12px;margin-block:24px}.pt-demo [data-lang=zh]{margin-top:6px}
 .pt-readout{padding:22px;border:1px solid #607154;border-radius:12px;background:#1d2a21;min-height:220px;overflow-wrap:anywhere}.pt-readout strong{font-size:22px;line-height:1.6}.pt-readout p{margin:16px 0!important}.pt-readout a{font-size:17px;text-decoration:underline;text-underline-offset:4px}.pt-progress{font:18px/1.7 var(--mono);color:#d3e6c2;display:block;margin-block:16px}.pt-label{color:#c0f47b;font-size:18px;font-weight:600}
 .pt-matrices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-block:24px}.pt-matrices figure{margin:0;min-width:0}.pt-matrices figcaption{font:20px/1.7 var(--mono);margin-bottom:14px}.pt-matrix{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:7px}.pt-cell{display:grid;place-content:center;padding:12px 3px;min-height:54px;border:1px solid #536457;border-radius:8px;background:#1e2b23;font:19px/1.4 var(--mono);color:#eef2e9}.pt-cell.pt-selected{border:2px solid var(--pt-orange);background:#55331f;color:#fff1e9}.pt-cell.pt-output{border:2px solid #c0f47b;background:#334725;color:#efffdf}.pt-cell.pt-done{background:#2a3924;color:#d9fbb3}.pt-equation{font:20px/1.8 var(--mono);overflow-wrap:anywhere;color:#ffe0cb}.pt-slider{display:grid;gap:12px;font-size:18px;line-height:1.7}.pt-slider input{width:100%;accent-color:#c0f47b;min-height:32px}.pt-slider output{font-family:var(--mono);color:#c0f47b}
-.pt-roadmap{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-block:28px}.pt-roadmap>div{padding:20px;border:1px solid var(--pt-line);border-radius:12px;display:flex;gap:20px;align-items:flex-start}.pt-roadmap b{font:24px/1.6 var(--mono);color:var(--pt-orange)}.pt-roadmap>div>span{font-size:18px;line-height:1.7}.pt-roadmap [data-lang]{display:block}
+
 .pt-details{border:1px solid var(--pt-line);border-radius:12px;margin-block:28px;padding:20px}.pt-details summary{font-size:18px;line-height:1.7;cursor:pointer}.pt-details summary [data-lang]{display:block}.pt-details pre{margin-top:24px!important}.pt-demo[data-playing=true] [aria-current=step]{animation:pt-glow 1.6s ease-in-out infinite}
 @keyframes pt-glow{50%{box-shadow:0 0 0 3px #c0f47b44}}
 @media(max-width:1100px){.pt-options{grid-template-columns:1fr}}
-@media(max-width:620px){.pt-matrices,.pt-roadmap{grid-template-columns:1fr}.pt-matrices{gap:28px}.pt-cell{min-height:52px}.pt-readout{padding:18px}.pt-demo fieldset{padding:12px}.pt-demo{border-radius:12px}}
+@media(max-width:620px){.pt-matrices{grid-template-columns:1fr}.pt-matrices{gap:28px}.pt-cell{min-height:52px}.pt-readout{padding:18px}.pt-demo fieldset{padding:12px}.pt-demo{border-radius:12px}}
 @media(prefers-reduced-motion:reduce){.pt-demo[data-playing=true] [aria-current=step]{animation:none}}
 
 /* Clickable nodes and measured SVG edges share one layout coordinate system. */
@@ -123,7 +145,7 @@
 <aside class="lesson-note">
 <p class="parallel-text"><span data-lang="en" lang="en">Source baseline: <strong>PyTorch v2.10.0</strong>, commit <code>449b17684101</code>. The main route uses ordinary dense, strided, two-dimensional float32 tensors, eager execution, no tensor subclass, no autocast, and no <code>out=</code>. The CPU examples below were run with <code>2.10.0+cpu</code>; the CUDA branch is a source-guided illustration, not a GPU measurement.</span><span data-lang="zh" lang="zh-CN">源码基线：<strong>PyTorch v2.10.0</strong>，提交 <code>449b17684101</code>。主线限定为普通稠密、strided、二维 float32 张量，采用 eager 执行，无张量子类、无 autocast、无 <code>out=</code>。下方 CPU 示例已在 <code>2.10.0+cpu</code> 运行；CUDA 分支依据源码示意，不是 GPU 实测。</span></p>
 </aside>
-<p class="parallel-text"><span data-lang="en" lang="en">By the end, you should be able to locate the 2-D branch, explain why the result has an <code>MmBackward0</code> node, and separate a dispatch decision from the kernel that calculates numbers. Each later installment will zoom into one part of this journey.</span><span data-lang="zh" lang="zh-CN">读完后，你应该能够定位二维分支，解释结果为什么带有 <code>MmBackward0</code> 节点，并区分“选哪个实现”和“实际算出数值”。后续每一期会放大研究这条路径中的一个部分。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">For this two-dimensional input, <code>matmul</code> calls <code>mm</code>. With gradient recording enabled and inputs requiring gradients, its result is connected to an <code>MmBackward0</code> node. Dispatch selects the implementation; the backend performs the numerical computation.</span><span data-lang="zh" lang="zh-CN">对于这里的二维输入，<code>matmul</code> 调用 <code>mm</code>。开启梯度记录且输入需要梯度时，结果关联 <code>MmBackward0</code> 节点。调度器选择实现，后端执行数值计算。</span></p>
 <h2 class="parallel-text" id="concrete-input"><span data-lang="en" lang="en">Start with numbers you can check</span><span data-lang="zh" lang="zh-CN">先用能够手算的数据</span></h2>
 <p class="parallel-text"><span data-lang="en" lang="en">Use A with shape (2, 3) and B with shape (3, 2). Their inner dimensions agree, so Y has shape (2, 2). The product is a sum of row–column products; there is no elementwise broadcasting in this 2-D case.</span><span data-lang="zh" lang="zh-CN">令 A 的形状为 (2, 3)，B 为 (3, 2)。内侧维度一致，因此 Y 的形状为 (2, 2)。每个输出都是一行与一列的乘积之和；这个二维例子不是逐元素广播乘法。</span></p>
 <div class="shared-equation" data-math="A=\begin{pmatrix}1&amp;2&amp;3\\4&amp;5&amp;6\end{pmatrix},\quad B=\begin{pmatrix}7&amp;8\\9&amp;10\\11&amp;12\end{pmatrix},\quad Y=AB=\begin{pmatrix}58&amp;64\\139&amp;154\end{pmatrix}"></div>
@@ -321,19 +343,11 @@ int main() {
     return y.data == std::vector&lt;double&gt;{58, 64, 139, 154} ? 0 : 1;
 }</code></pre>
 <p class="parallel-text"><span data-lang="en" lang="en">Change the inputs and rerun. Mark both inputs as CUDA and observe the explicit “backend not registered” error; that is a capability boundary, not an invitation to pretend CPU computation happened on a GPU. Replacing the triple loop with a BLAS call should not require changing the public matmul interface.</span><span data-lang="zh" lang="zh-CN">修改输入后重新运行。把两个输入都标为 CUDA，会得到明确的“后端未注册”错误；这表示能力边界，不能把 CPU 计算伪装成 GPU 执行。把三重循环替换成 BLAS 调用时，公开 matmul 接口应当无需改变。</span></p>
-<h2 class="parallel-text" id="boundaries-and-next"><span data-lang="en" lang="en">What we can now explain—and where to go next</span><span data-lang="zh" lang="zh-CN">现在能解释什么，下一步读哪里</span></h2>
+<h2 class="parallel-text" id="boundaries-and-next"><span data-lang="en" lang="en">Execution paths and their conditions</span><span data-lang="zh" lang="zh-CN">执行路径及其适用条件</span></h2>
 <p class="parallel-text"><span data-lang="en" lang="en">The original line is a request to a layered runtime: the binding interprets it; the matmul composite chooses mm for this shape; dispatch and autograd wrappers coordinate implementation selection and history; a backend produces the numbers. Later, backward follows derivative rules. The exact path changes with shape, layout, device, modes, and build.</span><span data-lang="zh" lang="zh-CN">原来的那一行向分层运行时发出请求：绑定解释参数；matmul 的组合实现为本例选择 mm；调度器与 autograd 包装层协调实现选择和历史记录；后端算出数值。之后 backward 才沿导数规则计算。具体路径会随形状、布局、设备、模式与构建配置变化。</span></p>
-<p class="parallel-text"><span data-lang="en" lang="en"><code>torch.compile</code> introduces another route: capture, transformation, and compilation can replace parts of eager execution with compiled regions. It is not an unavoidable stage inside every eager matmul call, and compilation does not imply every operation becomes one custom fused kernel. We will study that route after tensor storage, dispatch, and autograd.</span><span data-lang="zh" lang="zh-CN"><code>torch.compile</code> 引入另一条路线：捕获、变换与编译可以把部分 eager 执行替换为编译区域。它不是每次 eager matmul 必经的阶段，也不意味着每个运算都会变成一个自定义融合内核。我们会在张量存储、调度和 autograd 之后再研究这条路线。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>torch.compile</code> introduces another route: capture, transformation, and compilation can replace parts of eager execution with compiled regions. It is not an unavoidable stage inside every eager matmul call, and compilation does not imply every operation becomes one custom fused kernel.</span><span data-lang="zh" lang="zh-CN"><code>torch.compile</code> 引入另一条路线：捕获、变换与编译可以把部分 eager 执行替换为编译区域。它不是每次 eager matmul 必经的阶段，也不意味着每个运算都会变成一个自定义融合内核。</span></p>
 <p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/torch.compiler.html">PyTorch 2.10: torch.compiler overview ↗</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/torch.compiler.html">PyTorch 2.10：torch.compiler 概览 ↗</a></span></p>
-<div class="pt-roadmap">
-<div><b>02</b><span><span data-lang="en" lang="en">Tensor, TensorImpl, sizes and strides</span><span data-lang="zh" lang="zh-CN">Tensor、TensorImpl、形状与步幅</span></span></div>
-<div><b>03</b><span><span data-lang="en" lang="en">Storage, views and memory allocation</span><span data-lang="zh" lang="zh-CN">Storage、视图与内存分配</span></span></div>
-<div><b>04</b><span><span data-lang="en" lang="en">Operator registration and dispatch keys</span><span data-lang="zh" lang="zh-CN">算子注册与调度键</span></span></div>
-<div><b>05</b><span><span data-lang="en" lang="en">Autograd nodes and the backward engine</span><span data-lang="zh" lang="zh-CN">Autograd 节点与反向引擎</span></span></div>
-<div><b>06</b><span><span data-lang="en" lang="en">CUDA streams, kernels and measurement</span><span data-lang="zh" lang="zh-CN">CUDA 流、内核与测量</span></span></div>
-<div><b>07</b><span><span data-lang="en" lang="en">Code generation and compiled execution</span><span data-lang="zh" lang="zh-CN">代码生成与编译执行</span></span></div>
-</div>
-<p class="parallel-text"><span data-lang="en" lang="en">The roadmap above is planned, not a list of published links. Next question: when <code>b = a.T</code> changes shape and strides, which object owns the actual bytes? Published installments are collected automatically in the <a href="/series/pytorch-internals/">series index</a>.</span><span data-lang="zh" lang="zh-CN">以上是后续规划，不是已发布文章链接。下一期先回答：<code>b = a.T</code> 改变形状和步幅时，究竟哪个对象拥有实际字节？已发布文章会自动汇总到<a href="/series/pytorch-internals/">专题目录</a>。</span></p>
+
 <h2 class="parallel-text" id="references"><span data-lang="en" lang="en">Sources and reproduction notes</span><span data-lang="zh" lang="zh-CN">来源与复现说明</span></h2>
 <p class="parallel-text"><span data-lang="en" lang="en">All implementation links above are pinned to the same commit. Excerpts retain upstream names; omitted surroundings are visible at each linked location. Source review and CPU numerical/profiler checks support the main route. The browser animation models that route; it does not run PyTorch or inspect the visitor’s GPU.</span><span data-lang="zh" lang="zh-CN">上面的实现链接全部固定到同一提交。摘录保留上游命名，未展示的上下文可在各链接处阅读。主线经过源码核对与 CPU 数值／profiler 检查；浏览器动画只是该路径的模型，不会运行 PyTorch 或探测访客 GPU。</span></p>
 <p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.matmul.html">API contract: torch.matmul in PyTorch 2.10</a> · <a data-citation href="https://github.com/pytorch/pytorch/wiki/PyTorch-dispatcher-walkthrough">Dispatcher walkthrough (living design notes)</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.matmul.html">API 约定：PyTorch 2.10 的 torch.matmul</a> · <a data-citation href="https://github.com/pytorch/pytorch/wiki/PyTorch-dispatcher-walkthrough">调度器设计导读（持续更新的设计笔记）</a></span></p>

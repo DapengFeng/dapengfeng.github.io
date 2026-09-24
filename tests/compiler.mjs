@@ -24,6 +24,17 @@ try {
  const rust=page.locator('.rust-pane .compiler-check'),cpp=page.locator('.cpp-pane .compiler-check');
  assert.equal(await page.locator('.compiler-check').count(),2);
  assert.equal(requests.length,0,'do not send examples before a click');
+ await cpp.locator('.code-edit').click();
+ assert.ok(await cpp.locator('.compiler-editor').evaluate(n=>document.activeElement===n),'the pencil focuses the editable source');
+ assert.equal(await cpp.locator('.compiler-line-numbers .is-current').textContent(),'1');
+ assert.equal(await cpp.locator('.code-copy-tools .compiler-run').count(),1,'run is available directly in the code toolbar');
+ const verifyControls=async()=>{
+  const sizes=await cpp.locator('.code-editor-block .code-copy-tools button').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect(),svg=n.querySelector('svg').getBoundingClientRect();return [r.width,r.height,svg.width,svg.height];}));
+  assert.equal(sizes.length,4);
+  for(const size of sizes)assert.deepEqual(size,sizes[0],'all four icon controls have equal button and icon sizes');
+  assert.ok(sizes[0][0]>=32);
+ };
+ await verifyControls();
  const verifyHighlight=async panel=>{
   assert.equal(await panel.locator('.compiler-highlight code').textContent(),await panel.locator('.compiler-editor').inputValue()+'\n');
   assert.ok(await panel.locator('.syntax-keyword').count()>0);
@@ -64,6 +75,7 @@ try {
  await page.locator('[data-language-choice=en]').click();
   const edited='#include <iostream>\nint main(){std::cout << "edited output";std::cerr << "runtime note";return 3;}';
   await cpp.locator('.compiler-editor').fill(edited);
+  assert.equal(await cpp.locator('.compiler-line-numbers>span').count(),edited.split('\n').length,'line numbers follow edits');
   assert.equal(await cpp.locator('.compiler-results').isVisible(),false);
   await verifyHighlight(cpp);
   await check(cpp,'rejected');if(!live)assert.equal(requests.at(-1).source,edited);
@@ -102,10 +114,12 @@ try {
    const p=e.parentElement.querySelector('.compiler-highlight');
    e.scrollTop=e.scrollHeight;e.dispatchEvent(new Event('scroll'));
    const token=p.querySelector('code').lastElementChild,r=token.getBoundingClientRect(),box=p.getBoundingClientRect();
-   return {height:e.getBoundingClientRect().height,scroll:e.scrollTop,paintScroll:p.scrollTop,lastVisible:r.top>=box.top&&r.bottom<=box.bottom,overflow:getComputedStyle(p).overflow};
+   const numbers=e.parentElement.querySelector('.compiler-line-numbers');
+   return {height:e.getBoundingClientRect().height,scroll:e.scrollTop,paintScroll:p.scrollTop,gutterScroll:-new DOMMatrix(getComputedStyle(numbers).transform).m42,lastVisible:r.top>=box.top&&r.bottom<=box.bottom,overflow:getComputedStyle(p).overflow};
   });
   assert.equal(dimensions.height,height,'manual expansion must not stop at 720px');
   assert.equal(dimensions.scroll,dimensions.paintScroll,'scroll positions must stay aligned');
+  assert.ok(Math.abs(dimensions.scroll-dimensions.gutterScroll)<0.01,'line numbers must follow vertical scrolling');
   assert.equal(dimensions.lastVisible,true,'bottom source line must be visible after resizing and scrolling');
   assert.equal(dimensions.overflow,'hidden','only the textarea owns scrollbars');
  }
@@ -115,6 +129,7 @@ try {
  for(const mode of ['en','zh','both']){
   await page.locator(`[data-language-choice="${mode}"]`).click();
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  await verifyControls();
  }
  if(!live){
   customResult={code:0,stdout:[],stderr:[],execResult:{code:0,didExecute:true,stdout:[],stderr:[],truncated:true}};

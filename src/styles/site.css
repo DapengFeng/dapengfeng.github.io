@@ -93,6 +93,11 @@ body{font-size:18px}
 .search-top{gap:20px}.search-foot{gap:16px}
 .article-heading{padding-bottom:48px}.article-heading>p{margin-block:24px}
 .article-tags{gap:12px 20px;flex-wrap:wrap}.reading-layout{padding-top:40px;row-gap:36px}
+/* Align hashtag first lines, including tags with no separate Chinese translation. */
+.article-tags{align-items:flex-start}
+.article-tags>a{display:inline-flex;align-items:baseline;max-width:100%;line-height:1.6}
+.article-tags .i18n{align-items:baseline;vertical-align:baseline;line-height:inherit}
+.article-tags .i18n>[data-lang]{line-height:inherit}
 .article-toc nav{gap:6px}.article-toc nav>a{padding:12px 10px}
 .i18n>[data-lang=zh]{margin-top:8px}.i18n.inline>[data-lang=zh]{margin-top:0}
 html[data-language=zh] .i18n>[data-lang=zh]{margin-top:0}

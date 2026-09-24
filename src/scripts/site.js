@@ -1,6 +1,19 @@
 (() => {
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
+  const monthlyVolume = $('[data-current-month]');
+  if (monthlyVolume) {
+    // Match the site's calendar even when visitors browse from another time zone.
+    const month = new Intl.DateTimeFormat('en', {month:'numeric', timeZone:'Asia/Shanghai'});
+    const updateVolume = () => {
+      const value = `VOL. ${month.format(new Date()).padStart(3,'0')}`;
+      if (monthlyVolume.textContent !== value) monthlyVolume.textContent = value;
+    };
+    updateVolume();
+    setInterval(updateVolume, 60000);
+    window.addEventListener('pageshow', updateVolume);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) updateVolume(); });
+  }
   const language = $('#site-language');
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const bi = (en, zh) => `<span class="i18n"><span data-lang="en">${esc(en)}</span><span data-lang="zh">${esc(zh)}</span></span>`;
