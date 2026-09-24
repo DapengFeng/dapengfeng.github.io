@@ -195,7 +195,7 @@ int main() {
   const data = JSON.parse($('#blog-data').textContent);
   const htmlEscape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let mode = 'bad';
-  let step = 0;
+  let step = 3;
   let toastTimer;
 
   // The entire page is self-contained. No analytics, web fonts, or external JS.
@@ -326,6 +326,7 @@ int main() {
     toast(ok ? `已复制 ${language === 'rust' ? 'Rust' : 'C++'} ${mode === 'fixed' ? '修复' : '问题'}版本` : '浏览器阻止了复制，请选中代码后手动复制。');
   }));
 
+  $('.memory-demo').readingDemo={target:$('#memory-map'),frames:4,interval:1600,render(n){step=n;renderStep();}};
   const memorySteps = [
     ['先有容器，再有元素。', 'items 管理一块缓冲区，元素存放在其中。图中的 A、B 只是示意地址，不是真实测量。'],
     ['first 借用第一个元素。', '引用只指向原缓冲区里的元素，不拥有那块内存，也不会在容器搬迁时自动改成新地址。'],

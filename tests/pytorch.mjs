@@ -27,7 +27,9 @@ try{
  await page.goto('http://localhost:4199/blog/pytorch-01-what-is-pytorch.html');
  assert.equal(await page.locator('.pt-demo').count(),2);
  assert.equal(await page.locator('.compiler-check').count(),1);
- assert.equal(await page.locator('[data-pt-stage][aria-current="step"]').getAttribute('data-pt-stage'),'0');
+ assert.equal(await page.locator('[data-pt-stage][aria-current="step"]').getAttribute('data-pt-stage'),'7');
+ await page.locator('#pt-route > .reading-explore > summary').click();
+ await page.locator('#pt-multiply > .reading-explore > summary').click();
  await page.locator('[data-pt-stage="6"]').click();
  assert.match(await page.locator('#pt-route-info').innerText(),/mm_out_cpu/);
  await page.locator('[data-pt-device="cuda"]').click();
@@ -42,7 +44,7 @@ try{
  for(let i=0;i<12;i++)await page.locator('#pt-matrix-next').click();
  assert.deepEqual(await page.locator('#pt-matrix-y .pt-cell').allTextContents(),['58','64','139','154']);
  await page.locator('#pt-a00').fill('-2');
- assert.deepEqual(await page.locator('#pt-matrix-y .pt-cell').allTextContents(),['·','·','·','·']);
+ assert.deepEqual(await page.locator('#pt-matrix-y .pt-cell').allTextContents(),['37','40','139','154']);
  for(let i=0;i<12;i++)await page.locator('#pt-matrix-next').click();
  assert.deepEqual(await page.locator('#pt-matrix-y .pt-cell').allTextContents(),['37','40','139','154']);
  // Backward graph uses values independently checked against PyTorch 2.10.0 CPU.
@@ -79,16 +81,7 @@ try{
  assert.equal(await page.locator('#pt-route').getAttribute('data-grad-a'),'null');
  assert.match(await page.locator('#pt-route-info').innerText(),/No backward path was recorded/);
  await page.locator('[data-pt-grad="on"]').click();
- await page.locator('#pt-route-play').click();
- await page.waitForFunction(()=>document.querySelector('#pt-route').dataset.backwardStep==='1');
- await page.locator('#pt-route-play').click();
- await page.locator('[data-pt-phase="forward"]').click();
- await page.locator('#pt-route-reset').click();await page.locator('#pt-route-play').click();
- await page.waitForFunction(()=>document.querySelector('#pt-route').dataset.step==='1');
- await page.locator('#pt-route-play').click();assert.equal(await page.locator('#pt-route').getAttribute('data-playing'),'false');
- await page.locator('#pt-matrix-reset').click();await page.locator('#pt-matrix-play').click();
- await page.waitForFunction(()=>Number(document.querySelector('#pt-multiply').dataset.step)>0);
- await page.locator('#pt-matrix-play').click();assert.equal(await page.locator('#pt-matrix-play').getAttribute('aria-pressed'),'false');
+ // Finite forward-to-backward playback is covered in reading-demos.mjs.
  for(const width of [1440,768,390,320]){
   await page.setViewportSize({width,height:1000});
   for(const language of ['en','zh','both']){

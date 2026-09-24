@@ -11,7 +11,7 @@ try{
   localStorage.setItem('feng-language','both');
   Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{if(window.failCopy)throw Error('Denied');window.copiedMath=text;}}});
  });
- for(const slug of ['matrix-multiplication','band-storage-gaxpy','spike_notes']){
+ for(const slug of ['matrix-multiplication','band-storage-gaxpy','spike_notes','fast-matrix-vector-products']){
   await page.goto(`http://localhost:4194/blog/${slug}.html`);
   await page.evaluate(()=>document.querySelectorAll('details').forEach(n=>n.open=true));
   const formula=page.locator('.formula-block').first(), button=formula.locator('.formula-copy');

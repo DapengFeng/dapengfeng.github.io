@@ -226,3 +226,13 @@ The site uses the root path `/` and targets `https://dapengfeng.github.io`. A pr
   Measurements on the reader’s device, retaining all raw samples.
 
   在读者设备上实际测量，保留全部原始样本。
+
+### Reader-first diagrams / 面向阅读的示意图
+
+Show the complete result or comparison before asking readers to operate controls. Use short, finite animation for causal processes; keep parameter comparisons on shared scales. The shared `reading-demos.js` controller plays once in view, pauses offscreen, yields to reader input, and displays the complete diagram for reduced-motion preferences. Code execution and benchmarks remain explicitly triggered.
+
+先展示完整结果或对照，再提供操作控件。因果过程使用短时、有限的动画；参数对比使用统一坐标尺度。共享的 `reading-demos.js` 控制器进入视野后演示一次，离开视野时暂停，读者操作后停止自动接管；减少动态效果模式直接显示完整示意。代码执行与基准测试仍需主动触发。
+
+The process diagrams also interpolate positions continuously: transpose versus copying, packed-storage mappings, two-output symmetric updates, GPU address ownership, a Frank–Wolfe line search, a LIF event, and wave superposition. Numerical models live in `process-models.js`; rendering lives in `process-demos.js`. Spatial animation pauses with the shared controller. Reset events retain the same physical timestamp; GPU particles represent address mappings, not execution timing.
+
+过程图还支持位置的连续插值：转置与复制、紧凑存储映射、对称矩阵的两路更新、GPU 地址归属、Frank–Wolfe 线搜索、LIF 事件及波的叠加。数值模型位于 `process-models.js`，绘图位于 `process-demos.js`。空间动画由共享控制器暂停与恢复；复位事件保持相同的物理时刻，GPU 粒子表示地址映射而非执行时序。

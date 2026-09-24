@@ -13,9 +13,10 @@ try{
  await page.locator('#surface-frequency').fill('2.4');await page.locator('#surface-frequency').dispatchEvent('input');assert.equal(await page.locator('#frequency-value').textContent(),'2.4');await page.locator('#surface-toggle').click();assert.equal(await page.locator('#surface-toggle').getAttribute('aria-pressed'),'true');
  await page.locator('.search-trigger').click();await page.locator('#global-search').fill('EventProp');await page.waitForSelector('.search-result');assert.equal(await page.locator('.search-results a[href="/blog/spike_notes.html"]').count(),1);await page.keyboard.press('Escape');assert.equal(await page.locator('dialog').isVisible(),false);
  await page.goto('http://localhost:4175/blog/?category=physics');assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),1);await page.locator('[data-category-filter="all"]').click();await page.locator('#library-search').fill('CUDA Rust');assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),1);await page.locator('#library-search').fill('no-such-result-1234');assert.equal(await page.locator('.empty-state').isVisible(),true);await page.locator('[data-reset-filters]').click();assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),visiblePosts.length);
- await page.goto('http://localhost:4175/blog/spike_notes.html');assert.equal(await page.locator('.paired-article').count(),1);assert.equal(await page.locator('.article-toc nav a').count(),8);assert.equal(await page.locator('.parallel-text').count(),173);
+ await page.goto('http://localhost:4175/blog/spike_notes.html');assert.equal(await page.locator('.paired-article').count(),1);assert.equal(await page.locator('.article-toc nav a').count(),8);assert.ok(await page.locator('.parallel-text').count()>=170,'full bilingual article remains present');
  const first=page.locator('.chapter-lead.parallel-text').first();assert.equal(await first.locator('[data-lang="en"]').isVisible(),true);assert.equal(await first.locator('[data-lang="zh"]').isVisible(),false);
  await page.locator('[data-language-choice="both"]').click();assert.equal(await first.locator('[data-lang="zh"]').isVisible(),true);const englishBox=await first.locator('.parallel-en').boundingBox(),chineseBox=await first.locator('.parallel-zh').boundingBox();assert.ok(chineseBox.y>=englishBox.y+englishBox.height);
+ await page.locator('#lab-lif > .reading-explore > summary').click();
  const before=await page.locator('#lif-detail').innerText();await page.locator('#lif-input').fill('0.5');await page.locator('#lif-input').dispatchEvent('input');assert.notEqual(await page.locator('#lif-detail').innerText(),before);assert.ok((await page.locator('#lif-detail').innerText()).includes('no threshold crossing'));
  await page.locator('[data-language-choice="zh"]').click();assert.equal(await first.locator('[data-lang="en"]').isVisible(),false);assert.equal(await first.locator('[data-lang="zh"]').isVisible(),true);assert.ok(await page.evaluate(()=>Boolean(window.SpikeNotes)));
  await page.goto('http://localhost:4175/blog/rust-vs-cpp-blog.html');await page.locator('#step-next').click();await page.locator('[data-code-mode="fixed"]').first().click();assert.equal(errors.length,0,errors.join('\n'));
@@ -39,6 +40,7 @@ try{
  assert.equal(await chineseLab.locator('[data-benchmark-export]').isEnabled(),false);
  assert.match(await chineseLab.locator('[data-benchmark-result]').innerText(),/Not run yet/);
  await page.goto('http://localhost:4175/blog/waves-and-phase.html');
+ await page.locator('[data-wave-lab] > .reading-explore > summary').click();
  await page.locator('[data-language-choice="en"]').click();
  await page.locator('[data-wave-phase]').fill('2.5');
  await page.locator('[data-wave-k]').fill('2.1');

@@ -23,6 +23,7 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>localStorage.setItem('feng-language','en'));
  await page.goto(`http://localhost:4190/blog/${slug}.html`);
+ await page.locator('#cuda-map > .reading-explore > summary').click();
  assert.equal(await page.locator('.article-toc nav a').count(),8);
  assert.equal(await page.locator('#cuda-map').count(),1);
  assert.equal(await page.locator('pre.syntax-block').count(),2);

@@ -23,6 +23,8 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>localStorage.setItem('feng-language','both'));
  await page.goto('http://localhost:4207/blog/'+article);
+ assert.equal(await page.locator('#tensor-layout').getAttribute('data-layout'),'transpose');
+ await page.locator('#tensor-layout > .reading-explore > summary').click();
  for(const [mode,expected] of Object.entries(cases)){
   await page.locator(`button[data-layout=${mode}]`).click();
   assert.deepEqual((await page.locator('#tl-trace').textContent()).split(' → ').map(Number),expected);

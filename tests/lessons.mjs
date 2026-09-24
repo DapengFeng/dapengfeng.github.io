@@ -30,13 +30,14 @@ try{
 }finally{await fs.rm(temp,{recursive:true,force:true});}
 const server=serve(4188),browser=await chromium.launch({executablePath:chromiumExecutable(),headless:true,args:['--no-sandbox','--no-proxy-server']});
 try{
- const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',error=>errors.push(error.message));await page.addInitScript(()=>localStorage.setItem('feng-language','both'));
+ const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),errors=[];page.on('pageerror',error=>errors.push(error.message));await page.addInitScript(()=>localStorage.setItem('feng-language','both'));
  for(const slug of slugs){
   await page.goto(`http://localhost:4188/blog/${slug}.html`);
   assert.ok(await page.locator('.article-toc nav a').count()>=5);
   assert.equal(await page.locator('.lesson-lab').count(),1);
   for(const width of[1440,768,390,320]){await page.setViewportSize({width,height:1000});for(const language of['en','zh','both']){await page.locator(`[data-language-choice=${language}]`).click();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${slug}: overflow at ${width}/${language}`);}}
   await page.setViewportSize({width:1440,height:1000});await page.locator('[data-language-choice=en]').click();
+  if(await page.locator('.lesson-lab > .reading-explore > summary').count())await page.locator('.lesson-lab > .reading-explore > summary').click();
   if(slug==='band-storage-gaxpy'){
    await page.locator('#band-p').fill('2');await page.locator('#band-q').fill('1');await page.locator('#band-i').fill('3');await page.locator('#band-j').fill('2');
    assert.match(await page.locator('#band-result').innerText(),/offset 10/);assert.equal(await page.locator('#band-packed .selected').innerText(),'-1');
@@ -50,6 +51,7 @@ try{
    await page.locator('#fft-impulse').click();assert.deepEqual(await values(),Array(8).fill('1.0'));await page.locator('#fft-constant').click();assert.deepEqual(await values(),['8.0',...Array(7).fill('0.0')]);
    await page.locator('#fft-alternating').click();assert.equal((await values())[4],'8.0');await page.locator('#fft-sine').click();await page.locator('#fft-bin').fill('3');assert.equal((await values())[3],'4.0');assert.equal((await values())[5],'4.0');
   }else if(slug==='frank-wolfe-algorithm'){
+   assert.equal(await page.locator('#fw-steps').inputValue(),'8');await page.locator('#fw-reset').click();
    await page.locator('#fw-next').click();assert.match(await page.locator('#fw-result').innerText(),/x = \(0.8000, 0.0000\)/);
    await page.locator('#fw-steps').fill('40');const numbers=(await page.locator('#fw-result').innerText()).match(/f = ([0-9.]+).*G = ([0-9.]+)/s);assert.ok(numbers);assert.ok(+numbers[1]>=.04 && +numbers[1]-.04<=+numbers[2]+1e-6);
    await page.locator('#fw-inside').click();assert.equal(await page.locator('#fw-steps').inputValue(),'0');await page.locator('#fw-next').click();assert.match(await page.locator('#fw-result').innerText(),/x = \(0.0000, 0.3500\)/);
