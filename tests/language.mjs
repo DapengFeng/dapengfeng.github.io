@@ -31,6 +31,8 @@ try{
  const race=await scenario({slow:true});await race.page.locator('[data-language-choice=both]').click();race.release();await race.page.reload();assert.equal(await race.page.locator('html').getAttribute('data-language'),'both');assert.equal(race.requests(),1);await race.context.close();
  const timeout=await scenario({slow:true,locale:'zh-CN'});await timeout.page.waitForFunction(()=>document.documentElement.dataset.languageSource==='auto');assert.equal(await timeout.page.locator('html').getAttribute('data-language'),'zh');timeout.release();await timeout.context.close();
  // Exercise a language switch while an article experiment is already running.
- const s=await scenario({saved:'both'});await s.page.goto('http://localhost:4182/blog/waves-and-phase.html');await s.page.locator('[data-wave-phase]').fill('2.5');await s.page.locator('[data-language-choice=zh]').click();assert.equal(await s.page.locator('[data-wave-phase]').inputValue(),'2.5');await s.context.close();
+ const s=await scenario({saved:'both'});await s.page.goto('http://localhost:4182/blog/waves-and-phase.html');
+ await s.page.locator('[data-wave-lab] > .reading-explore > summary').click();
+ await s.page.locator('[data-wave-phase]').fill('2.5');await s.page.locator('[data-language-choice=zh]').click();assert.equal(await s.page.locator('[data-wave-phase]').inputValue(),'2.5');await s.context.close();
  console.log('Language checks passed: country mapping, saved preferences, session cache, browser fallback, timeout, blocked storage, manual-choice race, experiment state.');
 }finally{await browser.close();server.close();}
