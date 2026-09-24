@@ -110,8 +110,8 @@ int main() {
 <aside class="lesson-note"><p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">The multiply-only layout here is not automatically the workspace layout for banded LU factorization: pivoting can require extra rows for fill-in. Inputs and output are separate arrays in this example; overlapping x and y would change later reads.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">这里用于乘法的存储布局，不能直接当作带状 LU 分解的工作区布局：选主元造成的填充可能需要额外行。本例的输入和输出使用独立数组；若 x 与 y 重叠，后续读取会被先前写入改变。</span></p>
 </aside>
 <h2 class="parallel-text" id="references"><span class="parallel-en" data-lang="en" lang="en">Read further</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">继续阅读</span></h2>
-<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://www.netlib.org/lapack/lug/node124.html">LAPACK Users’ Guide: band storage and factorization padding</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://www.netlib.org/lapack/lug/node124.html">LAPACK 用户指南：带状存储与分解时的填充</a></span></p>
-<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="/blog/symmetric-storage-gaxpy.html">Next: reuse symmetry instead of storing both halves</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="/blog/symmetric-storage-gaxpy.html">下一篇：利用对称性，不存两份镜像</a></span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="https://www.netlib.org/lapack/lug/node124.html">LAPACK Users’ Guide — Band Storage: indexing and LU fill-in</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="https://www.netlib.org/lapack/lug/node124.html">LAPACK 用户指南：带状存储的下标映射与 LU 填充</a></span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en"><a href="/blog/symmetric-storage-gaxpy.html">Symmetric Storage GAXPY: packing the lower triangle</a></span><span class="parallel-zh" data-lang="zh" lang="zh-CN"><a href="/blog/symmetric-storage-gaxpy.html">对称矩阵的压缩存储：下三角打包与 GAXPY</a></span></p>
 </div>
 <script>
 (()=>{

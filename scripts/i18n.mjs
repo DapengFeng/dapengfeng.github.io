@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { escape as e } from './config.mjs';
+import { escape as e, site } from './config.mjs';
 export const dictionary = {
  '让知识，变得可见':'Ideas, made visible','知识分类':'Topics','关于实验室':'About the lab','按首次分享时间，回看每一次探索。后续更新保留首次发布日期。':'Revisit each exploration by its first publication date. Later edits keep the original date.',
  '知识实验室':'Knowledge Lab','探索':'Explore','知识库':'Notebook','分类':'Topics','时间线':'Timeline','关于':'About',
@@ -67,6 +67,16 @@ export function localizePage(html, posts) {
   }
  };
  visit($('body')[0]);
+ // External-link hints are rendered at build time and remain visible without JS.
+ $('#article-content a[href]').each((_,node)=>{
+  const link=$(node);
+  try{
+   const target=new URL(link.attr('href'),site.url);
+   if(!['http:','https:'].includes(target.protocol)||target.origin===new URL(site.url).origin)return;
+   link.attr('data-external-link','true');
+   if(link.text().includes('↗')||link.find('svg').length)link.attr('data-link-arrow','true');
+  }catch{/* Leave non-URL references unchanged. */}
+ });
  // English-only supporting labels are decorative, while paired content carries both meanings.
  $('.overline,.category-en,.hero-bottom>span:first-child,.section-heading h2>span:not(.i18n):not(.small-cross):not(.category-symbol),.visual-label,.axis-caption>span').not('[data-lang],.home-overline').attr('data-decorative-en','true');
  $('input[placeholder],[aria-label],button[title]').each((_,el)=>{

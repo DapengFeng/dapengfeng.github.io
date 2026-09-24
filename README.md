@@ -102,6 +102,10 @@ An optional `<div data-series-preview>` can embed the list elsewhere; set its at
 
 `npm run test:tensor` 检查第二期的 C++ 寻址模型、五种张量布局、存储别名、扫描控件、双语标签、响应式排版和无 JavaScript 回退。Python 输出已在 PyTorch 2.10.0 CPU 下核验，独立 C++ 程序也已通过 Godbolt 的 GCC 14.2 编译并运行。
 
+`npm run test:dispatch` checks part 3’s C++ dispatch model, five execution conditions, inference-mode bypass, finite playback, language switching, responsive layout, and the static diagram without JavaScript. The Python examples and custom-operator checks were verified separately with PyTorch 2.10.0 CPU.
+
+`npm run test:dispatch` 检查第三期的 C++ 调度模型、五种执行条件、inference 模式的绕行路径、有限播放、语言切换、响应式排版与无 JavaScript 静态图。Python 示例和自定义算子检查已在独立的 PyTorch 2.10.0 CPU 环境核验。
+
 
 [The article template](examples/article.html) includes bilingual paragraphs, inline and numbered AMS equations, highlighted C++ fragments, an editable complete C++ program, a shared interactive figure, a table, and explanation blocks. Copy its source into content/posts/ and build to preview the site styling and controls.
 

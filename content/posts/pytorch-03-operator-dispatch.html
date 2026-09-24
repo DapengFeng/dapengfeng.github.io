@@ -1,0 +1,268 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Operator registration and dispatch: how PyTorch selects a kernel</title><script type="application/json" id="article-metadata">{
+  "titleEn": "Operator registration and dispatch: how PyTorch selects a kernel",
+  "title": "算子注册与调度：PyTorch 如何选择内核",
+  "descriptionEn": "PyTorch separates operator schemas from implementations. The dispatcher combines tensor dispatch keys with thread-local state, selects an operator-specific table entry, and lets wrappers redispatch to lower layers. Autograd dispatch and gradient recording are separate decisions.",
+  "description": "PyTorch 将算子接口与实现分开注册。调度器合并张量的调度键与线程局部状态，从算子专属的调度表中选择入口；包装层再通过 redispatch 进入下层实现。进入 Autograd 调度层与记录反向图是两个不同的判断。",
+  "date": "2026-09-24",
+  "category": "systems",
+  "tags": [
+    "PyTorch",
+    "Dispatcher",
+    "ATen",
+    "Autograd",
+    "C++"
+  ],
+  "art": "matrix",
+  "featured": 2,
+  "series": {
+    "id": "pytorch-internals",
+    "titleEn": "Inside PyTorch",
+    "title": "PyTorch 源码之旅",
+    "part": 3
+  }
+}</script>
+<style>
+.dk-registration{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-block:24px}
+.dk-registration>div{min-width:0;border:1px solid #607361;border-radius:10px;padding:16px;background:#18251e;font-size:18px;line-height:1.7}
+.dk-registration b,.dk-registration code{display:block;overflow-wrap:anywhere}.dk-registration [data-lang]{display:block}
+.dk-lab{border:1px solid #5c705f;border-radius:14px;background:#142019;padding:clamp(12px,2vw,22px);margin-block:28px;overflow:hidden}
+.dk-lab [data-lang]{display:block}.dk-lab p{font-size:18px;line-height:1.7}.dk-lab code{overflow-wrap:anywhere}
+.dk-graph{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px 20px;margin-block:20px}
+.dk-card{position:relative;min-width:0;border:1px solid #617565;border-radius:10px;padding:14px;background:#1c2b22;font-size:17px;line-height:1.65}
+.dk-card strong{display:block;font-size:18px;color:#c6e5ff}.dk-card>code{display:block;margin-block:8px}.dk-card[data-active=true]{border-color:#c0f47b;box-shadow:0 0 0 2px #c0f47b55;background:#2a3d24}
+.dk-card[data-dim=true]{border-style:dashed}.dk-card:nth-child(1)::after,.dk-card:nth-child(3)::after{content:'→';position:absolute;right:-19px;top:calc(50% - 15px);color:#b4d99b;font:24px/30px var(--mono)}
+.dk-card:nth-child(2)::after{content:'↓';position:absolute;bottom:-29px;left:calc(50% - 10px);color:#b4d99b;font:24px/30px var(--mono)}
+.dk-card:nth-child(3){grid-column:2;grid-row:2}.dk-card:nth-child(3)::after{content:'←';left:-19px;right:auto}.dk-card:nth-child(4){grid-column:1;grid-row:2}
+.dk-tags{display:flex;flex-wrap:wrap;gap:8px;margin-block:10px}.dk-tags code{border:1px solid #647d6b;padding:3px 8px;border-radius:6px;color:#e3eedb}
+.dk-lab .dk-result{border-top:1px solid #5c705f;padding-top:16px;margin-bottom:0!important}.dk-lab .dk-result code{color:#c0f47b}
+.dk-lab[data-mode=inference] .dk-card[data-dk-stage="1"],.dk-lab[data-mode=inference] .dk-card[data-dk-stage="2"]{display:none}.dk-lab[data-mode=inference] .dk-card[data-dk-stage="3"]{grid-column:2;grid-row:1}
+.dk-compare{margin-top:18px;padding-top:16px;border-top:1px solid #5c705f}.dk-compare summary{display:grid;grid-template-columns:16px minmax(0,1fr);column-gap:8px;list-style:none;cursor:pointer;font-size:18px;line-height:1.7}.dk-compare summary::before{content:"▸";grid-column:1;grid-row:1 / 3}.dk-compare[open] summary::before{content:"▾"}.dk-compare summary [data-lang]{grid-column:2}.dk-compare summary::-webkit-details-marker{display:none}.dk-modes{display:flex;flex-wrap:wrap;gap:8px;margin-block:16px}
+.dk-modes button{font:16px/1.6 var(--mono);color:#edf5e8;background:#203228;border:1px solid #6a806e;border-radius:8px;min-height:44px;padding:8px 12px;cursor:pointer}.dk-modes button[aria-pressed=true]{background:#c0f47b;color:#152011;border-color:#c0f47b}.dk-modes button:focus-visible{outline:3px solid #94c9ff;outline-offset:3px}
+.dk-js-only{display:none}.dk-lab[data-ready=true] .dk-js-only{display:block}
+.dk-answer{border:1px solid #5c705f;border-radius:10px;padding:16px;margin-block:24px}.dk-answer summary{font-size:18px;line-height:1.7;cursor:pointer}.dk-answer summary [data-lang]{display:block}
+@media(max-width:650px){.dk-lab[data-mode=inference] .dk-card[data-dk-stage="3"]{grid-column:1;grid-row:auto}.dk-registration{grid-template-columns:1fr}.dk-graph{grid-template-columns:1fr;gap:28px}.dk-card:nth-child(n){grid-column:1;grid-row:auto}.dk-card:nth-child(-n+3)::after{content:'↓';left:calc(50% - 10px);right:auto;top:auto;bottom:-29px}.dk-card{padding:12px}}
+</style></head><body><div class="lesson dispatcher-lesson">
+<h2 class="parallel-text" id="one-call"><span data-lang="en" lang="en">One call, several implementations</span><span data-lang="zh" lang="zh-CN">一次调用，多种实现</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The previous installment explained how a tensor locates its elements. Now consider <code>torch.mm(a, b)</code>: the operands carry a device and a dispatch key set, yet the Python call does not name a CPU or CUDA function. The missing connection is an <strong>operator-specific dispatch table</strong>. Registration fills its entries; each invocation selects an entry using its arguments and execution context.</span><span data-lang="zh" lang="zh-CN">上一期解释了张量怎样定位元素。现在看 <code>torch.mm(a, b)</code>：输入携带设备信息和调度键集合，但 Python 调用没有指定 CPU 或 CUDA 函数。把两者接起来的是<strong>每个算子各自的调度表</strong>。注册负责填充表项，每次调用再根据参数与执行上下文选择入口。</span></p>
+<pre tabindex="0"><code class="language-python" id="dispatch-intro">import torch
+
+a = torch.tensor([[1., 2.]], requires_grad=True)
+b = torch.tensor([[3.], [4.]])
+y = torch.mm(a, b)
+print(y.item(), type(y.grad_fn).__name__)
+# 11.0 MmBackward0</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Here the numerical computation returns 11, while a separate wrapper records how that value depends on <code>a</code>. A dispatcher entry called a “kernel” can be such a wrapper; it does not necessarily multiply any numbers. Backward computation happens later, when requested.</span><span data-lang="zh" lang="zh-CN">这里数值计算得到 11，另一层包装代码记录结果对 <code>a</code> 的依赖。调度表中称为“kernel”的入口也可能是这种包装层，它未必执行乘加运算。真正的反向计算发生在随后请求 backward 时。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Source baseline: <strong>PyTorch 2.10.0</strong>, commit <code>449b17684101</code>, as in parts 1 and 2. The examples use ordinary dense, real-valued tensors in eager mode, without autocast, tensor subclasses, or transforms. CPU outputs below were verified with <code>2.10.0+cpu</code>; the CUDA route is a source-based illustration, not a GPU measurement.</span><span data-lang="zh" lang="zh-CN">源码基线：<strong>PyTorch 2.10.0</strong>，提交 <code>449b17684101</code>，与前两期一致。示例限定为 eager 模式下的普通稠密实数张量，不启用 autocast、张量子类或变换。下文 CPU 输出已在 <code>2.10.0+cpu</code> 中验证；CUDA 路径依据源码绘制，不代表 GPU 实测。</span></p>
+<h2 class="parallel-text" id="registration"><span data-lang="en" lang="en">Schema, registration, implementation</span><span data-lang="zh" lang="zh-CN">接口定义、注册与实现</span></h2>
+<div class="dk-registration"><div><span data-lang="en" lang="en"><b>1 · Schema</b><code>aten::mm</code>Names arguments and return types.</span><span data-lang="zh" lang="zh-CN"><b>1 · 接口定义</b><code>aten::mm</code>规定参数与返回值的类型。</span></div><div><span data-lang="en" lang="en"><b>2 · Registration</b><code>CPU → implementation</code>Associates a dispatch key with an entry.</span><span data-lang="zh" lang="zh-CN"><b>2 · 注册</b><code>CPU → implementation</code>把调度键与实现入口关联。</span></div><div><span data-lang="en" lang="en"><b>3 · Implementation</b><code>mm_out_cpu</code>Checks and executes numerical work.</span><span data-lang="zh" lang="zh-CN"><b>3 · 实现</b><code>mm_out_cpu</code>执行相关检查与数值计算。</span></div></div>
+<p class="parallel-text"><span data-lang="en" lang="en">In ATen, <code>native_functions.yaml</code> supplies schemas and backend declarations to code generation. For dense inputs, functional <code>mm</code> delegates to the structured <code>mm.out</code> implementation. Generated code manages the functional result and connects it to backend code; the Python caller need not supply <code>out=</code>. The following excerpt keeps only the relevant declarations.</span><span data-lang="zh" lang="zh-CN">在 ATen 中，<code>native_functions.yaml</code> 为代码生成提供接口和后端声明。对于稠密输入，函数式 <code>mm</code> 委托给结构化的 <code>mm.out</code> 实现。生成代码负责函数式结果的准备，并连接后端代码；Python 调用者无需传入 <code>out=</code>。下面摘取与此相关的声明。</span></p>
+<pre tabindex="0"><code class="language-yaml">- func: mm(Tensor self, Tensor mat2) -&gt; Tensor
+  structured_delegate: mm.out
+
+# mm.out backend declarations:
+CPU: mm_out_cpu
+CUDA: mm_out_cuda</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml#L4196">native_functions.yaml: mm and mm.out declarations</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml#L4196">native_functions.yaml：mm 与 mm.out 声明</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">An extension can register a schema with <code>TORCH_LIBRARY</code> and a CPU implementation with <code>TORCH_LIBRARY_IMPL</code>. This C++ fragment requires a PyTorch extension build and an existing <code>twice_cpu</code> function; it is not a standalone program. The Python version in section 6 runs without compiling an extension.</span><span data-lang="zh" lang="zh-CN">扩展可以通过 <code>TORCH_LIBRARY</code> 注册接口，再通过 <code>TORCH_LIBRARY_IMPL</code> 注册 CPU 实现。下面的 C++ 片段需要 PyTorch 扩展构建环境，以及已有的 <code>twice_cpu</code> 函数；它不是独立程序。第 6 节提供无需编译扩展即可运行的 Python 版本。</span></p>
+<pre tabindex="0"><code class="language-cpp">TORCH_LIBRARY(feng_dispatch, m) {
+    m.def(&quot;twice(Tensor x) -&gt; Tensor&quot;);
+}
+TORCH_LIBRARY_IMPL(feng_dispatch, CPU, m) {
+    m.impl(&quot;twice&quot;, twice_cpu);
+}</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/library.h#L9">torch/library.h: operator definition and backend registration APIs</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/library.h#L9">torch/library.h：算子定义与后端注册接口</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">A schema is not a device-transfer rule. A CPU registration does not make CUDA inputs run on the CPU automatically. It also does not define a derivative: an implementation and an autograd rule have different responsibilities.</span><span data-lang="zh" lang="zh-CN">接口定义不是设备迁移规则。注册 CPU 实现不会让 CUDA 输入自动转到 CPU 上运行，也不会因此得到求导规则：数值实现与自动求导分别承担不同职责。</span></p>
+<h2 class="parallel-text" id="key-set"><span data-lang="en" lang="en">The key set is more than a device</span><span data-lang="zh" lang="zh-CN">调度键集合不只有设备</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">For tensor arguments, the extractor unions their key sets. It then includes and excludes keys from thread-local state (TLS), and applies the operator’s mask. The mask removes fallthrough entries so they need not become ordinary kernel calls. For this tensor-only example, the selection can be written as:</span><span data-lang="zh" lang="zh-CN">对于张量参数，提取器先合并它们的键集合，再应用线程局部状态（TLS）中的包含集合与排除集合，最后使用算子自己的掩码。掩码会过滤 fallthrough 表项，避免把这些直接放行的入口当作普通内核来调用。对于这里仅含张量参数的示例，选择过程可写为：</span></p>
+<div class="shared-equation" data-math="\begin{aligned}K_T &amp;= K_a\cup K_b \\ K_{\mathrm{call}} &amp;= ((K_T\cup I)\setminus E)\cap M_{\mathrm{op}}\end{aligned}"></div>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>I</code> and <code>E</code> are the TLS included and excluded sets; <code>M</code> is the operator mask. This is a set model of the selection, not the bit layout of <code>DispatchKeySet</code>. The representation separates backend and functionality components; readable names such as <code>AutogradCPU</code> should not be mistaken for an independent Boolean switch for every feature.</span><span data-lang="zh" lang="zh-CN"><code>I</code> 与 <code>E</code> 分别为 TLS 的包含集合与排除集合，<code>M</code> 为算子掩码。这是选择过程的集合模型，不是 <code>DispatchKeySet</code> 的实际位布局。内部表示区分后端与功能分量，<code>AutogradCPU</code> 这样的可读名称并不意味着每项功能都对应一个彼此独立的布尔开关。</span></p>
+<pre tabindex="0"><code class="language-cpp">return (((ks | local.included_) - local.excluded_) &amp; key_mask);</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/DispatchKeyExtractor.h#L24">DispatchKeyExtractor.h: computeDispatchKeySet and tensor key collection</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/DispatchKeyExtractor.h#L24">DispatchKeyExtractor.h：computeDispatchKeySet 与张量键提取</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/core/DispatchKeySet.h#L51">DispatchKeySet.h: backend and functionality representation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/core/DispatchKeySet.h#L51">DispatchKeySet.h：后端与功能的集合表示</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The highest-priority eligible key chooses a table slot for this operator. Registration aliases such as <code>Autograd</code> and <code>CompositeImplicitAutograd</code> help populate multiple runtime slots; they are not extra stages every invocation must visit. A composite implementation expresses an operator using other operators, whose calls can dispatch again.</span><span data-lang="zh" lang="zh-CN">优先级最高的有效键决定访问这个算子的哪一个表项。<code>Autograd</code>、<code>CompositeImplicitAutograd</code> 等注册别名用于填充多个运行时表项，并非每次调用都必须经过的额外阶段。组合实现用其他算子表达当前运算，其中的算子调用可以再次触发调度。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/OperatorEntry.cpp#L352">OperatorEntry.cpp: computeDispatchTableEntryWithDebug</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/OperatorEntry.cpp#L352">OperatorEntry.cpp：computeDispatchTableEntryWithDebug</a></span></p>
+<h2 class="parallel-text" id="dispatch-route"><span data-lang="en" lang="en">Follow the wrapper down to the backend</span><span data-lang="zh" lang="zh-CN">沿包装层进入后端</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The diagram shows the complete route for the example above. The numbered arrows describe control flow, not elapsed time. Playback highlights one stage at a time; the result and all stages remain readable without playing. The comparison controls change one execution condition while keeping the matrix values fixed.</span><span data-lang="zh" lang="zh-CN">下图默认显示上述示例的完整路径。编号和箭头表示控制流，不表示耗时。播放时逐步高亮各阶段；不播放也能直接阅读完整流程和结果。比较控件保持矩阵数值不变，只改变执行条件。</span></p>
+<div class="dk-lab" id="dispatch-lab">
+<div id="dk-figure">
+<p class="parallel-text" id="dk-context"><span data-lang="en" lang="en"><strong>CPU · grad enabled · a.requires_grad=True</strong></span><span data-lang="zh" lang="zh-CN"><strong>CPU · 开启梯度记录 · a.requires_grad=True</strong></span></p>
+<div class="dk-graph">
+<div class="dk-card" data-dk-stage="0"><strong><span data-lang="en" lang="en">1 · Effective keys</span><span data-lang="zh" lang="zh-CN">1 · 有效调度键</span></strong><div class="dk-tags" id="dk-keys"><code>AutogradCPU</code><code>CPU</code></div><span id="dk-key-note"><span data-lang="en" lang="en">Relevant subset after TLS and fallthrough filtering.</span><span data-lang="zh" lang="zh-CN">应用 TLS 与 fallthrough 过滤后，与本例相关的子集。</span></span></div>
+<div class="dk-card" data-dk-stage="1"><strong id="dk-wrapper">2 · AutogradCPU</strong><span id="dk-wrapper-note"><span data-lang="en" lang="en">Prepare MmBackward0 and retain the operands needed by its derivative.</span><span data-lang="zh" lang="zh-CN">准备 MmBackward0，保留求导所需的输入。</span></span></div>
+<div class="dk-card" data-dk-stage="2"><strong>3 · redispatch</strong><code id="dk-redispatch">{CPU}</code><span id="dk-redispatch-note"><span data-lang="en" lang="en">Continue below Autograd; do not select the same wrapper again.</span><span data-lang="zh" lang="zh-CN">从 Autograd 以下继续，避免再次选中同一个包装层。</span></span></div>
+<div class="dk-card" data-dk-stage="3"><strong id="dk-backend">4 · CPU → mm_out_cpu</strong><code>[1, 2] @ [3; 4] = 11</code><span><span data-lang="en" lang="en">The generated structured path reaches the numerical implementation.</span><span data-lang="zh" lang="zh-CN">通过生成的结构化调用路径进入数值实现。</span></span></div>
+</div>
+<p class="dk-result" id="dk-result"><span data-lang="en" lang="en">Return <code>y = [[11]]</code>; attach <code>MmBackward0</code> after the backend returns.</span><span data-lang="zh" lang="zh-CN">返回 <code>y = [[11]]</code>；后端返回后关联 <code>MmBackward0</code>。</span></p>
+</div>
+<details class="dk-compare dk-js-only"><summary><span data-lang="en" lang="en">Compare execution conditions</span><span data-lang="zh" lang="zh-CN">比较执行条件</span></summary><div class="dk-modes" role="group" aria-label="Execution conditions / 执行条件">
+<button type="button" data-dk-mode="grad" aria-pressed="true">CPU · grad</button><button type="button" data-dk-mode="plain" aria-pressed="false">requires_grad=False</button><button type="button" data-dk-mode="no-grad" aria-pressed="false">no_grad()</button><button type="button" data-dk-mode="inference" aria-pressed="false">inference_mode()</button><button type="button" data-dk-mode="cuda" aria-pressed="false">CUDA · grad</button>
+</div><p class="parallel-text"><span data-lang="en" lang="en">Only the backend and autograd keys are drawn. For mm in this setup, ADInplaceOrView falls through and autocast is excluded. CUDA assumes a matching CUDA-enabled build and CUDA operands.</span><span data-lang="zh" lang="zh-CN">图中只画后端与求导键。在本例的 mm 路径中，ADInplaceOrView 直接放行，autocast 被排除。CUDA 场景假设已使用支持 CUDA 的构建，并且输入位于 CUDA 设备。</span></p></details>
+</div>
+<p class="parallel-text"><span data-lang="en" lang="en">The wrapper must avoid selecting itself recursively. Native autograd code generation uses a reduced key set for redispatch, and guards the appropriate lower-level call. <code>Dispatcher::redispatch</code> accepts the supplied key set as-is; it does not recompute the initial argument/TLS selection. This is how a layer can finish its own work and continue to another implementation of the same operator.</span><span data-lang="zh" lang="zh-CN">包装层必须避免递归选中自己。原生 Autograd 的代码生成会为 redispatch 缩减键集合，并为相应的下层调用设置 guard。<code>Dispatcher::redispatch</code> 直接使用传入的键集合，不重新进行最初的参数与 TLS 选择。这样，一层代码处理完自己的职责后，就能进入同一算子的另一层实现。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/Dispatcher.h#L835">Dispatcher.h: Dispatcher::redispatch</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/Dispatcher.h#L835">Dispatcher.h：Dispatcher::redispatch</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/gen_variable_type.py#L1554">gen_variable_type.py: after_autograd_keyset in native wrapper generation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/gen_variable_type.py#L1554">gen_variable_type.py：原生包装代码生成中的 after_autograd_keyset</a></span></p>
+<h2 class="parallel-text" id="grad-modes"><span data-lang="en" lang="en">An Autograd key does not guarantee a backward graph</span><span data-lang="zh" lang="zh-CN">有 Autograd 键，不等于记录了反向图</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Two independent questions matter: <em>which implementation is selected?</em> and <em>should it record a gradient history?</em> For the ordinary tensors here, <code>requires_grad=False</code> leaves <code>AutogradCPU</code> present. <code>no_grad()</code> disables gradient recording, while the wrapper can still be selected. Its gradient check returns false and computation proceeds without an attached backward node.</span><span data-lang="zh" lang="zh-CN">这里有两个独立问题：<em>选中了哪个实现？</em>以及<em>是否记录梯度历史？</em>对于本文的普通张量，<code>requires_grad=False</code> 不会移除 <code>AutogradCPU</code>。<code>no_grad()</code> 关闭梯度记录，但仍可能选中包装层；包装层中的梯度检查返回 false，计算继续进行，只是不关联反向节点。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/functions/utils.h#L54">functions/utils.h: compute_requires_grad checks GradMode</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/functions/utils.h#L54">functions/utils.h：compute_requires_grad 检查 GradMode</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>inference_mode()</code> additionally changes dispatch state: Autograd keys are excluded, and newly created inference tensors lack the usual autograd/view-tracking keys. The following experiment creates fresh tensors <em>inside</em> each context. The private <code>torch._C._dispatch_keys</code> helper is a version-specific diagnostic, not a stable public API.</span><span data-lang="zh" lang="zh-CN"><code>inference_mode()</code> 还会改变调度状态：排除 Autograd 键，并且新建的 inference 张量不带通常的求导与视图追踪键。下面的实验在每个上下文<em>内部</em>创建新张量。私有辅助函数 <code>torch._C._dispatch_keys</code> 仅用于当前版本的诊断，不是稳定的公开 API。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/core/InferenceMode.h#L11">InferenceMode.h: TLS invariants and autograd exclusion</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/core/InferenceMode.h#L11">InferenceMode.h：TLS 不变量与 Autograd 排除规则</a></span></p>
+<pre tabindex="0"><code class="language-python" id="dispatch-modes">import torch
+from contextlib import nullcontext
+print(&#x27;version:&#x27;, torch.__version__)
+for name, context, requires_grad in [
+    (&#x27;grad&#x27;, nullcontext(), True),
+    (&#x27;plain&#x27;, nullcontext(), False),
+    (&#x27;no_grad&#x27;, torch.no_grad(), True),
+    (&#x27;inference&#x27;, torch.inference_mode(), True),
+]:
+    with context:
+        a = torch.tensor([[1., 2.]], requires_grad=requires_grad)
+        b = torch.tensor([[3.], [4.]])
+        y = torch.mm(a, b)
+        print(name, &#x27;AutogradCPU&#x27; in str(torch._C._dispatch_keys(a)),
+              torch.is_grad_enabled(), y.item(),
+              type(y.grad_fn).__name__)</code></pre>
+<pre tabindex="0"><code class="language-text">version: 2.10.0+cpu
+grad True True 11.0 MmBackward0
+plain True True 11.0 NoneType
+no_grad True False 11.0 NoneType
+inference False False 11.0 NoneType</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The columns after the mode are: AutogradCPU present on the input, gradient mode enabled, numerical result, and backward-node type. All four results equal 11; only the first records <code>MmBackward0</code>. This experiment does not measure speed, and disabling recording does not change the matrix-product formula.</span><span data-lang="zh" lang="zh-CN">模式名之后依次为：输入是否携带 AutogradCPU、是否启用梯度模式、数值结果、反向节点类型。四种模式都得到 11，只有第一种记录 <code>MmBackward0</code>。本实验没有测量速度，关闭记录也不会改变矩阵乘法公式。</span></p>
+<h2 class="parallel-text" id="custom-op"><span data-lang="en" lang="en">Register an operator and its derivative</span><span data-lang="zh" lang="zh-CN">注册一个算子及其导数</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">A small CPU operator makes the separation observable. In a fresh Python process, define <code>feng_dispatch::twice</code>, register a CPU function, then register its reverse-mode derivative. The CPU function returns a new tensor, consistent with a schema that declares no mutation or aliasing. Keep the <code>Library</code> object alive for the registrations to remain available.</span><span data-lang="zh" lang="zh-CN">一个小型 CPU 算子可以实际展示这种分工。在新的 Python 进程中定义 <code>feng_dispatch::twice</code>，注册 CPU 函数，再注册反向求导规则。CPU 函数返回新张量，与未声明修改或别名的接口一致。需要保留 <code>Library</code> 对象，使注册项持续有效。</span></p>
+<pre tabindex="0"><code class="language-python" id="dispatch-custom">import torch
+
+lib = torch.library.Library(&#x27;feng_dispatch&#x27;, &#x27;DEF&#x27;)
+lib.define(&#x27;twice(Tensor x) -&gt; Tensor&#x27;)
+@torch.library.impl(lib, &#x27;twice&#x27;, &#x27;CPU&#x27;)
+def twice_cpu(x):
+    return x * 2
+
+def backward(ctx, grad_output):
+    return grad_output * 2
+
+torch.library.register_autograd(&#x27;feng_dispatch::twice&#x27;, backward)
+@torch.library.register_fake(&#x27;feng_dispatch::twice&#x27;)
+def twice_fake(x):
+    return torch.empty_like(x)
+
+x = torch.tensor([1., 3.], requires_grad=True)
+y = torch.ops.feng_dispatch.twice(x)
+y.sum().backward()
+print(&#x27;value:&#x27;, y.tolist())
+print(&#x27;gradient:&#x27;, x.grad.tolist())
+print(&#x27;gradcheck:&#x27;, torch.autograd.gradcheck(torch.ops.feng_dispatch.twice,
+      (torch.tensor([1., 3.], dtype=torch.double, requires_grad=True),)))
+print(torch.library.opcheck(torch.ops.feng_dispatch.twice, (x,)))</code></pre>
+<pre tabindex="0"><code class="language-text">value: [2.0, 6.0]
+gradient: [2.0, 2.0]
+gradcheck: True
+{&#x27;test_schema&#x27;: &#x27;SUCCESS&#x27;, &#x27;test_autograd_registration&#x27;: &#x27;SUCCESS&#x27;,
+ &#x27;test_faketensor&#x27;: &#x27;SUCCESS&#x27;, &#x27;test_aot_dispatch_dynamic&#x27;: &#x27;SUCCESS&#x27;}</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">For <code>y = 2x</code>, an incoming gradient <code>g</code> becomes <code>2g</code>. No input values need saving for this derivative. The fake implementation returns only output metadata without reading tensor values. <code>opcheck</code> checks registration contracts; <code>gradcheck</code> independently compares derivatives with finite differences. Passing these sample checks is not a proof for all shapes and dtypes.</span><span data-lang="zh" lang="zh-CN">对于 <code>y = 2x</code>，传入梯度 <code>g</code> 变为 <code>2g</code>，不需要为这个导数保存输入数值。fake 实现只提供输出元信息，不读取张量数值。<code>opcheck</code> 检查注册约定，<code>gradcheck</code> 另用有限差分比较导数。通过这些样例检查不等于证明所有形状和数据类型都正确。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/library.html#torch.library.register_autograd">torch.library.register_autograd</a> · <a data-citation href="https://docs.pytorch.org/docs/2.10/library.html#torch.library.opcheck">torch.library.opcheck</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/library.html#torch.library.register_autograd">torch.library.register_autograd：注册反向规则</a> · <a data-citation href="https://docs.pytorch.org/docs/2.10/library.html#torch.library.opcheck">torch.library.opcheck：检查注册约定</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">In <code>torch/_library/autograd.py</code>, the generated custom-op wrapper checks gradient mode and the input requirements, then calls a forward path that redispatches below Autograd. Without a registered derivative, a custom operator should not be assumed differentiable merely because its CPU implementation calls differentiable PyTorch operations. For this example, deleting the autograd registration removes the explicitly supplied rule.</span><span data-lang="zh" lang="zh-CN">在 <code>torch/_library/autograd.py</code> 中，生成的自定义算子包装层检查梯度模式与输入需求，再通过前向路径绕过 Autograd 重新调度。不能仅因为 CPU 实现调用了可求导的 PyTorch 运算，就认定未注册导数的自定义算子已经具有正确的求导支持。本例删除 Autograd 注册后，就失去了显式提供的求导规则。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_library/autograd.py#L24">torch/_library/autograd.py: make_autograd_impl and redispatch</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_library/autograd.py#L24">torch/_library/autograd.py：make_autograd_impl 与 redispatch</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Only CPU numerical execution is registered here. A fake implementation does not supply a CUDA kernel, and this example is not a performance optimization over <code>x * 2</code>. It isolates registration, execution, and differentiation so that each can be checked separately.</span><span data-lang="zh" lang="zh-CN">这里仅注册了 CPU 数值实现。fake 实现不能替代 CUDA 内核，这个例子也不是对 <code>x * 2</code> 的性能优化。它把注册、执行与求导分开，以便分别检查。</span></p>
+<h2 class="parallel-text" id="cpp-model"><span data-lang="en" lang="en">A small C++ dispatcher you can inspect</span><span data-lang="zh" lang="zh-CN">用小型 C++ 调度器看清控制流</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">This standalone teaching model has one operator, a priority order, and a function-pointer table. Its Autograd wrapper removes its own key before redispatch. The second call uses the same key set with recording disabled; the last call deliberately lacks a CUDA implementation. It models control flow only: no tensors, automatic differentiation engine, or GPU code are implemented. The output below was verified locally and with Godbolt GCC 14.2.</span><span data-lang="zh" lang="zh-CN">这个独立教学模型只有一个算子、一组优先级和一张函数指针表。Autograd 包装层先移除自己的键，再重新调度。第二次调用保持相同键集合但关闭记录；最后一次调用故意缺少 CUDA 实现。它只模拟控制流，没有实现张量、自动求导引擎或 GPU 代码。下方输出已在本地与 Godbolt GCC 14.2 上核验。</span></p>
+<pre tabindex="0"><code class="language-cpp" id="dispatch-cpp-model" data-godbolt="c++">#include &lt;array&gt;
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+
+using Keys = unsigned;
+constexpr Keys CPU = 1, CUDA = 2, Autograd = 4;
+struct Context { bool grad_enabled; bool requires_grad; };
+using Kernel = double (*)(Keys, Context, double);
+double dispatch(Keys keys, Context context, double x);
+
+double cpu(Keys, Context, double x) {
+    std::cout &lt;&lt; &quot;CPU: twice\n&quot;;
+    return 2 * x;
+}
+double autograd(Keys keys, Context context, double x) {
+    const bool record = context.grad_enabled &amp;&amp; context.requires_grad;
+    std::cout &lt;&lt; &quot;Autograd: record=&quot; &lt;&lt; record &lt;&lt; &#x27;\n&#x27;;
+    const double result = dispatch(keys &amp; ~Autograd, context, x);
+    if (record) std::cout &lt;&lt; &quot;Attach backward rule\n&quot;;
+    return result;
+}
+struct Entry { Keys key; Kernel kernel; };
+const std::array&lt;Entry, 3&gt; table{{
+    {Autograd, autograd}, {CUDA, nullptr}, {CPU, cpu}
+}};
+
+double dispatch(Keys keys, Context context, double x) {
+    for (const auto&amp; entry : table) {
+        if (!(keys &amp; entry.key)) continue;
+        if (!entry.kernel) throw std::runtime_error(&quot;Missing CUDA kernel&quot;);
+        return entry.kernel(keys, context, x);
+    }
+    throw std::runtime_error(&quot;No eligible dispatch key&quot;);
+}
+int main() {
+    for (const bool grad : {true, false}) {
+        const double result = dispatch(CPU | Autograd, {grad, true}, 3.0);
+        std::cout &lt;&lt; &quot;value=&quot; &lt;&lt; result &lt;&lt; &#x27;\n&#x27;;
+    }
+    try {
+        dispatch(CUDA, {false, false}, 3.0);
+    } catch (const std::runtime_error&amp; error) {
+        std::cout &lt;&lt; error.what() &lt;&lt; &#x27;\n&#x27;;
+    }
+}</code></pre>
+<pre tabindex="0"><code class="language-text">Autograd: record=1
+CPU: twice
+Attach backward rule
+value=6
+Autograd: record=0
+CPU: twice
+value=6
+Missing CUDA kernel</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The model throws at a missing selected entry. Falling through to an unrelated CPU implementation would silently change the execution contract. Real PyTorch also supports registered backend fallbacks and composite implementations; its table construction resolves those possibilities. That is different from retrying arbitrary lower-priority kernels after an error.</span><span data-lang="zh" lang="zh-CN">模型在选中的入口缺失时抛错。如果直接改用无关的 CPU 实现，就悄悄改变了执行约定。真实 PyTorch 还支持已注册的后端 fallback 和组合实现，这些可能性由调度表构建规则处理；它不同于报错后随意尝试其他低优先级内核。</span></p>
+<h2 class="parallel-text" id="inspect-table"><span data-lang="en" lang="en">Inspect the table before blaming the kernel</span><span data-lang="zh" lang="zh-CN">先看调度表，再定位内核问题</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The following private diagnostics expose an operator’s schema and its computed dispatch table in the pinned build. Registration filenames and available entries depend on build options. A printed CUDA slot alone does not prove that a CPU-only installation can execute CUDA tensors.</span><span data-lang="zh" lang="zh-CN">以下私有诊断接口可查看当前固定版本构建中的接口定义与计算后的调度表。注册文件名和可用表项取决于构建选项。即使打印出 CUDA 表项，也不能据此认定纯 CPU 安装能够执行 CUDA 张量。</span></p>
+<pre tabindex="0"><code class="language-python">print(torch.ops.aten.mm.default._schema)
+print(torch._C._dispatch_dump_table(&quot;aten::mm&quot;))
+print(torch._C._dispatch_dump_table(&quot;feng_dispatch::twice&quot;))</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/OperatorEntry.cpp#L658">OperatorEntry.cpp: dumpComputedTable and registration provenance</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/core/dispatch/OperatorEntry.cpp#L658">OperatorEntry.cpp：dumpComputedTable 与注册来源</a></span></p>
+<div class="lesson-scroll" tabindex="0" role="region" aria-labelledby="inspect-table"><table><thead><tr><th scope="col"><span data-lang="en" lang="en">Symptom</span><span data-lang="zh" lang="zh-CN">现象</span></th><th scope="col"><span data-lang="en" lang="en">First check</span><span data-lang="zh" lang="zh-CN">首先检查</span></th></tr></thead><tbody><tr><td><span data-lang="en" lang="en">Unknown operator</span><span data-lang="zh" lang="zh-CN">找不到算子</span></td><td><span data-lang="en" lang="en">Check namespace, schema registration, and whether the extension was loaded.</span><span data-lang="zh" lang="zh-CN">检查命名空间、接口注册，以及扩展是否加载。</span></td></tr><tr><td><span data-lang="en" lang="en">Backend not implemented</span><span data-lang="zh" lang="zh-CN">后端未实现</span></td><td><span data-lang="en" lang="en">Compare the tensor device/layout with the selected table entry and installed build.</span><span data-lang="zh" lang="zh-CN">对照张量设备与布局、选中的表项和安装的构建。</span></td></tr><tr><td><span data-lang="en" lang="en">No gradient history</span><span data-lang="zh" lang="zh-CN">没有梯度历史</span></td><td><span data-lang="en" lang="en">Check grad mode, requires_grad, and the registered derivative separately.</span><span data-lang="zh" lang="zh-CN">分别检查梯度模式、requires_grad 与导数注册。</span></td></tr><tr><td><span data-lang="en" lang="en">Shape or dtype error</span><span data-lang="zh" lang="zh-CN">形状或类型错误</span></td><td><span data-lang="en" lang="en">Selection succeeded; the implementation still has its own input constraints.</span><span data-lang="zh" lang="zh-CN">选择入口成功后，实现仍有自己的输入约束。</span></td></tr></tbody></table></div>
+<p class="parallel-text"><span data-lang="en" lang="en">Dispatch does not search for the fastest algorithm by benchmarking candidates on each call. It selects a registered implementation from keys and context; that implementation may perform further dtype, layout, shape, or library-level algorithm selection. Tensor strides from part 2 therefore still matter after dispatch has chosen a backend.</span><span data-lang="zh" lang="zh-CN">调度器不会在每次调用时测量候选算法，再选择最快者。它根据键与上下文选择已注册实现；具体实现内部还可能按数据类型、布局、形状或数值库规则进一步选择算法。因此，即便已经选定后端，第二期介绍的张量步幅仍会影响后续执行。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/LinearAlgebra.cpp#L1399">LinearAlgebra.cpp: addmm_impl_cpu_ layout handling</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/LinearAlgebra.cpp#L1399">LinearAlgebra.cpp：addmm_impl_cpu_ 的布局处理</a></span></p>
+<details class="dk-answer"><summary><span data-lang="en" lang="en">Check your understanding: does moving a tensor to CUDA create a backward rule?</span><span data-lang="zh" lang="zh-CN">检验理解：把张量移到 CUDA，就会自动得到反向规则吗？</span></summary>
+<p class="parallel-text"><span data-lang="en" lang="en">No. Device placement affects backend selection. The operator still needs a supported numerical implementation and appropriate autograd support. For the CPU-only custom operator above, neither its schema nor its fake implementation supplies CUDA arithmetic. Separately, a recorded backward node will later be scheduled by the autograd engine—the subject of part 4.</span><span data-lang="zh" lang="zh-CN">不会。设备位置影响后端选择，算子仍需要受支持的数值实现和相应的求导支持。对于上面只注册 CPU 的自定义算子，接口定义和 fake 实现都不能提供 CUDA 数值计算。另一个独立问题是：已经记录的反向节点随后怎样被 Autograd 引擎调度，这将是第四期的主题。</span></p>
+</details></div>
+<script>
+(() => {
+ const root=document.getElementById('dispatch-lab'),figure=document.getElementById('dk-figure');
+ const pair=(en,zh)=>`<span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span>`;
+ const set=(id,en,zh)=>document.getElementById(id).innerHTML=pair(en,zh);
+ const cards=[...root.querySelectorAll('[data-dk-stage]')];
+ function complete(){cards.forEach(card=>delete card.dataset.active);}
+ root.readingDemo={target:figure,barAfter:figure,frames:4,interval:1600,render(n){const stage=root.dataset.mode==='inference'?[0,3][n]:n;cards.forEach((card,i)=>card.dataset.active=String(i===stage));},complete,cancel:complete};
+ const contexts={
+  grad:['CPU · grad enabled · a.requires_grad=True','CPU · 开启梯度记录 · a.requires_grad=True'],
+  plain:['CPU · grad enabled · a.requires_grad=False','CPU · 开启梯度记录 · a.requires_grad=False'],
+  'no-grad':['CPU · no_grad() · a.requires_grad=True','CPU · no_grad() · a.requires_grad=True'],
+  inference:['CPU · new tensors inside inference_mode()','CPU · 在 inference_mode() 内新建张量'],
+  cuda:['CUDA · grad enabled · source-based route, not measured','CUDA · 开启梯度记录 · 源码路径，未经 GPU 实测']
+ };
+ function choose(mode){
+  const backend=mode==='cuda'?'CUDA':'CPU',inference=mode==='inference',record=mode==='grad'||mode==='cuda';
+  root.dataset.mode=mode;root.dataset.recordsGrad=String(record);root.readingDemo.frames=inference?2:4;
+  root.querySelectorAll('[data-dk-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.dkMode===mode)));
+  set('dk-context',...contexts[mode]);
+  document.getElementById('dk-keys').innerHTML=(inference?[]:[`Autograd${backend}`]).concat(backend).map(k=>`<code>${k}</code>`).join('');
+  document.getElementById('dk-wrapper').textContent=`2 · Autograd${backend}`;
+  set('dk-wrapper-note',inference?'No autograd wrapper is selected in this route.':record?'Prepare MmBackward0 and retain the operands needed by its derivative.':'The wrapper is selected, but the gradient-recording check is false.',inference?'这条路径不选中求导包装层。':record?'准备 MmBackward0，保留求导所需的输入。':'仍然选中包装层，但梯度记录条件不成立。');
+  document.getElementById('dk-redispatch').textContent=`{${backend}}`;
+  set('dk-redispatch-note',inference?'No autograd redispatch is needed; enter the backend directly.':'Continue below Autograd; do not select the same wrapper again.',inference?'无需由 Autograd 重新调度，直接进入后端。':'从 Autograd 以下继续，避免再次选中同一个包装层。');
+  cards[1].dataset.dim=String(inference);cards[2].dataset.dim=String(inference);
+  document.getElementById('dk-backend').textContent=`${inference?2:4} · ${backend} → mm_out_${backend.toLowerCase()}`;
+  set('dk-result',record?'Return <code>y = [[11]]</code>; attach <code>MmBackward0</code> after the backend returns.':'Return <code>y = [[11]]</code>; <code>y.grad_fn = None</code>.',record?'返回 <code>y = [[11]]</code>；后端返回后关联 <code>MmBackward0</code>。':'返回 <code>y = [[11]]</code>；<code>y.grad_fn = None</code>。');
+  complete();root.dispatchEvent(new Event('processchange'));
+ }
+ root.querySelectorAll('[data-dk-mode]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.dkMode)));
+ root.dataset.ready='true';choose('grad');
+})();
+</script></body></html>

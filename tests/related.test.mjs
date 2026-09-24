@@ -40,6 +40,6 @@ test('published recommendation cards match computed relevance, including cross-c
  const matrix=posts.find(p=>p.slug==='matrix-multiplication');
  assert.ok(recommend(matrix).some(p=>p.slug==='band-storage-gaxpy'));
  const pytorch=posts.find(p=>p.slug==='pytorch-01-what-is-pytorch');
- assert.equal(recommend(pytorch)[0].slug,'pytorch-02-tensor-strides-storage');
+ assert.equal(recommend(pytorch)[0].series?.id,pytorch.series.id);
  assert.ok(recommend(matrix).some(p=>p.category!==matrix.category));
 });

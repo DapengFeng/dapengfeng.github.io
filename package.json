@@ -22,7 +22,8 @@
     "test:code-copy": "node tests/code-copy.mjs",
     "test:tensor": "node tests/tensor.mjs",
     "test:reading-demos": "node tests/reading-demos.mjs",
-    "test:process-demos": "node tests/process-demos.mjs"
+    "test:process-demos": "node tests/process-demos.mjs",
+    "test:dispatch": "node tests/dispatch.mjs"
   },
   "devDependencies": {
     "@mathjax/src": "4.1.3",

@@ -21,7 +21,16 @@ test('series order and neighboring links follow published installment numbers',(
 });
 test('PyTorch series is discoverable and contains only published episodes',async()=>{
  const $=load(await fs.readFile('dist/series/pytorch-internals/index.html','utf8'));
- assert.equal($('.series-episodes li').length,2);
+ const published=[];
+ for(const file of await fs.readdir('content/posts')){
+  if(!file.endsWith('.html'))continue;
+  const doc=load(await fs.readFile('content/posts/'+file,'utf8')),raw=doc('#article-metadata').text();
+  if(!raw)continue;
+  const metadata=JSON.parse(raw);
+  if(!metadata.draft&&metadata.series?.id==='pytorch-internals')published.push({part:metadata.series.part,url:'/blog/'+file});
+ }
+ published.sort((a,b)=>a.part-b.part);
+ assert.deepEqual($('.series-episodes a').map((_,el)=>$(el).attr('href')).get(),published.map(p=>p.url));
  assert.equal($('.series-episodes li').eq(1).attr('value'),'2');
  assert.equal($('.series-episodes a').eq(1).attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
  assert.equal($('.series-episodes li').attr('value'),'1');
@@ -32,9 +41,13 @@ test('PyTorch series is discoverable and contains only published episodes',async
  assert.equal(firstPage('a[rel=next]').attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
  assert.equal(firstPage('.series-preview [data-series-part=2]').attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
  assert.equal(firstPage('.series-preview [data-series-part=2] time').attr('datetime'),'2026-09-24');
- assert.equal(firstPage('.series-preview [data-series-part=3]').is('div'),true);
- assert.equal(firstPage('.series-preview [data-series-part=3] a').length,0);
- for(const [page,part]of [[firstPage,1],[second,2]]){
+ const thirdPage=load(await fs.readFile('dist/blog/pytorch-03-operator-dispatch.html','utf8'));
+ assert.equal(firstPage('.series-preview [data-series-part=3]').attr('href'),'/blog/pytorch-03-operator-dispatch.html');
+ assert.equal(second('a[rel=next]').attr('href'),'/blog/pytorch-03-operator-dispatch.html');
+ assert.equal(thirdPage('a[rel=prev]').attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
+ const afterThird=published.find(p=>p.part>3);
+ assert.equal(thirdPage('a[rel=next]').attr('href'),afterThird?.url);
+ for(const [page,part]of [[firstPage,1],[second,2],[thirdPage,3]]){
   assert.equal(page('.series-directory').length,1);
   assert.equal(page('.series-directory [data-series-part]').length,6);
   assert.equal(page('.series-directory [aria-current=page]').attr('data-series-part'),String(part));
