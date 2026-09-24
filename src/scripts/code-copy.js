@@ -25,7 +25,9 @@
   if(editor)block.classList.add('code-editor-block');
   const tools=document.createElement('div');tools.className='code-copy-tools';
   const language=languageOf(target),badge=document.createElement('span');badge.className='code-language';badge.dataset.codeLanguage=language;
-  if(['text','plaintext','plain','none'].includes(language))badge.innerHTML=pair('Text','文本');
+  if(['text','plaintext','plain','none'].includes(language)){
+   block.classList.add('code-text-block');badge.classList.add('sr-only');badge.innerHTML=pair('Text','文本');
+  }
   else if(['assembly','asm'].includes(language))badge.innerHTML=pair('Assembly','汇编');
   else badge.textContent=languageNames[language]||language;
   const status=document.createElement('span');status.className='code-copy-status sr-only';status.setAttribute('role','status');

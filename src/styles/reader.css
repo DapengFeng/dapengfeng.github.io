@@ -247,6 +247,14 @@ html[data-language=zh] #article-content :is(h2,h3,h4).parallel-text>[data-lang=z
 #article-content .code-copy-tools{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:3px 10px;border-bottom:1px solid #46575b}
 #article-content .code-copy-block>pre,#article-content .code-copy-block>.compiler-editor-surface{margin:0;border:0;border-radius:0}
 #article-content .code-copy-block>.compiler-editor-surface .compiler-editor{border-radius:0}
+/* Plain output has no header row; a separate icon column never covers the text. */
+#article-content .code-text-block{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;border-color:#47564e;border-left-width:3px;background:#171e1a}
+#article-content .code-text-block>.code-copy-tools{grid-column:2;grid-row:1;gap:0;padding:6px;border:0;background:none}
+#article-content .code-copy-block.code-text-block>pre{grid-column:1;grid-row:1;min-width:0;padding:12px;background:transparent;color:#d9e2db}
+#article-content .code-text-block>pre code{padding:0;border:0;background:none;color:inherit}
+#article-content .code-text-block>.code-copy-tools .code-copy{background:#25312a;border-color:#53685a;color:#d9e7dc}
+#article-content .code-text-block>.code-copy-tools .code-copy:hover{background:#34483b}
+#article-content .code-text-block>.code-copy-manual{grid-column:1 / -1}
 /* Writable examples use editor chrome; static code keeps the quieter code-block style. */
 #article-content .code-editor-block{border-color:#62849a;box-shadow:inset 3px 0 #62849a}
 #article-content .code-editor-block:hover{border-color:#8bc8ff}
