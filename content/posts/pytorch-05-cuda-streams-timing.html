@@ -1,0 +1,307 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CUDA streams, kernels and timing: when is the GPU actually done?</title><script type="application/json" id="article-metadata">{
+  "titleEn": "CUDA streams, kernels and timing: when is the GPU actually done?",
+  "title": "CUDA 流、内核与计时：GPU 到底什么时候算完？",
+  "descriptionEn": "CUDA streams order submitted work; events connect dependencies across streams. Host return, event completion and tensor storage lifetime are different boundaries. Timing a matrix multiplication requires choosing which boundary to measure and accounting for warm-up, precision and synchronization.",
+  "description": "CUDA 流为提交的操作建立顺序，事件连接跨流依赖。主机调用返回、事件完成和张量存储生命周期是不同的边界。测量矩阵乘法前，需要明确计时边界，并控制预热、计算精度与同步方式。",
+  "date": "2026-09-26",
+  "category": "systems",
+  "tags": [
+    "PyTorch",
+    "CUDA",
+    "Streams",
+    "基准测试",
+    "C++"
+  ],
+  "art": "matrix",
+  "featured": 1,
+  "series": {
+    "id": "pytorch-internals",
+    "titleEn": "Inside PyTorch",
+    "title": "PyTorch 源码之旅",
+    "part": 5
+  }
+}</script>
+<style>
+.cs-table{max-width:100%;overflow-x:auto;margin-block:24px}.cs-table table{min-width:440px}.cs-table [data-lang]{display:block}
+.cs-lab{border:1px solid #668171;background:#142019;border-radius:14px;padding:clamp(12px,2vw,22px);margin-block:28px;overflow:hidden;color:#edf4e8}.cs-lab [data-lang],.cs-flow [data-lang]{display:block}.cs-lab p{font-size:18px;line-height:1.7}.cs-key{display:flex;flex-wrap:wrap;gap:10px 22px;margin-bottom:18px;font:17px/1.6 var(--mono)}.cs-key strong{color:#c0f47b}.cs-key code{background:none!important;border:0!important;padding:0!important;font-size:17px}
+.cs-axis{position:relative;height:30px;margin-inline:8px;font:16px/1.5 var(--mono);color:#d4e1d7}.cs-axis span{position:absolute;transform:translateX(-50%)}.cs-axis span:first-child{transform:none}.cs-axis span:last-child{transform:translateX(-100%)}.cs-tracks{position:relative;margin:0 8px 12px;padding-block:6px}.cs-lane{position:relative;margin-bottom:16px}.cs-lane:last-child{margin-bottom:0}.cs-lane-label{font:16px/1.5 var(--mono);margin-bottom:6px;color:#e7f2e8}.cs-track{height:42px;position:relative;border:1px solid #617b6b;border-radius:6px;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),#65766855 calc(10% - 1px),#65766855 10%)}.cs-bar{position:absolute;top:4px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;font:600 17px/1 var(--mono);box-sizing:border-box;white-space:nowrap}.cs-host{left:0;width:20%;background:#a9caff;color:#142339}.cs-a{left:10%;width:60%;background:#c0f47b;color:#182113}.cs-b{left:70%;width:30%;background:#f5c390;color:#2b2115}.cs-bar[data-active=true]{outline:3px solid #fff;outline-offset:2px}.cs-bar[data-state=pending]{opacity:.38}.cs-wait{left:20%;width:50%;background:repeating-linear-gradient(135deg,#283f34 0,#283f34 6px,#436653 6px,#436653 8px);border:1px dashed #add1b7;color:#fff}.cs-wait span{background:#20352b;padding:3px 7px;border-radius:3px;font-size:16px}
+.cs-event-line{position:absolute;left:70%;top:86px;bottom:0;border-left:2px dashed #d3f6a5;pointer-events:none;z-index:2}.cs-event-line::after{content:'◆';position:absolute;bottom:-9px;left:-8px;color:#d3f6a5;font-size:16px}.cs-cursor{position:absolute;left:100%;inset-block:0;border-left:2px solid #fff;z-index:3;pointer-events:none;opacity:.8}.cs-lab[data-mode=unsafe] .cs-b{background:#ffb5aa;color:#32170f;border:2px dashed #601d0e}.cs-lab [hidden]{display:none!important}
+.cs-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:22px}.cs-status>div{border:1px solid #617b6b;border-radius:8px;padding:10px;min-width:0;font-size:16px;line-height:1.6}.cs-status b{display:block;font:600 18px/1.6 var(--mono);color:#c0f47b;overflow-wrap:anywhere}.cs-caption{margin:18px 0 0!important;min-height:3.4em}.cs-controls{display:none;margin-top:18px;padding-top:16px;border-top:1px solid #617b6b}.cs-lab[data-ready=true] .cs-controls{display:block}.cs-controls summary{display:grid;grid-template-columns:16px minmax(0,1fr);gap:0 8px;list-style:none;cursor:pointer;font-size:18px;line-height:1.7}.cs-controls summary::before{content:'▸';grid-row:1/3}.cs-controls[open] summary::before{content:'▾'}.cs-controls summary [data-lang]{grid-column:2}.cs-controls summary::-webkit-details-marker{display:none}.cs-options{display:flex;flex-wrap:wrap;gap:10px;margin-block:14px}.cs-options button{min-height:44px;padding:8px 12px;font:16px/1.5 var(--mono);border:1px solid #739480;border-radius:8px;background:#263b2e;color:#edf4e8;cursor:pointer}.cs-options button[aria-pressed=true]{background:#c0f47b;color:#172210;border-color:#c0f47b}.cs-options button:focus-visible{outline:3px solid #a9caff;outline-offset:3px}
+.cs-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-block:24px}.cs-flow>div{padding:16px;border:1px solid #617b6b;border-radius:9px;background:#18251d;font-size:18px;line-height:1.65;min-width:0}.cs-flow code{display:block;overflow-wrap:anywhere}.cs-lab .reading-playback{margin-top:18px}
+@media(max-width:600px){.cs-flow{grid-template-columns:1fr}.cs-status{gap:6px}.cs-status>div{padding:8px 6px}.cs-status b{font-size:16px}.cs-caption{min-height:0}.cs-wait span{font-size:16px}}
+</style></head><body><div class="lesson cuda-streams-lesson">
+<h2 class="parallel-text" id="two-clocks"><span data-lang="en" lang="en">A Python return and a GPU completion are different events</span><span data-lang="zh" lang="zh-CN">Python 返回与 GPU 完成，是两件事</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Part 4 explained when the backward engine can schedule a node. On CUDA, scheduling an operation introduces another boundary: the host can submit device work and continue before that work finishes. Consider two dependent operations, <code>y = x.square()</code> and <code>z = y + 1</code>. A Python variable can already refer to <code>z</code> while its values are still being computed on the GPU.</span><span data-lang="zh" lang="zh-CN">第四期解释了反向引擎何时可以调度节点。在 CUDA 上，调度操作还涉及另一道边界：主机提交设备任务后，可以先继续执行，设备任务稍后才完成。以两个依赖操作 <code>y = x.square()</code> 和 <code>z = y + 1</code> 为例，Python 变量已经引用 <code>z</code> 时，GPU 可能仍在计算它的值。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">A CUDA stream is an ordered sequence of device work, not a dedicated CPU thread or a reserved GPU multiprocessor. Work in different streams may overlap if resources permit; separate streams alone do not guarantee concurrency. For a dependent pair, overlap is not the goal: the consumer must see the producer’s completed writes.</span><span data-lang="zh" lang="zh-CN">CUDA 流是一串有顺序的设备任务，不是专属 CPU 线程，也不独占某个 GPU 多处理器。资源允许时，不同流中的任务可能重叠，但建立两条流不保证并发。对于有依赖的两步操作，目标并不是重叠执行，而是确保消费者能读取生产者已完成的写入。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.nvidia.com/cuda/archive/12.9.0/cuda-c-programming-guide/index.html#streams">CUDA Programming Guide: stream ordering and possible concurrency</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.nvidia.com/cuda/archive/12.9.0/cuda-c-programming-guide/index.html#streams">CUDA 编程指南：流内顺序与可能的并发</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Baseline: <strong>PyTorch 2.10.0</strong>, source commit <code>449b17684101</code>; eager execution on one CUDA device. The authoring environment has only <code>2.10.0+cpu</code>. The CUDA programs below include availability checks; their GPU branches and timing results have <strong>not been measured here</strong>. The timeline uses invented logical units, and the standalone C++ dependency model runs on the CPU.</span><span data-lang="zh" lang="zh-CN">基线：<strong>PyTorch 2.10.0</strong>，源码提交 <code>449b17684101</code>；讨论单个 CUDA 设备上的 eager 执行。写作环境只有 <code>2.10.0+cpu</code>。下文 CUDA 程序包含可用性检查；其 GPU 分支及计时结果<strong>尚未在本环境实测</strong>。时间线使用人为设定的逻辑单位，独立的 C++ 依赖模型在 CPU 上运行。</span></p>
+<h2 class="parallel-text" id="stream-timeline"><span data-lang="en" lang="en">Read the dependency on a shared timeline</span><span data-lang="zh" lang="zh-CN">在同一条时间轴上看依赖</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Let A produce <code>y</code> and B consume it. In this illustration the host finishes submission at 2, A finishes at 7, and a correctly ordered B finishes at 10. The striped region is a device-side wait: the host does not spend that interval blocked in <code>wait_event()</code>. The bars represent operations, not a claim that each operation launches exactly one kernel.</span><span data-lang="zh" lang="zh-CN">设 A 生成 <code>y</code>，B 消费它。在这张示意图中，主机在 2 完成提交，A 在 7 完成，顺序正确的 B 在 10 完成。斜纹区域表示设备侧等待，主机不会在这段时间里一直阻塞于 <code>wait_event()</code>。条带表示操作，不代表每个操作恰好启动一个内核。</span></p>
+<div class="cs-lab" id="cuda-streams-lab" data-mode="event"><div id="cs-figure">
+<div class="cs-key"><span><strong>A</strong> <code>y = x²</code></span><span><strong>B</strong> <code>z = y + 1</code></span></div>
+<div class="cs-axis" aria-hidden="true"><span style="left:0">0</span><span style="left:20%">2</span><span style="left:50%">5</span><span style="left:70%">7</span><span style="left:100%">10</span></div>
+<div class="cs-tracks">
+<div class="cs-lane"><div class="cs-lane-label">CPU</div><div class="cs-track"><div class="cs-bar cs-host">↑ ↑</div></div></div>
+<div class="cs-lane"><div class="cs-lane-label">Stream 0</div><div class="cs-track" id="cs-stream0"><div class="cs-bar cs-a">A</div></div></div>
+<div class="cs-lane"><div class="cs-lane-label">Stream 1</div><div class="cs-track" id="cs-stream1"><div class="cs-bar cs-wait"><span data-lang="en" lang="en">wait</span><span data-lang="zh" lang="zh-CN">等待</span></div><div class="cs-bar cs-b">B</div></div></div>
+<div class="cs-event-line" aria-hidden="true"></div><div class="cs-cursor" aria-hidden="true"></div></div>
+<div class="cs-status"><div><span data-lang="en" lang="en">Host returned</span><span data-lang="zh" lang="zh-CN">主机已返回</span><b id="cs-host-status">✓ · 2</b></div><div><span data-lang="en" lang="en">A completed</span><span data-lang="zh" lang="zh-CN">A 已完成</span><b id="cs-a-status">✓ · 7</b></div><div><span data-lang="en" lang="en">B completed</span><span data-lang="zh" lang="zh-CN">B 已完成</span><b id="cs-b-status">✓ · 10</b></div></div>
+<p class="parallel-text cs-caption" id="cs-caption"><span data-lang="en" lang="en">◆ Event at 7 → B starts after A. Logical units, not measured milliseconds.</span><span data-lang="zh" lang="zh-CN">◆ 事件在 7 完成 → B 在 A 之后开始。逻辑单位，不是实测毫秒。</span></p></div>
+<details class="cs-controls"><summary><span data-lang="en" lang="en">Compare the ordering rules</span><span data-lang="zh" lang="zh-CN">比较顺序规则</span></summary><div class="cs-options">
+<button type="button" data-cs-mode="same" aria-pressed="false"><span data-lang="en" lang="en">Same stream</span><span data-lang="zh" lang="zh-CN">同一条流</span></button><button type="button" data-cs-mode="event" aria-pressed="true">wait_event</button><button type="button" data-cs-mode="unsafe" aria-pressed="false"><span data-lang="en" lang="en">Missing wait</span><span data-lang="zh" lang="zh-CN">缺少等待</span></button></div></details></div>
+<p class="parallel-text"><span data-lang="en" lang="en">In the missing-wait view, B is allowed to begin before A completes. This is one possible hazardous ordering, not a prediction of a specific GPU scheduler. Even if one run happens to produce the expected values, the program has not established the dependency. The earlier finish is therefore not a valid performance improvement.</span><span data-lang="zh" lang="zh-CN">在“缺少等待”的视图中，B 可能在 A 完成前开始。这是缺乏依赖时一种可能的危险顺序，不是对某个 GPU 调度器的预测。即使某次运行恰好得到预期值，程序也没有建立所需依赖，因此提前结束不能算有效的性能提升。</span></p>
+<h2 class="parallel-text" id="source-path"><span data-lang="en" lang="en">From an ATen call to the current CUDA stream</span><span data-lang="zh" lang="zh-CN">从 ATen 调用走到当前 CUDA 流</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">For a dense two-dimensional <code>torch.mm(a, b)</code>, the CUDA implementation enters <code>mm_out_cuda</code>, which reuses <code>addmm_out_cuda_impl</code> with beta 0 and alpha 1. The implementation handles layout and output preparation before the BLAS operation. One float32 path reaches <code>cublasSgemm</code>; alternative paths and library choices depend on dtype, configuration and input conditions.</span><span data-lang="zh" lang="zh-CN">对于稠密二维张量的 <code>torch.mm(a, b)</code>，CUDA 实现进入 <code>mm_out_cuda</code>，以 beta 为 0、alpha 为 1 复用 <code>addmm_out_cuda_impl</code>。实现先处理布局和输出准备，再调用 BLAS。其中一条 float32 路径走到 <code>cublasSgemm</code>；其他路径及库的选择取决于数据类型、配置和输入条件。</span></p>
+<div class="cs-flow"><div><code>mm_out_cuda</code><span data-lang="en" lang="en">ATen: shape and layout</span><span data-lang="zh" lang="zh-CN">ATen：形状与布局</span></div><div><code>getCurrentCUDABlasHandle</code><span data-lang="en" lang="en">Bind the current stream</span><span data-lang="zh" lang="zh-CN">绑定当前流</span></div><div><code>cuBLAS → GPU</code><span data-lang="en" lang="en">Library-selected kernels</span><span data-lang="zh" lang="zh-CN">库选择的内核</span></div></div>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/cuda/Blas.cpp#L668">Blas.cpp: mm_out_cuda and the addmm implementation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/cuda/Blas.cpp#L668">Blas.cpp：mm_out_cuda 与 addmm 实现</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/cuda/CUDABlas.cpp#L1067">CUDABlas.cpp: the float32 cuBLAS GEMM path</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/cuda/CUDABlas.cpp#L1067">CUDABlas.cpp：float32 的 cuBLAS GEMM 路径</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The bridge to stream ordering is visible in <code>getCurrentCUDABlasHandle()</code>: the handle is associated with PyTorch’s current stream before use. This small source excerpt is part of PyTorch, not a standalone compilable program.</span><span data-lang="zh" lang="zh-CN">连接流顺序语义的关键位于 <code>getCurrentCUDABlasHandle()</code>：使用句柄前，将它关联到 PyTorch 当前流。下面是 PyTorch 内部的短源码片段，不能单独编译。</span></p>
+<pre tabindex="0"><code class="language-cpp">auto stream = c10::cuda::getCurrentCUDAStream();
+TORCH_CUDABLAS_CHECK(cublasSetStream(handle, stream));</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/cuda/CublasHandlePool.cpp#L352">CublasHandlePool.cpp: associate a cuBLAS handle with the current stream</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/cuda/CublasHandlePool.cpp#L352">CublasHandlePool.cpp：把 cuBLAS 句柄关联到当前流</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The current-stream selection is thread-local and indexed by device. A <code>with torch.cuda.stream(s)</code> context changes that selection for operations submitted inside it, then restores the previous selection; it does not mean “wait until s is done.” Native pointwise CUDA launch helpers also obtain the current stream and pass it into the kernel launch configuration. A stream is therefore carried down to the launch boundary, rather than inferred later from the tensor’s Python name.</span><span data-lang="zh" lang="zh-CN">当前流选择是线程局部的，并按设备保存。<code>with torch.cuda.stream(s)</code> 上下文改变内部操作提交时的当前流，退出后恢复原选择；它不表示“等 s 执行完再退出”。原生逐元素 CUDA 启动辅助函数也会取得当前流，并传入内核启动配置。因此，流信息会一路传到启动边界，而不是事后根据张量的 Python 名称推断。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/cuda/CUDAStream.cpp#L363">CUDAStream.cpp: getCurrentCUDAStream and setCurrentCUDAStream</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/c10/cuda/CUDAStream.cpp#L363">CUDAStream.cpp：取得与设置当前流</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/cuda/CUDALoops.cuh#L295">CUDALoops.cuh: the stream argument in a native kernel launch</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/cuda/CUDALoops.cuh#L295">CUDALoops.cuh：原生内核启动中的流参数</a></span></p>
+<h2 class="parallel-text" id="ordering-lifetime"><span data-lang="en" lang="en">Ordering and storage lifetime need separate guarantees</span><span data-lang="zh" lang="zh-CN">执行顺序与存储生命周期，需要分别保证</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The following complete program records an event after A, makes the consumer stream wait for it, then records completion after B. <code>done.synchronize()</code> blocks the host until that completion event. The expected vector follows directly from <code>i² + 1</code>: <code>[1, 2, 5, 10, 17, 26, 37, 50]</code>. This is an expected result, not a recorded GPU run.</span><span data-lang="zh" lang="zh-CN">下面的完整程序在 A 之后记录事件，让消费者流先等待该事件，再执行 B，并在 B 之后记录完成事件。<code>done.synchronize()</code> 阻塞主机，直到这个完成事件结束。由 <code>i² + 1</code> 可直接得到预期向量 <code>[1, 2, 5, 10, 17, 26, 37, 50]</code>；这是预期结果，不是已记录的 GPU 运行输出。</span></p>
+<pre tabindex="0"><code class="language-python" id="cuda-stream-example">import torch
+
+def main():
+    if not torch.cuda.is_available():
+        print(&quot;CUDA unavailable; GPU example not run.&quot;)
+        return
+    device = torch.device(&quot;cuda:0&quot;)
+    with torch.cuda.device(device):
+        producer = torch.cuda.current_stream(device)
+        consumer = torch.cuda.Stream(device=device)
+        x = torch.arange(8, device=device, dtype=torch.float32)
+        y = x.square()                         # A, on producer
+        ready = torch.cuda.Event()
+        ready.record(producer)
+        with torch.cuda.stream(consumer):
+            consumer.wait_event(ready)         # Execution dependency
+            z = y + 1                         # B, on consumer
+            y.record_stream(consumer)          # Allocator lifetime
+            done = torch.cuda.Event()
+            done.record(consumer)
+        del y                                 # Safe reuse is deferred
+        done.synchronize()
+        actual = z.cpu()
+        expected = torch.arange(8, dtype=torch.float32).square() + 1
+        torch.testing.assert_close(actual, expected)
+        print(actual.tolist())
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>wait_event</code> prevents B from reading unfinished A output. <code>record_stream</code> informs the caching allocator that <code>y</code> is also used on the consumer stream, so dropping its last Python reference must not allow premature storage reuse. Neither API substitutes for the other. Keeping the tensor alive until the consumer has completed is another way to avoid early release; this example deliberately uses <code>del y</code> to expose the allocator issue.</span><span data-lang="zh" lang="zh-CN"><code>wait_event</code> 防止 B 读取 A 尚未完成的输出。<code>record_stream</code> 告诉缓存分配器，<code>y</code> 还在消费者流上使用，因此即使最后一个 Python 引用被释放，也不能过早复用存储。两个 API 不能互相替代。把张量一直保留到消费者完成，也能避免提前释放；这里特意使用 <code>del y</code> 来展示分配器需要处理的问题。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.Tensor.record_stream.html">Tensor.record_stream: cross-stream use and allocator safety</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.Tensor.record_stream.html">Tensor.record_stream：跨流使用与分配器安全</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>consumer.wait_stream(producer)</code> is convenient when waiting for the producer’s already-submitted work. Its implementation records an event on the producer and waits on it. It does not make the consumer wait for every future operation that will ever be submitted to the producer. For a specific boundary, an explicitly named event makes the dependency easier to inspect.</span><span data-lang="zh" lang="zh-CN">需要等待生产者已提交的任务时，<code>consumer.wait_stream(producer)</code> 很方便：实现会在生产者上记录事件，再等待该事件。它不会让消费者等待生产者今后提交的所有任务。若依赖对应某个明确边界，显式命名的事件更便于检查。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/cuda/streams.py#L46">streams.py: wait_event and the submission boundary of wait_stream</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/cuda/streams.py#L46">streams.py：wait_event 与 wait_stream 的提交边界</a></span></p>
+<h2 class="parallel-text" id="sync-scope"><span data-lang="en" lang="en">Choose the synchronization boundary deliberately</span><span data-lang="zh" lang="zh-CN">明确选择同步边界</span></h2>
+<div class="cs-table" tabindex="0" role="region" aria-labelledby="sync-scope"><table><thead><tr><th>API</th><th><span data-lang="en" lang="en">What must finish?</span><span data-lang="zh" lang="zh-CN">等待什么完成？</span></th><th><span data-lang="en" lang="en">Host waits?</span><span data-lang="zh" lang="zh-CN">主机等待？</span></th></tr></thead><tbody>
+<tr><td><code>torch.cuda.synchronize(device)</code></td><td><span data-lang="en" lang="en">Previously submitted work across streams on the device</span><span data-lang="zh" lang="zh-CN">该设备各流上此前提交的任务</span></td><td><span data-lang="en" lang="en">Yes</span><span data-lang="zh" lang="zh-CN">是</span></td></tr>
+<tr><td><code>stream.synchronize()</code></td><td><span data-lang="en" lang="en">Previously submitted work in that stream</span><span data-lang="zh" lang="zh-CN">该流上此前提交的任务</span></td><td><span data-lang="en" lang="en">Yes</span><span data-lang="zh" lang="zh-CN">是</span></td></tr>
+<tr><td><code>event.synchronize()</code></td><td><span data-lang="en" lang="en">Work captured by the recorded event</span><span data-lang="zh" lang="zh-CN">已记录事件所包含的任务</span></td><td><span data-lang="en" lang="en">Yes</span><span data-lang="zh" lang="zh-CN">是</span></td></tr>
+<tr><td><code>stream.wait_event(event)</code></td><td><span data-lang="en" lang="en">Later work in this stream depends on the event</span><span data-lang="zh" lang="zh-CN">该流后续任务依赖此事件</span></td><td><span data-lang="en" lang="en">No</span><span data-lang="zh" lang="zh-CN">否</span></td></tr>
+</tbody></table></div>
+<p class="parallel-text"><span data-lang="en" lang="en">In <code>CUDAEvent.h</code>, recording reaches <code>cudaEventRecordWithFlags</code>, a stream wait reaches <code>cudaStreamWaitEvent</code>, and host synchronization reaches <code>cudaEventSynchronize</code>. An event marks a point in a stream; it does not imply that unrelated work in other streams has completed.</span><span data-lang="zh" lang="zh-CN">在 <code>CUDAEvent.h</code> 中，记录事件走到 <code>cudaEventRecordWithFlags</code>，流等待走到 <code>cudaStreamWaitEvent</code>，主机同步走到 <code>cudaEventSynchronize</code>。事件标记一条流上的位置，不代表其他流上无关的任务也已完成。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/cuda/CUDAEvent.h#L124">CUDAEvent.h: record, block, elapsed_time and synchronize</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/cuda/CUDAEvent.h#L124">CUDAEvent.h：记录、等待、计时与同步</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.cuda.synchronize.html">torch.cuda.synchronize: the device-wide boundary</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.cuda.synchronize.html">torch.cuda.synchronize：设备范围的同步边界</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Reading a CUDA scalar with <code>.item()</code> requires its value on the CPU. Putting that read inside a benchmark loop can add a synchronization point to every iteration. Likewise, asynchronous errors can surface at a later synchronization call rather than the launch that caused them. <code>CUDA_LAUNCH_BLOCKING=1</code> is useful for debugging the origin of an error, but changes execution behavior and should not silently remain enabled for a performance report.</span><span data-lang="zh" lang="zh-CN">通过 <code>.item()</code> 读取 CUDA 标量，需要把它的值提供给 CPU。把这个读取放在基准测试循环内，可能让每次迭代都多出一个同步点。同样，异步错误可能在后续同步调用处暴露，而不是在引发错误的启动位置暴露。<code>CUDA_LAUNCH_BLOCKING=1</code> 有助于调试错误来源，但会改变执行行为，不应在性能报告中未经说明地保持启用。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/cuda.html#asynchronous-execution">PyTorch CUDA semantics: asynchronous execution and debugging</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/cuda.html#asynchronous-execution">PyTorch CUDA 语义：异步执行与调试</a></span></p>
+<h2 class="parallel-text" id="three-measurements"><span data-lang="en" lang="en">Three timers answer three different questions</span><span data-lang="zh" lang="zh-CN">三种计时，回答三个不同问题</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Use host-clock readings <span data-math="t_0" data-display="inline"></span> before submission, <span data-math="t_s" data-display="inline"></span> after submission and <span data-math="t_c" data-display="inline"></span> after the completion wait. Device events provide a separate pair of timestamps, <span data-math="e_0" data-display="inline"></span> and <span data-math="e_1" data-display="inline"></span>; never subtract a host timestamp from a device timestamp.</span><span data-lang="zh" lang="zh-CN">用主机时钟记录提交前的 <span data-math="t_0" data-display="inline"></span>、提交后的 <span data-math="t_s" data-display="inline"></span> 和完成等待后的 <span data-math="t_c" data-display="inline"></span>。设备事件提供另一对时间戳 <span data-math="e_0" data-display="inline"></span> 与 <span data-math="e_1" data-display="inline"></span>；不要把主机时间戳与设备时间戳直接相减。</span></p>
+<div class="shared-equation" data-math="\begin{aligned}T_{\mathrm{host}}&amp;=t_s-t_0\\T_{\mathrm{stream}}&amp;=e_1-e_0\\T_{\mathrm{wall}}&amp;=t_c-t_0\end{aligned}"></div>
+<p class="parallel-text"><span data-lang="en" lang="en"><strong>Host interval:</strong> how long did Python, dispatch and submission take within the chosen region? It may include blocking by the runtime; it is not guaranteed to be pure launch overhead. <strong>Event interval:</strong> elapsed device time between two recorded events on the measured path. It can include idle gaps and interference from other work, so it is not necessarily the sum of kernel durations. <strong>Synchronized wall interval:</strong> how long until this submitted batch is known to be complete, including submission and the final host wait?</span><span data-lang="zh" lang="zh-CN"><strong>主机区间：</strong>选定区域内，Python、调度与提交用了多久？其中可能包含运行时阻塞，不保证只是启动开销。<strong>事件区间：</strong>测量路径上两个已记录事件之间的设备经过时间。它可能包含空闲间隙和其他任务的干扰，因此不一定等于各内核时长之和。<strong>同步后的墙钟区间：</strong>从开始提交，到确认这批任务完成一共多久？它包含提交和最后的主机等待。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">CUDA events need <code>enable_timing=True</code>, and both must have completed before querying elapsed time. The event API returns milliseconds. For work on several streams, put explicit joins before the end event; two events recorded only on the main stream do not automatically bracket independent work on a worker stream.</span><span data-lang="zh" lang="zh-CN">CUDA 事件需要设置 <code>enable_timing=True</code>，并在两个事件都完成后查询经过时间。事件 API 返回毫秒。多流任务需要在结束事件前显式汇合；仅在主流上记录两个事件，不会自动把工作流上的独立任务包含在内。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.cuda.Event.html">torch.cuda.Event: timing, recording and completion</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.cuda.Event.html">torch.cuda.Event：计时、记录与完成</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">For the timeline above, a valid cross-stream measurement places the start event before A, uses the A→B dependency, records a completion event after B, and makes the measuring stream wait for that completion before recording its end event. The measured interval then covers the dependent path, rather than just the act of enqueueing B.</span><span data-lang="zh" lang="zh-CN">对于前面的时间线，有效的跨流测量应在 A 前放置开始事件，保留 A→B 的依赖，在 B 后记录完成事件，并让测量流等待这个完成事件后再记录结束事件。这样测到的是有依赖的执行路径，而不只是把 B 入队的动作。</span></p>
+<h2 class="parallel-text" id="benchmark"><span data-lang="en" lang="en">A reproducible matrix-multiplication benchmark</span><span data-lang="zh" lang="zh-CN">可复现的矩阵乘法基准测试</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">This program reuses an output buffer, disables autograd, warms up the selected workload, checks an 8×8 output tile against CPU float64, and records seven rounds. Each round contains 50 matrix multiplications. The reported medians are medians of <em>batch means</em>, not per-request p50 latency. Allocation, input creation, correctness checking and CPU output transfer are outside the timed region.</span><span data-lang="zh" lang="zh-CN">这个程序复用输出缓冲区、关闭自动微分、预热选定工作负载，并用 CPU float64 校验一个 8×8 输出块，再记录七轮数据。每轮包含 50 次矩阵乘法。报告的中位数是<em>各批次平均值</em>的中位数，不是单次请求延迟的 p50。分配、输入生成、正确性检查与输出传回 CPU 均不在计时区域内。</span></p>
+<pre tabindex="0"><code class="language-python" id="cuda-timing-example">import json
+import os
+import statistics
+from time import perf_counter
+import torch
+
+@torch.inference_mode()
+def main():
+    if not torch.cuda.is_available():
+        print(&quot;CUDA unavailable; benchmark not run.&quot;)
+        return
+    device = torch.device(&quot;cuda:0&quot;)
+    with torch.cuda.device(device):
+        torch.manual_seed(0)
+        # PyTorch 2.10 precision API; do not mix with allow_tf32.
+        torch.backends.cuda.matmul.fp32_precision = &quot;ieee&quot;
+        n, warmup, repeats, rounds = 1024, 10, 50, 7
+        a = torch.randn(n, n, device=device, dtype=torch.float32)
+        b = torch.randn_like(a)
+        out = torch.empty_like(a)
+        def work():
+            torch.mm(a, b, out=out)
+
+        for _ in range(warmup):
+            work()
+        torch.cuda.synchronize(device)
+        reference = a[:8].cpu().double() @ b[:, :8].cpu().double()
+        torch.testing.assert_close(out[:8, :8].cpu().double(), reference,
+                                   rtol=1e-4, atol=1e-3)
+        stream = torch.cuda.current_stream(device)
+        start = torch.cuda.Event(enable_timing=True)
+        end = torch.cuda.Event(enable_timing=True)
+        # Create the lazily initialized events before collecting samples.
+        start.record(stream)
+        end.record(stream)
+        end.synchronize()
+        samples = []
+        for _ in range(rounds):
+            torch.cuda.synchronize(device)
+            t0 = perf_counter()
+            start.record(stream)
+            for _ in range(repeats):
+                work()
+            end.record(stream)
+            submitted = perf_counter()
+            end.synchronize()
+            completed = perf_counter()
+            samples.append({
+                &quot;host_region_ms_per_call&quot;: 1000 * (submitted - t0) / repeats,
+                &quot;stream_interval_ms_per_call&quot;: start.elapsed_time(end) / repeats,
+                &quot;batch_wall_ms_per_call&quot;: 1000 * (completed - t0) / repeats,
+            })
+        print(json.dumps({
+            &quot;torch&quot;: torch.__version__, &quot;built_cuda&quot;: torch.version.cuda,
+            &quot;gpu&quot;: torch.cuda.get_device_name(device),
+            &quot;capability&quot;: torch.cuda.get_device_capability(device),
+            &quot;dtype&quot;: str(a.dtype), &quot;shape&quot;: list(a.shape),
+            &quot;a_stride&quot;: list(a.stride()), &quot;b_stride&quot;: list(b.stride()),
+            &quot;matmul_fp32_precision&quot;: torch.backends.cuda.matmul.fp32_precision,
+            &quot;CUDA_LAUNCH_BLOCKING&quot;: os.getenv(&quot;CUDA_LAUNCH_BLOCKING&quot;, &quot;unset&quot;),
+            &quot;warmup&quot;: warmup, &quot;repeats&quot;: repeats, &quot;rounds&quot;: rounds,
+            &quot;samples&quot;: samples,
+            &quot;median_of_batch_means&quot;: {
+                key: statistics.median(row[key] for row in samples)
+                for key in samples[0]
+            },
+        }, indent=2))
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The host region also contains the event-record calls, so treat it as a measured region rather than an isolated launch-cost estimate. The wall measurement ends after the end-event wait, not after a full application request: a real end-to-end test must place input transfers, preprocessing and output retrieval inside its boundary when those are part of the request. Do not add these three measurements together; they describe overlapping intervals.</span><span data-lang="zh" lang="zh-CN">主机区域还包含事件记录调用，因此应把它视为选定区域的耗时，而不是独立的启动成本估计。墙钟测量在结束事件等待完成后停止，并不覆盖完整应用请求：若输入传输、预处理和输出取回属于请求流程，真正的端到端测试需要把它们放进测量边界。不要把三项结果相加，它们对应重叠的时间区间。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Record the driver version from <code>nvidia-smi</code> alongside the JSON; <code>torch.version.cuda</code> identifies the CUDA version used to build PyTorch, not the driver. Also record competing GPU workloads and power/clock conditions. Keeping dtype, shape and precision fixed matters: allowing TF32 changes the numerical contract as well as possible performance. This example selects IEEE float32 through the PyTorch 2.10 precision API.</span><span data-lang="zh" lang="zh-CN">发布 JSON 时，还应附上 <code>nvidia-smi</code> 中的驱动版本；<code>torch.version.cuda</code> 表示构建 PyTorch 所用的 CUDA 版本，不是驱动版本。同时记录其他 GPU 负载及功耗、频率条件。固定数据类型、形状和精度很重要：允许 TF32 会同时改变数值约定与可能的性能。此例通过 PyTorch 2.10 的精度 API 选择 IEEE float32。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices">PyTorch CUDA semantics: controlling float32 and TF32 precision</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices">PyTorch CUDA 语义：float32 与 TF32 精度控制</a></span></p>
+<h2 class="parallel-text" id="dependency-model"><span data-lang="en" lang="en">Make the ordering constraints executable in C++</span><span data-lang="zh" lang="zh-CN">把顺序约束写成可运行的 C++</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">This CPU-only model computes the earliest allowed start under the stated ordering constraints. A starts at 1 and takes 6 units; B is submitted at 2 and takes 3. Same-stream order and an explicit event both force B to start at 7. Without either, the model permits 2. It models a dependency bound, not SM occupancy, kernel throughput or actual CUDA scheduling. Edit the durations to see which constraint determines the critical path.</span><span data-lang="zh" lang="zh-CN">这个纯 CPU 模型计算给定顺序约束下允许的最早开始时刻。A 在 1 开始、持续 6 个单位；B 在 2 提交、持续 3 个单位。同流顺序和显式事件都会把 B 的开始限制到 7；两者都没有时，模型允许在 2 开始。它建模的是依赖边界，不是 SM 占用率、内核吞吐率或真实 CUDA 调度。修改持续时间，可以观察关键路径由哪条约束决定。</span></p>
+<pre tabindex="0"><code class="language-cpp" id="cuda-stream-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;string&gt;
+
+struct Stream {
+    int available = 0;
+    void wait(int event_time) {
+        available = std::max(available, event_time);
+    }
+    int enqueue(int submitted, int duration) {
+        const int start = std::max(submitted, available);
+        available = start + duration;
+        return start;
+    }
+};
+
+int main(int argc, char** argv) {
+    const int a_duration = argc &gt; 1 ? std::stoi(argv[1]) : 6;
+    const int b_duration = argc &gt; 2 ? std::stoi(argv[2]) : 3;
+    if (a_duration &lt; 1 || a_duration &gt; 100 ||
+        b_duration &lt; 1 || b_duration &gt; 100)
+        throw std::invalid_argument(&quot;durations must be in [1, 100]&quot;);
+    for (const std::string mode : {&quot;same stream&quot;, &quot;event wait&quot;, &quot;missing wait&quot;}) {
+        Stream producer, consumer;
+        producer.enqueue(1, a_duration);
+        const int ready = producer.available;
+        Stream&amp; target = mode == &quot;same stream&quot; ? producer : consumer;
+        if (mode == &quot;event wait&quot;) target.wait(ready);
+        const int start = target.enqueue(2, b_duration);
+        std::cout &lt;&lt; mode &lt;&lt; &quot;: A_done=&quot; &lt;&lt; ready
+                  &lt;&lt; &quot;, B=[&quot; &lt;&lt; start &lt;&lt; &#x27;,&#x27; &lt;&lt; target.available &lt;&lt; &quot;]&quot;
+                  &lt;&lt; &quot;, ordered=&quot; &lt;&lt; std::boolalpha &lt;&lt; (start &gt;= ready) &lt;&lt; &#x27;\n&#x27;;
+    }
+}</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Output checked locally and with GCC 14.2 on Godbolt:</span><span data-lang="zh" lang="zh-CN">以下输出已在本地及 Godbolt 的 GCC 14.2 中核对：</span></p>
+<pre tabindex="0"><code class="language-text">same stream: A_done=7, B=[7,10], ordered=true
+event wait: A_done=7, B=[7,10], ordered=true
+missing wait: A_done=7, B=[2,5], ordered=false</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">If A is shortened enough that it finishes by 2, the missing-wait scenario may look ordered in this particular schedule. That observation does not fix the program: correctness needs an ordering guarantee across permitted schedules, not one successful run.</span><span data-lang="zh" lang="zh-CN">如果把 A 缩短到在 2 之前完成，“缺少等待”在这一组时序下也可能显得有序。但这不能修复程序：正确性需要对允许的时序建立顺序保证，而不是依赖某一次恰好成功的运行。</span></p>
+<h2 class="parallel-text" id="trace-and-backward"><span data-lang="en" lang="en">Use a trace to explain the intervals</span><span data-lang="zh" lang="zh-CN">用运行轨迹解释时间区间</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">A timing table cannot show where the gaps occur. This separate profiler program exports <code>cuda-mm-trace.json</code>. Inspect the CPU operator and CUDA runtime lanes alongside the GPU kernel lanes in a compatible trace viewer: the CPU span shows host work, while the kernel spans show device execution. One ATen operation need not correspond to one kernel. Profiling adds overhead, so collect the trace separately from the benchmark.</span><span data-lang="zh" lang="zh-CN">计时表无法显示间隙发生在哪里。下面独立的 profiler 程序导出 <code>cuda-mm-trace.json</code>。在兼容的轨迹查看器中，结合 CPU 算子、CUDA 运行时与 GPU 内核轨道阅读：CPU 区段显示主机工作，内核区段显示设备执行。一个 ATen 操作不一定对应一个内核。采集轨迹会增加开销，因此应与基准测试分开运行。</span></p>
+<pre tabindex="0"><code class="language-python" id="cuda-profiler-example">import torch
+from torch.profiler import profile, ProfilerActivity, record_function
+
+@torch.inference_mode()
+def main():
+    if not torch.cuda.is_available():
+        print(&quot;CUDA unavailable; trace not recorded.&quot;)
+        return
+    with torch.cuda.device(0):
+        a = torch.randn(1024, 1024, device=&quot;cuda:0&quot;)
+        b, out = torch.randn_like(a), torch.empty_like(a)
+        for _ in range(10):
+            torch.mm(a, b, out=out)
+        torch.cuda.synchronize()
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as prof:
+            with record_function(&quot;measured_mm_batch&quot;):
+                for _ in range(5):
+                    torch.mm(a, b, out=out)
+            torch.cuda.synchronize()
+        prof.export_chrome_trace(&quot;cuda-mm-trace.json&quot;)
+        print(prof.key_averages().table(sort_by=&quot;self_cuda_time_total&quot;, row_limit=10))
+
+if __name__ == &quot;__main__&quot;:
+    main()</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/profiler.html">torch.profiler: CPU/CUDA activities and Chrome trace export</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/profiler.html">torch.profiler：CPU／CUDA 活动与 Chrome 轨迹导出</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Overlapping a host-to-device copy with computation needs more than <code>non_blocking=True</code>: pinned host memory, suitable hardware, independent work and appropriate streams must also be present. A dependent consumer must still wait for the copy. Keep a pinned source unchanged until its asynchronous copy completes, and wait before reading an asynchronously copied device-to-host result on the CPU.</span><span data-lang="zh" lang="zh-CN">要让主机到设备的复制与计算重叠，仅有 <code>non_blocking=True</code> 不够：还需要锁页主机内存、合适的硬件、独立任务与恰当的流。有依赖的消费者仍必须等待复制。异步复制完成前，不要改写锁页源缓冲区；设备到主机的异步复制完成前，也不要在 CPU 上读取结果。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html">PyTorch transfer tutorial: pinned memory, overlap and buffer lifetime</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/tutorials/intermediate/pinmem_nonblock.html">PyTorch 传输教程：锁页内存、重叠与缓冲区生命周期</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The same reasoning applies to part 4’s backward graph. CUDA backward operations use the streams of their corresponding forward operations; the engine handles necessary internal dependencies. If another stream consumes the resulting gradients, establish the required external dependency before that use. A Python <code>backward()</code> return is not a general device-wide completion barrier. The dependency graph determines what can be submitted; CUDA streams determine how the submitted device work is ordered.</span><span data-lang="zh" lang="zh-CN">同样的推理也适用于第四期的反向图。CUDA 反向操作使用对应前向操作的流，引擎处理必要的内部依赖。如果另一条流要消费得到的梯度，使用前仍需建立所需的外部依赖。Python 的 <code>backward()</code> 返回，不是通用的设备全局完成屏障。依赖图决定哪些任务可以提交，CUDA 流决定已提交的设备任务如何排序。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/cuda.html#stream-semantics-of-backward-passes">PyTorch CUDA semantics: streams used by backward passes</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/cuda.html#stream-semantics-of-backward-passes">PyTorch CUDA 语义：反向传播使用的流</a></span></p>
+</div><script>
+(()=>{
+ const root=document.getElementById('cuda-streams-lab');if(!root)return;
+ const $=s=>root.querySelector(s),b=$('.cs-b'),wait=$('.cs-wait'),line=$('.cs-event-line');
+ const pair=(en,zh)=>`<span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span>`;
+ let mode='event',frame=0,lastCaption='';
+ const bounds=[0,1,2,7,10];
+ function paint(t){
+  const start=mode==='unsafe'?2:7,end=start+3;
+  root.dataset.time=String(t);root.dataset.bStart=String(start);root.dataset.bEnd=String(end);
+  root.dataset.ordered=String(mode!=='unsafe');
+  $('.cs-cursor').style.left=(t*10)+'%';
+  $('#cs-host-status').textContent=(t>=2?'✓':'…')+' · 2';
+  $('#cs-a-status').textContent=(t>=7?'✓':'…')+' · 7';
+  $('#cs-b-status').textContent=(t>=end?'✓':'…')+' · '+end;
+  for(const [el,begin,finish] of [[$('.cs-host'),0,2],[$('.cs-a'),1,7],[b,start,end]]){
+   el.dataset.active=String(t>=begin&&t<finish);el.dataset.state=t<begin?'pending':t<finish?'running':'done';
+  }
+  let en,zh;
+  if(mode==='unsafe'){
+   en='⚠ B may read y before A finishes. No dependency; the early finish is not a valid speedup.';
+   zh='⚠ B 可能在 A 完成前读取 y。缺少依赖，提前结束不算有效加速。';
+  }else if(t<2){en='↑ Host submits A and B; submission and device execution can overlap.';zh='↑ 主机提交 A 与 B；提交过程可能与设备执行重叠。';}
+  else if(t<7){en=mode==='same'?'Host returned. B stays behind A in Stream 0.':'Host returned. Stream 1 waits for the event after A; the CPU is free to continue.';zh=mode==='same'?'主机已返回，B 在 Stream 0 中排在 A 之后。':'主机已返回。Stream 1 等待 A 之后的事件，CPU 可以继续执行。';}
+  else if(t<10){en=mode==='same'?'A completed → B can now execute in the same stream.':'◆ Event completed → B can now read y on Stream 1.';zh=mode==='same'?'A 已完成 → B 现在可以在同一条流上执行。':'◆ 事件已完成 → B 现在可以在 Stream 1 上读取 y。';}
+  else{en=mode==='same'?'A → B are ordered by one stream. Logical units, not measured milliseconds.':'◆ Event at 7 → B starts after A. Logical units, not measured milliseconds.';zh=mode==='same'?'同一条流保证 A → B 的顺序。逻辑单位，不是实测毫秒。':'◆ 事件在 7 完成 → B 在 A 之后开始。逻辑单位，不是实测毫秒。';}
+  const caption=pair(en,zh);if(caption!==lastCaption){$('#cs-caption').innerHTML=caption;lastCaption=caption;}
+ }
+ function scenario(next){mode=next;root.dataset.mode=mode;
+  $(mode==='same'?'#cs-stream0':'#cs-stream1').append(b);
+  b.style.left=(mode==='unsafe'?20:70)+'%';wait.hidden=mode!=='event';line.hidden=mode!=='event';
+  root.querySelectorAll('[data-cs-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.csMode===mode)));
+  paint(10);
+ }
+ root.querySelectorAll('[data-cs-mode]').forEach(button=>button.addEventListener('click',()=>{scenario(button.dataset.csMode);root.dispatchEvent(new Event('processchange'));}));
+ root.readingDemo={target:$('#cs-figure'),barAfter:$('#cs-figure'),frames:4,interval:1700,
+  render(n){frame=n;paint(bounds[n]);},tick(p){paint(bounds[frame]+(bounds[frame+1]-bounds[frame])*p);},
+  complete(){paint(10);},cancel(){paint(10);}};
+ scenario('event');root.dataset.ready='true';
+})();
+</script></body></html>

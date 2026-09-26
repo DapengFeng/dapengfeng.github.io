@@ -51,7 +51,12 @@ test('PyTorch series is discoverable and contains only published episodes',async
  assert.equal(thirdPage('a[rel=next]').attr('href'),'/blog/pytorch-04-autograd-engine.html');
  assert.equal(fourthPage('a[rel=prev]').attr('href'),'/blog/pytorch-03-operator-dispatch.html');
  assert.equal(fourthPage('.series-directory [data-series-part=4] time').attr('datetime'),'2026-09-26');
- for(const [page,part]of [[firstPage,1],[second,2],[thirdPage,3],[fourthPage,4]]){
+ const fifthPage=load(await fs.readFile('dist/blog/pytorch-05-cuda-streams-timing.html','utf8'));
+ assert.equal(fourthPage('a[rel=next]').attr('href'),'/blog/pytorch-05-cuda-streams-timing.html');
+ assert.equal(fifthPage('a[rel=prev]').attr('href'),'/blog/pytorch-04-autograd-engine.html');
+ assert.equal(firstPage('.series-directory [data-series-part=5]').attr('href'),'/blog/pytorch-05-cuda-streams-timing.html');
+ assert.equal(fifthPage('.series-directory [data-series-part=5] time').attr('datetime'),'2026-09-26');
+ for(const [page,part]of [[firstPage,1],[second,2],[thirdPage,3],[fourthPage,4],[fifthPage,5]]){
   assert.equal(page('.series-directory').length,1);
   assert.equal(page('.series-directory [data-series-part]').length,6);
   assert.equal(page('.series-directory [aria-current=page]').attr('data-series-part'),String(part));

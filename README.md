@@ -111,6 +111,11 @@ An optional `<div data-series-preview>` can embed the list elsewhere; set its at
 
 `npm run test:autograd` 用有限差分核对第四期的 C++ 依赖调度模型，并检查两种分支顺序、共享节点就绪条件、重复叶子边、有限动画、语言切换、手机排版与无 JavaScript 图示。六个 Python 示例已在 PyTorch 2.10.0 CPU 中核验。
 
+`npm run test:cuda-streams` checks part 5’s C++ ordering model, same-stream and cross-stream dependencies, the missing-wait hazard, host/GPU completion boundaries, finite playback, language modes, mobile layout and the static fallback. CUDA Python examples require a separate GPU environment; local checks cover syntax and the no-CUDA paths, not GPU execution or performance.
+
+`npm run test:cuda-streams` 检查第五期的 C++ 顺序模型、同流与跨流依赖、缺少等待的危险时序、主机／GPU 完成边界、有限播放、语言模式、手机排版与静态回退。CUDA Python 示例需要独立的 GPU 环境；本地检查覆盖语法和无 CUDA 路径，不代表已验证 GPU 执行或性能。
+
+
 [The article template](examples/article.html) includes bilingual paragraphs, inline and numbered AMS equations, highlighted C++ fragments, an editable complete C++ program, a shared interactive figure, a table, and explanation blocks. Copy its source into content/posts/ and build to preview the site styling and controls.
 
 [文章模板](examples/article.html)包含双语段落、行内与编号 AMS 公式、配色 C++ 片段、可编辑完整 C++ 程序、共用交互图、表格和说明块。将源码复制到 content/posts/ 后构建，即可预览站点样式和控件。
