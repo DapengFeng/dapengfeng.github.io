@@ -47,7 +47,11 @@ test('PyTorch series is discoverable and contains only published episodes',async
  assert.equal(thirdPage('a[rel=prev]').attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
  const afterThird=published.find(p=>p.part>3);
  assert.equal(thirdPage('a[rel=next]').attr('href'),afterThird?.url);
- for(const [page,part]of [[firstPage,1],[second,2],[thirdPage,3]]){
+ const fourthPage=load(await fs.readFile('dist/blog/pytorch-04-autograd-engine.html','utf8'));
+ assert.equal(thirdPage('a[rel=next]').attr('href'),'/blog/pytorch-04-autograd-engine.html');
+ assert.equal(fourthPage('a[rel=prev]').attr('href'),'/blog/pytorch-03-operator-dispatch.html');
+ assert.equal(fourthPage('.series-directory [data-series-part=4] time').attr('datetime'),'2026-09-26');
+ for(const [page,part]of [[firstPage,1],[second,2],[thirdPage,3],[fourthPage,4]]){
   assert.equal(page('.series-directory').length,1);
   assert.equal(page('.series-directory [data-series-part]').length,6);
   assert.equal(page('.series-directory [aria-current=page]').attr('data-series-part'),String(part));

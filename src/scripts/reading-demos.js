@@ -72,7 +72,7 @@ import {mountProcesses} from './process-demos.js';
   };new ResizeObserver(draw).observe(flow);window.addEventListener('languagechange',draw);draw();
  }
  const motion=matchMedia('(prefers-reduced-motion: reduce)');
- for(const root of document.querySelectorAll('#dispatch-lab,#matrix-lab,#fw-lab,#pt-route,#pt-multiply,#tensor-layout,.memory-demo,#band-lab,#symmetric-lab,#cuda-map,#lab-lif,[data-wave-lab]')){
+ for(const root of document.querySelectorAll('#autograd-lab,#dispatch-lab,#matrix-lab,#fw-lab,#pt-route,#pt-multiply,#tensor-layout,.memory-demo,#band-lab,#symmetric-lab,#cuda-map,#lab-lif,[data-wave-lab]')){
   const demo=root.readingDemo;if(!demo)continue;
   const overview=root.querySelector('.reading-overview');
   if(overview&&!demo.tick){demo.target=overview;const original=demo.render;demo.render=n=>{original(n);overview.querySelectorAll('[data-scene]').forEach(el=>el.dataset.active=String(Number(el.dataset.scene)===n));overview.querySelectorAll('.reading-connection').forEach(el=>el.dataset.active=String(Number(el.dataset.to)===n));};}

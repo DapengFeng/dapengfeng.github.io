@@ -23,7 +23,8 @@
     "test:tensor": "node tests/tensor.mjs",
     "test:reading-demos": "node tests/reading-demos.mjs",
     "test:process-demos": "node tests/process-demos.mjs",
-    "test:dispatch": "node tests/dispatch.mjs"
+    "test:dispatch": "node tests/dispatch.mjs",
+    "test:autograd": "node tests/autograd.mjs"
   },
   "devDependencies": {
     "@mathjax/src": "4.1.3",

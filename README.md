@@ -107,6 +107,10 @@ An optional `<div data-series-preview>` can embed the list elsewhere; set its at
 `npm run test:dispatch` 检查第三期的 C++ 调度模型、五种执行条件、inference 模式的绕行路径、有限播放、语言切换、响应式排版与无 JavaScript 静态图。Python 示例和自定义算子检查已在独立的 PyTorch 2.10.0 CPU 环境核验。
 
 
+`npm run test:autograd` checks part 4’s C++ dependency scheduler against finite differences, both branch orders, shared-node readiness, duplicate leaf edges, finite animation, language switching, mobile layout, and the no-JavaScript graph. Its six Python examples were verified with PyTorch 2.10.0 CPU.
+
+`npm run test:autograd` 用有限差分核对第四期的 C++ 依赖调度模型，并检查两种分支顺序、共享节点就绪条件、重复叶子边、有限动画、语言切换、手机排版与无 JavaScript 图示。六个 Python 示例已在 PyTorch 2.10.0 CPU 中核验。
+
 [The article template](examples/article.html) includes bilingual paragraphs, inline and numbered AMS equations, highlighted C++ fragments, an editable complete C++ program, a shared interactive figure, a table, and explanation blocks. Copy its source into content/posts/ and build to preview the site styling and controls.
 
 [文章模板](examples/article.html)包含双语段落、行内与编号 AMS 公式、配色 C++ 片段、可编辑完整 C++ 程序、共用交互图、表格和说明块。将源码复制到 content/posts/ 后构建，即可预览站点样式和控件。

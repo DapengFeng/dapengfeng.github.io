@@ -1,0 +1,301 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Autograd nodes and the backward engine: how gradients meet</title><script type="application/json" id="article-metadata">{
+  "titleEn": "Autograd nodes and the backward engine: how gradients meet",
+  "title": "Autograd 节点与反向引擎：梯度如何汇合",
+  "descriptionEn": "Backward nodes apply vector–Jacobian products. The autograd engine accumulates incoming contributions in input buffers and schedules a node when its dependencies are satisfied. AccumulateGrad then writes or adds the resulting gradient to a leaf tensor’s .grad.",
+  "description": "反向节点计算向量–雅可比积。Autograd 引擎用输入缓冲区汇总梯度贡献，在依赖满足后调度节点；AccumulateGrad 随后将结果写入或累加到叶子张量的 .grad。",
+  "date": "2026-09-26",
+  "category": "systems",
+  "tags": [
+    "PyTorch",
+    "Autograd",
+    "Computation graph",
+    "C++"
+  ],
+  "art": "matrix",
+  "featured": 1,
+  "series": {
+    "id": "pytorch-internals",
+    "titleEn": "Inside PyTorch",
+    "title": "PyTorch 源码之旅",
+    "part": 4
+  }
+}</script>
+<style>
+.ag-lab{border:1px solid #5f7567;background:#142019;border-radius:14px;padding:clamp(12px,2vw,22px);margin-block:28px;overflow:hidden}.ag-lab [data-lang]{display:block}
+.ag-lab p{font-size:18px;line-height:1.7}.ag-graph{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:repeat(4,86px);gap:50px 24px;margin-block:20px}
+.ag-node{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;min-width:0;border:1px solid #6c8272;border-radius:10px;background:#1e2e25;padding:6px;text-align:center;box-sizing:border-box;color:#ecf3e7;font-size:17px;line-height:1.4}
+.ag-node strong{font:600 16px/1.4 var(--mono);overflow-wrap:anywhere;color:#c4e2ff}.ag-node code{font:16px/1.5 var(--mono);padding:0!important;background:none!important;border:0!important;overflow-wrap:anywhere}.ag-node[data-active=true]{border-color:#c0f47b;box-shadow:0 0 0 2px #c0f47b55;background:#2a3e22}
+#ag-root,#ag-square,#ag-leaf{grid-column:1/-1;justify-self:center;width:65%}#ag-root{grid-row:1}#ag-left{grid-column:1;grid-row:2}#ag-right{grid-column:2;grid-row:2}#ag-square{grid-row:3}#ag-leaf{grid-row:4}
+.ag-edges{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible;pointer-events:none}.ag-edge{fill:none;stroke:#91bfa5;stroke-width:2}.ag-edge[data-active=true]{stroke:#c0f47b;stroke-width:3}.ag-edge[data-seen=false]{opacity:.3}.ag-dot{fill:#ffbc8b;stroke:#142019;stroke-width:2}
+.ag-edge-label{position:absolute;z-index:2;padding:0 6px;transform:translate(-50%,-50%);border-radius:4px;background:#142019;font:17px/1.5 var(--mono);color:#f5d2b8;pointer-events:none}.ag-edge-label[data-seen=false]{opacity:.45}
+.ag-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0}.ag-status>div{min-width:0;border:1px solid #5f7567;border-radius:8px;padding:10px;background:#1c2b22;font-size:16px;line-height:1.6}.ag-status b{display:block;font:600 20px/1.6 var(--mono);color:#c0f47b;overflow-wrap:anywhere}.ag-caption{min-height:3.5em;margin:16px 0!important}
+.ag-controls{margin-top:18px;padding-top:16px;border-top:1px solid #5f7567}.ag-controls summary{display:grid;grid-template-columns:16px minmax(0,1fr);gap:0 8px;list-style:none;font-size:18px;line-height:1.7;cursor:pointer}.ag-controls summary::before{content:'▸';grid-row:1/3}.ag-controls[open] summary::before{content:'▾'}.ag-controls summary [data-lang]{grid-column:2}.ag-controls summary::-webkit-details-marker{display:none}.ag-options{display:flex;flex-wrap:wrap;gap:10px;margin-block:16px}
+.ag-options button{font:16px/1.6 var(--mono);padding:8px 12px;min-height:44px;border:1px solid #6f8376;border-radius:8px;background:#25362a;color:#edf5e7;cursor:pointer}.ag-options button[aria-pressed=true]{background:#c0f47b;color:#152011;border-color:#c0f47b}.ag-options button:focus-visible{outline:3px solid #94c9ff;outline-offset:3px}.ag-js-only{display:none}.ag-lab[data-ready=true] .ag-js-only{display:block}
+.ag-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-block:24px}.ag-flow>div{border:1px solid #617966;border-radius:10px;padding:16px;background:#18251d;font-size:18px;line-height:1.7;min-width:0}.ag-flow [data-lang]{display:block}.ag-flow code{display:block;overflow-wrap:anywhere}
+@media(max-width:600px){.ag-flow{grid-template-columns:1fr}.ag-status{gap:6px}.ag-status>div{padding:8px 6px}.ag-status b{font-size:18px}.ag-graph{column-gap:16px}.ag-caption{min-height:0}}
+</style></head><body><div class="lesson autograd-lesson">
+<h2 class="parallel-text" id="shared-branch"><span data-lang="en" lang="en">A shared value receives two gradient contributions</span><span data-lang="zh" lang="zh-CN">同一个中间值，收到两路梯度</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Part 3 followed a forward call through the Autograd wrapper. Now run backward through a graph with a shared intermediate. If <code>u = x*x</code> feeds both <code>2*u</code> and <code>3*u</code>, computing its derivative after only one branch would lose a contribution. The engine must gather both before applying the derivative of the square.</span><span data-lang="zh" lang="zh-CN">第三期沿前向调用经过了 Autograd 包装层。现在看带共享中间值的反向图：<code>u = x*x</code> 同时供给 <code>2*u</code> 和 <code>3*u</code>。如果只收到一路贡献就对平方求导，会漏掉另一路。引擎需要先汇合两路梯度，再应用平方的导数。</span></p>
+<pre tabindex="0"><code class="language-python" id="autograd-intro">import torch
+
+x = torch.tensor(2., requires_grad=True)
+u = x * x
+u.retain_grad()
+a, b = 2 * u, 3 * u
+loss = a + b
+loss.backward()
+print(&quot;values:&quot;, u.item(), a.item(), b.item(), loss.item())
+print(&quot;gradients:&quot;, u.grad.item(), x.grad.item())</code></pre>
+<pre tabindex="0"><code class="language-text">values: 4.0 8.0 12.0 20.0
+gradients: 5.0 20.0</code></pre>
+<div class="shared-equation" data-math="\begin{aligned}L&amp;=2u+3u,\quad u=x^2\\ \frac{\partial L}{\partial u}&amp;=2+3=5\\ \frac{\partial L}{\partial x}&amp;=5\cdot 2x=20\quad(x=2)\end{aligned}"></div>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>u.retain_grad()</code> makes the non-leaf gradient observable in <code>u.grad</code>; it is not required for the chain rule to reach <code>x</code>. The <a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.Tensor.retain_grad.html">Tensor.retain_grad API</a> concerns retaining a gradient, not retaining the graph’s saved tensors.</span><span data-lang="zh" lang="zh-CN"><code>u.retain_grad()</code> 让非叶子张量的梯度保留在 <code>u.grad</code>，便于检查；即使没有这行代码，链式法则仍能把梯度传到 <code>x</code>。<a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.Tensor.retain_grad.html">Tensor.retain_grad API</a> 保留的是梯度，不是计算图中为求导保存的张量。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Baseline: <strong>PyTorch 2.10.0</strong>, commit <code>449b17684101</code>. Python examples below were executed with the matching <code>2.10.0+cpu</code> build. Scope: eager reverse-mode differentiation of real CPU tensors, without hooks that modify gradients, distributed execution, or compiled autograd. Node class names and private fields are implementation details of this version.</span><span data-lang="zh" lang="zh-CN">基线：<strong>PyTorch 2.10.0</strong>，提交 <code>449b17684101</code>。下文 Python 示例已在对应的 <code>2.10.0+cpu</code> 构建中执行。本文讨论实数 CPU 张量的 eager 反向自动微分，不涉及修改梯度的 hook、分布式执行或 compiled autograd。节点类名和私有字段属于当前版本的实现细节。</span></p>
+<h2 class="parallel-text" id="nodes-edges"><span data-lang="en" lang="en">The backward graph contains nodes and input slots</span><span data-lang="zh" lang="zh-CN">反向图由节点与输入槽连接</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">A tensor’s <code>grad_fn</code> leads to a backward <code>Node</code>. Its <code>apply()</code> consumes gradients of forward outputs and produces contributions for forward inputs. An <code>Edge</code> identifies the destination node and its backward input slot, <code>input_nr</code>. That slot corresponds to a forward output; it is not the position of an argument in the original Python call.</span><span data-lang="zh" lang="zh-CN">张量的 <code>grad_fn</code> 指向反向 <code>Node</code>。节点的 <code>apply()</code> 接收前向输出的梯度，计算前向输入的梯度贡献。<code>Edge</code> 指定目标节点及其反向输入槽 <code>input_nr</code>。这个槽对应前向输出，不是原 Python 调用中的参数位置。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/function.h#L67">function.h: Node, next_edges and backward input metadata</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/function.h#L67">function.h：Node、next_edges 与反向输入元信息</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/edge.h#L14">edge.h: destination Node and input_nr</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/edge.h#L14">edge.h：目标 Node 与 input_nr</a></span></p>
+<pre tabindex="0"><code class="language-python" id="autograd-edges">import torch
+
+x = torch.tensor(2., requires_grad=True)
+u = x * x
+a, b = 2 * u, 3 * u
+print(&quot;shared node:&quot;, a.grad_fn.next_functions[0][0] is u.grad_fn,
+      b.grad_fn.next_functions[0][0] is u.grad_fn)
+edges = u.grad_fn.next_functions
+print(&quot;leaf edges:&quot;, [(type(node).__name__, slot) for node, slot in edges])
+print(&quot;same leaf:&quot;, edges[0][0] is edges[1][0])</code></pre>
+<pre tabindex="0"><code class="language-text">shared node: True True
+leaf edges: [(&#x27;AccumulateGrad&#x27;, 0), (&#x27;AccumulateGrad&#x27;, 0)]
+same leaf: True</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Both branches point to the same square node. The square has <em>two</em> edges to the same leaf accumulator because <code>x</code> occurs in both operand positions of <code>x*x</code>. Each contributes <code>5*x = 10</code>. Counting unique destination nodes instead of edges would miss this multiplicity.</span><span data-lang="zh" lang="zh-CN">两条分支指向同一个平方节点。平方节点又有<em>两条</em>边指向同一个叶子累积节点，因为 <code>x</code> 在 <code>x*x</code> 中占据两个操作数位置。每条边贡献 <code>5*x = 10</code>。如果只数不同的目标节点、不数边，就会漏掉这种重复依赖。</span></p>
+<h2 class="parallel-text" id="vjp"><span data-lang="en" lang="en">A backward call propagates a weighted derivative</span><span data-lang="zh" lang="zh-CN">反向调用传播的是加权导数</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">For a real vector-valued function <code>y = f(x)</code>, reverse mode propagates an output cotangent <code>v</code> as <code>Jᵀv</code>, usually called a vector–Jacobian product (VJP), with vectors written as columns here. It need not construct the full Jacobian. A scalar loss has the implicit seed 1; a nonscalar output needs matching gradient weights unless a scalar reduction supplies them.</span><span data-lang="zh" lang="zh-CN">对于实数向量函数 <code>y = f(x)</code>，反向模式将输出端的余切向量 <code>v</code> 传播为 <code>Jᵀv</code>，通常称为向量–雅可比积（VJP）；这里采用列向量记法。它不必构造完整雅可比矩阵。标量损失的默认种子为 1；非标量输出需要提供匹配的梯度权重，或先归约成标量。</span></p>
+<div class="shared-equation" data-math="\begin{aligned}f(x)&amp;=\begin{pmatrix}x_0^2\\x_0x_1\end{pmatrix},\quad x=\begin{pmatrix}2\\3\end{pmatrix}\\ J_f(x)&amp;=\begin{pmatrix}4&amp;0\\3&amp;2\end{pmatrix}\\ J_f(x)^{\mathsf T}\begin{pmatrix}1\\4\end{pmatrix}&amp;=\begin{pmatrix}16\\8\end{pmatrix}\end{aligned}"></div>
+<pre tabindex="0"><code class="language-python" id="autograd-vjp">import torch
+
+x = torch.tensor([2., 3.], requires_grad=True)
+y = torch.stack((x[0] ** 2, x[0] * x[1]))
+(g,) = torch.autograd.grad(y, x, grad_outputs=torch.tensor([1., 4.]))
+print(&quot;VJP:&quot;, g.tolist(), &quot;x.grad:&quot;, x.grad)</code></pre>
+<pre tabindex="0"><code class="language-text">VJP: [16.0, 8.0] x.grad: None</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.autograd.grad.html">torch.autograd.grad</a> returns the requested gradients. In this example it leaves <code>x.grad</code> untouched. By contrast, <a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.autograd.backward.html">torch.autograd.backward</a> normally accumulates results into leaf gradients. These are different result destinations, not different differentiation formulas.</span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.autograd.grad.html">torch.autograd.grad</a> 返回所请求的梯度，本例中不会写入 <code>x.grad</code>。相对地，<a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.autograd.backward.html">torch.autograd.backward</a> 通常把结果累积到叶子梯度中。两者的区别是结果去向，不是求导公式。</span></p>
+<h2 class="parallel-text" id="engine-animation"><span data-lang="en" lang="en">Wait for both branches, then execute the shared node</span><span data-lang="zh" lang="zh-CN">等两路贡献到齐，再执行共享节点</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Read the graph from the loss down to the leaf: the arrows carry <strong>backward gradient contributions</strong>, while the formulas inside nodes identify the forward operations. The full result is visible initially. The animation separates arrival, readiness, and execution; its timing and branch order are explanatory, not a trace of a particular CPU scheduler.</span><span data-lang="zh" lang="zh-CN">从损失向下读到叶子：箭头携带<strong>反向梯度贡献</strong>，节点内的公式标识对应的前向运算。默认直接显示完整结果。动画将贡献到达、依赖就绪与节点执行分开呈现；时间间隔和分支先后用于讲解，不是某次 CPU 调度的运行轨迹。</span></p>
+<div class="ag-lab" id="autograd-lab"><div id="ag-figure">
+<div class="ag-graph" id="ag-graph">
+<svg class="ag-edges" viewBox="0 0 1000 494" preserveAspectRatio="none" aria-hidden="true"><defs><marker id="ag-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#91bfa5"/></marker></defs>
+<path class="ag-edge" data-edge="0" d="M500 86C500 110 244 110 244 134" marker-end="url(#ag-arrow)"/><circle class="ag-dot" data-dot="0" r="5" visibility="hidden"/>
+<path class="ag-edge" data-edge="1" d="M500 86C500 110 756 110 756 134" marker-end="url(#ag-arrow)"/><circle class="ag-dot" data-dot="1" r="5" visibility="hidden"/>
+<path class="ag-edge" data-edge="2" d="M244 222C244 247 500 247 500 270" marker-end="url(#ag-arrow)"/><circle class="ag-dot" data-dot="2" r="5" visibility="hidden"/>
+<path class="ag-edge" data-edge="3" d="M756 222C756 247 500 247 500 270" marker-end="url(#ag-arrow)"/><circle class="ag-dot" data-dot="3" r="5" visibility="hidden"/>
+<path class="ag-edge" data-edge="4" d="M400 358C400 382 400 382 400 406" marker-end="url(#ag-arrow)"/><circle class="ag-dot" data-dot="4" r="5" visibility="hidden"/>
+<path class="ag-edge" data-edge="5" d="M600 358C600 382 600 382 600 406" marker-end="url(#ag-arrow)"/><circle class="ag-dot" data-dot="5" r="5" visibility="hidden"/>
+</svg>
+<span class="ag-edge-label" data-label="0" style="left:27%;top:111px">1</span>
+<span class="ag-edge-label" data-label="1" style="left:73%;top:111px">1</span>
+<span class="ag-edge-label" data-label="2" style="left:27%;top:247px">2</span>
+<span class="ag-edge-label" data-label="3" style="left:73%;top:247px">3</span>
+<span class="ag-edge-label" data-label="4" style="left:40%;top:383px">10</span>
+<span class="ag-edge-label" data-label="5" style="left:60%;top:383px">10</span>
+<div class="ag-node" id="ag-root"><strong>AddBackward0</strong><code>L = a + b = 20</code></div>
+<div class="ag-node" id="ag-left"><strong>MulBackward0</strong><code>a = 2u = 8</code></div>
+<div class="ag-node" id="ag-right"><strong>MulBackward0</strong><code>b = 3u = 12</code></div>
+<div class="ag-node" id="ag-square"><strong>MulBackward0</strong><code>u = x × x = 4</code></div>
+<div class="ag-node" id="ag-leaf"><strong>AccumulateGrad</strong><code>x = 2</code></div>
+</div><div class="ag-status">
+<div><span data-lang="en" lang="en">u: pending edges</span><span data-lang="zh" lang="zh-CN">u：待到达的边</span><b id="ag-pending">0</b></div>
+<div><span data-lang="en" lang="en">u: received sum</span><span data-lang="zh" lang="zh-CN">u：已收到的总和</span><b id="ag-buffer">2 + 3 = 5</b></div>
+<div><code>x.grad</code><b id="ag-grad">20</b></div>
+</div><p class="ag-caption" id="ag-caption" role="status" aria-live="polite"><span data-lang="en" lang="en">Both branches contribute to u; the square sends 10 + 10 to the leaf. AccumulateGrad writes 20.</span><span data-lang="zh" lang="zh-CN">两路贡献在 u 处汇合；平方节点向叶子发送 10 + 10，AccumulateGrad 写入 20。</span></p></div>
+<details class="ag-controls ag-js-only"><summary><span data-lang="en" lang="en">Compare the two valid branch orders</span><span data-lang="zh" lang="zh-CN">比较两种合法的分支顺序</span></summary><div class="ag-options" role="group" aria-label="Branch order / 分支顺序"><button type="button" data-ag-order="left" aria-pressed="true">2u → 3u</button><button type="button" data-ag-order="right" aria-pressed="false">3u → 2u</button></div><p class="parallel-text"><span data-lang="en" lang="en">Replay after choosing an order. The first partial sum changes, but both routes reach 5 before the square runs. These small integer-valued examples are exactly representable; larger floating-point reductions can depend numerically on their order.</span><span data-lang="zh" lang="zh-CN">选择顺序后重播。第一次收到的部分和不同，但两种路径都要凑齐 5 才执行平方节点。这些小整数值可被精确表示；规模更大的浮点归约，其数值结果可能受顺序影响。</span></p></details>
+<noscript><p class="parallel-text"><span data-lang="en" lang="en">Backward route: L sends 1 to each branch; the branches send 2 and 3 to u; u sends 10 twice to x. The shared node runs after both incoming edges are accounted for.</span><span data-lang="zh" lang="zh-CN">反向路径：L 分别向两分支发送 1；两分支向 u 发送 2 和 3；u 向 x 发送两次 10。共享节点需等两条入边均处理完毕才执行。</span></p></noscript></div>
+<p class="parallel-text"><span data-lang="en" lang="en">The middle status box records the received total for explanation. In the real engine, an <code>InputBuffer</code> is consumed when its node runs; it is not the same storage as the tensor’s persistent <code>.grad</code>. Constants 2 and 3 have no gradient edges here. The scalar seed is shown conceptually: the engine may optimize away an explicit <code>GraphRoot</code> for a single root.</span><span data-lang="zh" lang="zh-CN">中间状态格保留“已收到的总和”以便讲解。真实引擎中的 <code>InputBuffer</code> 会在节点执行时被消费，不是张量持久保存的 <code>.grad</code>。常数 2 和 3 在本例中没有梯度边。标量种子按概念展示；对于单个根节点，引擎可能省去显式的 <code>GraphRoot</code>。</span></p>
+<h2 class="parallel-text" id="source-route"><span data-lang="en" lang="en">Read the engine at three handoff points</span><span data-lang="zh" lang="zh-CN">从三个交接点阅读引擎源码</span></h2>
+<div class="ag-flow"><div><span data-lang="en" lang="en"><b>1 · Start a task</b><code>GraphTask</code>Roots, dependencies and completion state.</span><span data-lang="zh" lang="zh-CN"><b>1 · 启动任务</b><code>GraphTask</code>保存根节点、依赖与完成状态。</span></div><div><span data-lang="en" lang="en"><b>2 · Gather inputs</b><code>InputBuffer</code>Sum contributions at the destination slot.</span><span data-lang="zh" lang="zh-CN"><b>2 · 汇总输入</b><code>InputBuffer</code>在目标输入槽累加梯度贡献。</span></div><div><span data-lang="en" lang="en"><b>3 · Execute ready work</b><code>NodeTask → apply()</code>Run a node, then deliver its outputs.</span><span data-lang="zh" lang="zh-CN"><b>3 · 执行就绪节点</b><code>NodeTask → apply()</code>运行节点，再分发它的输出。</span></div></div>
+<p class="parallel-text"><span data-lang="en" lang="en">The Python entry helper <code>_engine_run_backward</code> forwards the request to the C++ engine binding. <code>PythonEngine::execute</code> delegates to the base engine for ordinary eager execution. <code>Engine::execute</code> sets up a <code>GraphTask</code>; the task owns dependency counts and buffers for nodes not yet ready, rather than storing one global backward state for every call.</span><span data-lang="zh" lang="zh-CN">Python 入口辅助函数 <code>_engine_run_backward</code> 将请求交给 C++ 引擎绑定。在普通 eager 执行中，<code>PythonEngine::execute</code> 委托给基础引擎。<code>Engine::execute</code> 建立 <code>GraphTask</code>，由任务持有依赖计数和未就绪节点的缓冲区，而不是让所有 backward 调用共用一份全局状态。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/autograd/graph.py#L856">graph.py: _engine_run_backward</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/autograd/graph.py#L856">graph.py：_engine_run_backward</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/python_engine.cpp#L113">python_engine.cpp: PythonEngine::execute</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/python_engine.cpp#L113">python_engine.cpp：PythonEngine::execute</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/graph_task.h#L17">graph_task.h: GraphTask::dependencies_ and not_ready_</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/graph_task.h#L17">graph_task.h：GraphTask::dependencies_ 与 not_ready_</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">For this complete scalar backward graph, <code>compute_dependencies</code> counts incoming edges. <code>evaluate_function</code> calls a ready node, then visits its valid outgoing edges. Each delivery decreases the destination’s pending count and adds its contribution to the destination slot. At zero, the accumulated inputs move into a queued <code>NodeTask</code>. A branch order may vary while respecting these dependencies.</span><span data-lang="zh" lang="zh-CN">对于本例完整的标量反向图，<code>compute_dependencies</code> 统计入边。<code>evaluate_function</code> 执行就绪节点，再遍历其有效出边。每次交付都会减少目标节点的待到达计数，并将贡献累加到目标输入槽；计数归零后，汇总的输入随 <code>NodeTask</code> 入队。只要满足这些依赖，分支先后顺序可以不同。</span></p>
+<pre tabindex="0"><code class="language-cpp">dependencies[next_ptr] += 1;</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/engine.cpp#L1250">engine.cpp: Engine::compute_dependencies</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/engine.cpp#L1250">engine.cpp：Engine::compute_dependencies</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/engine.cpp#L1173">engine.cpp: readiness, input accumulation and queue insertion</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/engine.cpp#L1173">engine.cpp：依赖就绪、输入累加与任务入队</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>InputBuffer::add</code> handles tensor accumulation, including device and stream considerations. The diagram reduces this to scalar addition on one CPU thread. Restricted gradient requests can prune execution, and undefined gradients are not ordinary numeric zeros; those cases need the engine’s full checks.</span><span data-lang="zh" lang="zh-CN"><code>InputBuffer::add</code> 处理张量累加，也包含设备和流相关的逻辑。图中将它简化为单个 CPU 线程上的标量相加。限定求导目标的请求可以裁剪执行路径，未定义梯度也不是普通的数值零；这些情况需要引擎中的完整判断。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/input_buffer.cpp#L192">input_buffer.cpp: InputBuffer::add</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/input_buffer.cpp#L192">input_buffer.cpp：InputBuffer::add</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The node’s derivative calculations still call tensor operators. For example, matrix-product backward can issue more matrix multiplications, which go through the dispatcher from part 3. The engine chooses <em>when a node is ready</em>; the dispatcher chooses <em>which implementation executes an operator</em>. They solve different scheduling problems.</span><span data-lang="zh" lang="zh-CN">节点的导数计算仍会调用张量算子。例如矩阵乘法的反向计算还会发起矩阵乘法，这些调用会经过第三期介绍的调度器。反向引擎决定<em>节点何时就绪</em>，调度器决定<em>算子由哪个实现执行</em>，两者处理不同层面的调度问题。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/derivatives.yaml#L1199">derivatives.yaml: mm backward formulas</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/tools/autograd/derivatives.yaml#L1199">derivatives.yaml：mm 的反向公式</a></span></p>
+<h2 class="parallel-text" id="cpp-engine"><span data-lang="en" lang="en">A runnable C++ model of dependency scheduling</span><span data-lang="zh" lang="zh-CN">可运行的 C++ 依赖调度模型</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">This standalone program implements the graph above with scalar local derivatives. It counts edges, buffers contributions, and runs each node once after its dependencies arrive. The two edges from the square to the leaf remain distinct. Its FIFO queue and printed order are teaching choices, not replicas of PyTorch’s device queues, hooks, locking, or tensor kernels.</span><span data-lang="zh" lang="zh-CN">下面的独立程序用标量局部导数实现上述图：统计边、缓存梯度贡献，并在依赖到齐后执行节点一次。平方节点到叶子的两条边仍然分别计数。这里采用 FIFO 队列，打印顺序用于教学，不是对 PyTorch 设备队列、hook、锁或张量内核的完整复刻。</span></p>
+<pre tabindex="0"><code class="language-cpp" id="autograd-cpp-model" data-godbolt="c++">#include &lt;array&gt;
+#include &lt;iostream&gt;
+#include &lt;queue&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+struct Edge { int to; double local_derivative; };
+struct Node { const char* name; std::vector&lt;Edge&gt; next; };
+
+int main(int argc, char** argv) {
+    const double x = argc &gt; 1 ? std::stod(argv[1]) : 2.0;
+    // Root, two branches, shared square, leaf accumulator.
+    const std::array&lt;Node, 5&gt; graph{{
+        {&quot;loss&quot;, {{1, 1}, {2, 1}}},
+        {&quot;2*u&quot;, {{3, 2}}},
+        {&quot;3*u&quot;, {{3, 3}}},
+        {&quot;u=x*x&quot;, {{4, x}, {4, x}}},
+        {&quot;x&quot;, {}}
+    }};
+    std::array&lt;int, 5&gt; pending{}, calls{};
+    std::array&lt;double, 5&gt; buffer{};
+    for (const auto&amp; node : graph)
+        for (const auto&amp; edge : node.next) ++pending[edge.to];
+
+    std::queue&lt;int&gt; ready;
+    buffer[0] = 1;  // Scalar loss seed.
+    ready.push(0);
+    double x_grad = 0;
+    while (!ready.empty()) {
+        const int id = ready.front();
+        ready.pop();
+        ++calls[id];
+        const double incoming = buffer[id];
+        std::cout &lt;&lt; &quot;run &quot; &lt;&lt; graph[id].name &lt;&lt; &quot;: &quot; &lt;&lt; incoming &lt;&lt; &#x27;\n&#x27;;
+        if (id == 4) x_grad += incoming;
+        for (const auto&amp; edge : graph[id].next) {
+            buffer[edge.to] += incoming * edge.local_derivative;
+            --pending[edge.to];
+            if (edge.to == 3)
+                std::cout &lt;&lt; &quot;u buffer=&quot; &lt;&lt; buffer[3]
+                          &lt;&lt; &quot;, pending=&quot; &lt;&lt; pending[3] &lt;&lt; &#x27;\n&#x27;;
+            if (pending[edge.to] == 0) ready.push(edge.to);
+        }
+        buffer[id] = 0;  // This node consumed its input buffer.
+    }
+    std::cout &lt;&lt; &quot;x.grad=&quot; &lt;&lt; x_grad &lt;&lt; &#x27;\n&#x27;;
+    for (const int count : calls) if (count != 1) return 1;
+}</code></pre>
+<pre tabindex="0"><code class="language-text">run loss: 1
+run 2*u: 1
+u buffer=2, pending=1
+run 3*u: 1
+u buffer=5, pending=0
+run u=x*x: 5
+run x: 20
+x.grad=20</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The square runs with 5, not once with 2 and again with 3. Its two outputs each equal <code>5*x</code>; their sum reaches the leaf before the leaf runs. Changing the input to 3 gives 30, matching the derivative of <code>5*x*x</code>. All nodes in this model are reachable from its one root, so counting every listed edge is valid here.</span><span data-lang="zh" lang="zh-CN">平方节点以 5 为输入执行一次，而不是分别以 2 和 3 执行两次。它的两个输出均为 <code>5*x</code>，两者在叶子执行前求和。把输入改为 3，结果就是 30，与 <code>5*x*x</code> 的导数一致。本模型所有节点都能从唯一根节点到达，因此可以统计列出的全部边。</span></p>
+<h2 class="parallel-text" id="two-accumulations"><span data-lang="en" lang="en">Two kinds of accumulation, two different lifetimes</span><span data-lang="zh" lang="zh-CN">两种累加，对应两种生命周期</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Inside one backward task, input buffers combine contributions from graph branches. At a leaf, <code>AccumulateGrad</code> updates the persistent <code>.grad</code> field: initialize it when absent, otherwise add the new result. These are separate operations. A new backward task does not automatically clear a leaf’s existing gradient.</span><span data-lang="zh" lang="zh-CN">一次反向任务内部，输入缓冲区汇合图中各分支的贡献。到达叶子后，<code>AccumulateGrad</code> 更新持久的 <code>.grad</code> 字段：尚无梯度时初始化，已有梯度时加上新结果。这是两种不同的操作；启动新的反向任务不会自动清除叶子已有的梯度。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/functions/accumulate_grad.cpp#L98">accumulate_grad.cpp: AccumulateGrad::apply</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/functions/accumulate_grad.cpp#L98">accumulate_grad.cpp：AccumulateGrad::apply</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/functions/accumulate_grad.h#L179">accumulate_grad.h: initialization and addition of leaf gradients</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/functions/accumulate_grad.h#L179">accumulate_grad.h：叶子梯度的初始化与累加</a></span></p>
+<pre tabindex="0"><code class="language-python" id="autograd-accumulation">import torch
+
+x = torch.tensor(2., requires_grad=True)
+for _ in range(2):
+    u = x * x  # A fresh forward graph each time.
+    (2*u + 3*u).backward()
+    print(&quot;accumulated:&quot;, x.grad.item())
+x.grad = None
+u = x * x
+(2*u + 3*u).backward()
+print(&quot;after reset:&quot;, x.grad.item())</code></pre>
+<pre tabindex="0"><code class="language-text">accumulated: 20.0
+accumulated: 40.0
+after reset: 20.0</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">In a training loop, clearing gradients before a new optimization step is usually intentional; microbatch accumulation deliberately postpones it. Assigning <code>None</code> makes the next accumulation start without an existing gradient tensor. Setting an existing gradient tensor to zero preserves that tensor. An absent gradient and a zero gradient can also be treated differently by optimizers.</span><span data-lang="zh" lang="zh-CN">训练循环通常在新的优化步骤前主动清理梯度，微批次梯度累积则有意推迟清理。赋值 <code>None</code> 会让下次累积从“没有现有梯度张量”开始；将已有梯度张量清零则保留这个张量。优化器也可能区别处理“没有梯度”和“零梯度”。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.optim.Optimizer.zero_grad.html">Optimizer.zero_grad: set_to_none semantics</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.optim.Optimizer.zero_grad.html">Optimizer.zero_grad：set_to_none 的语义</a></span></p>
+<h2 class="parallel-text" id="saved-tensors"><span data-lang="en" lang="en">Saved tensors explain two common backward errors</span><span data-lang="zh" lang="zh-CN">从保存的张量理解两类反向报错</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The square’s derivative needs the forward value of <code>x</code>. Autograd saves required values or references, not necessarily a fresh copy of every tensor. During ordinary backward, saved intermediates can be released after their node executes. A surviving <code>grad_fn</code> object therefore does not guarantee that its saved data remain available for another traversal.</span><span data-lang="zh" lang="zh-CN">平方的导数需要前向时的 <code>x</code>。Autograd 会保存所需数值或引用，但不一定为每个张量创建独立副本。普通 backward 中，节点执行后可以释放保存的中间数据。因此，<code>grad_fn</code> 对象还存在，不代表再次遍历时需要的数据也仍然可用。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/autograd.html#saved-tensors">Autograd mechanics: saved tensors</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/notes/autograd.html#saved-tensors">Autograd mechanics：为反向计算保存的张量</a></span></p>
+<pre tabindex="0"><code class="language-python" id="autograd-errors">import torch
+
+x = torch.tensor(2., requires_grad=True)
+y = x * x
+y.backward()
+try:
+    y.backward()
+except RuntimeError as error:
+    print(&quot;reused graph:&quot;, type(error).__name__)
+
+x = torch.tensor(2., requires_grad=True)
+y = x * x
+with torch.no_grad():
+    x.add_(1)
+try:
+    y.backward()
+except RuntimeError as error:
+    print(&quot;modified saved input:&quot;, type(error).__name__)</code></pre>
+<pre tabindex="0"><code class="language-text">reused graph: RuntimeError
+modified saved input: RuntimeError</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">The first case needs saved data already released. Use a new forward computation, or deliberately retain the graph on an earlier traversal if reuse is required. <code>retain_graph=True</code> keeps needed graph data; it does not clear <code>.grad</code>, and it is not normally needed between training iterations with fresh forwards.</span><span data-lang="zh" lang="zh-CN">第一种情况再次需要的数据已经释放。可以重新前向计算；如果确实需要复用，则在更早的遍历中主动保留图。<code>retain_graph=True</code> 保留所需的图数据，不会清空 <code>.grad</code>，也通常不适用于每次都重新前向的训练迭代。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The second case changes a value needed by the derivative. <code>SavedVariable::unpack</code> checks its version against the saved version and rejects this mismatch in the example. <code>no_grad()</code> prevents recording the mutation as a differentiable operation; it does not suppress the version update or repair the saved value. Do not bypass the check with <code>.data</code>.</span><span data-lang="zh" lang="zh-CN">第二种情况修改了导数需要的值。<code>SavedVariable::unpack</code> 将当前版本与保存版本比较，本例因不匹配而被拒绝。<code>no_grad()</code> 只是不把这次修改记录成可求导运算，不会取消版本更新，更不会恢复已保存的数值。不要用 <code>.data</code> 绕开检查。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/saved_variable.cpp#L130">saved_variable.cpp: SavedVariable::unpack and version checking</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/csrc/autograd/saved_variable.cpp#L130">saved_variable.cpp：SavedVariable::unpack 与版本检查</a></span></p>
+<h2 class="parallel-text" id="higher-order"><span data-lang="en" lang="en">Recording a derivative is different from retaining a graph</span><span data-lang="zh" lang="zh-CN">记录导数的计算过程，不等于保留旧图</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>create_graph=True</code> requests a differentiable computation of the derivative, so supported backward operations themselves become part of a graph. For <code>L = 5*x*x</code>, the first derivative is <code>10*x</code> and the second is 10. Here <code>autograd.grad</code> returns each derivative directly, avoiding persistent leaf accumulation.</span><span data-lang="zh" lang="zh-CN"><code>create_graph=True</code> 请求以可求导方式计算导数，让受支持的反向运算本身也成为图的一部分。对于 <code>L = 5*x*x</code>，一阶导数为 <code>10*x</code>，二阶导数为 10。这里用 <code>autograd.grad</code> 直接返回每阶导数，避免持久叶子梯度累积。</span></p>
+<pre tabindex="0"><code class="language-python" id="autograd-higher">import torch
+
+x = torch.tensor(2., requires_grad=True)
+(g,) = torch.autograd.grad(5*x*x, x, create_graph=True)
+(h,) = torch.autograd.grad(g, x)
+print(&quot;derivatives:&quot;, g.item(), h.item())</code></pre>
+<pre tabindex="0"><code class="language-text">derivatives: 20.0 10.0</code></pre>
+<div class="lesson-scroll" tabindex="0" role="region" aria-labelledby="higher-order"><table><thead><tr><th scope="col"><span data-lang="en" lang="en">Option</span><span data-lang="zh" lang="zh-CN">选项</span></th><th scope="col"><span data-lang="en" lang="en">What it preserves or records</span><span data-lang="zh" lang="zh-CN">保留或记录什么</span></th></tr></thead><tbody><tr><td><code>retain_grad()</code></td><td><span data-lang="en" lang="en">Store a non-leaf tensor’s gradient for inspection.</span><span data-lang="zh" lang="zh-CN">保留非叶子张量的梯度，便于检查。</span></td></tr><tr><td><code>retain_graph=True</code></td><td><span data-lang="en" lang="en">Keep graph data needed for another traversal.</span><span data-lang="zh" lang="zh-CN">保留再次遍历所需的图数据。</span></td></tr><tr><td><code>create_graph=True</code></td><td><span data-lang="en" lang="en">Record supported derivative computations for further differentiation.</span><span data-lang="zh" lang="zh-CN">记录受支持的导数计算，以继续求导。</span></td></tr></tbody></table></div>
+<p class="parallel-text"><span data-lang="en" lang="en">The invariant behind the branch example is now explicit: gather contributions at the correct input slot, execute only when dependencies permit it, and treat leaf gradient storage separately from temporary execution buffers. On CUDA the same dependency logic also has to respect stream ordering; CPU queue readiness alone does not describe when GPU work completes.</span><span data-lang="zh" lang="zh-CN">分支示例的核心约束由此明确：贡献必须汇入正确的输入槽，节点只有在依赖允许时才执行，叶子梯度存储与临时执行缓冲区分别管理。在 CUDA 上，这套依赖逻辑还必须满足流顺序；CPU 队列中“已经就绪”并不能完整描述 GPU 工作何时完成。</span></p>
+</div>
+<script>
+(() => {
+ const root=document.getElementById('autograd-lab'),graph=document.getElementById('ag-graph'),figure=document.getElementById('ag-figure');
+ const pair=(en,zh)=>`<span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span>`;
+ const node=id=>document.getElementById('ag-'+id);
+ const paths=[...graph.querySelectorAll('.ag-edge')],dots=[...graph.querySelectorAll('.ag-dot')],labels=[...graph.querySelectorAll('.ag-edge-label')];
+ let order='left',activeEdges=[],progress=1;
+ function draw(){
+  const box=graph.getBoundingClientRect();if(!box.width)return;
+  graph.querySelector('svg').setAttribute('viewBox',`0 0 ${box.width} ${box.height}`);
+  const anchor=(id,fraction,bottom)=>{const r=node(id).getBoundingClientRect();return {x:r.left-box.left+r.width*fraction,y:(bottom?r.bottom:r.top)-box.top};};
+  const connections=[['root',.5,'left',.5],['root',.5,'right',.5],['left',.5,'square',.4],['right',.5,'square',.6],['square',.35,'leaf',.35],['square',.65,'leaf',.65]];
+  connections.forEach(([from,fa,to,ta],i)=>{
+   const a=anchor(from,fa,true),b=anchor(to,ta,false),mid=(a.y+b.y)/2;
+   paths[i].setAttribute('d',`M${a.x} ${a.y+2}C${a.x} ${mid} ${b.x} ${mid} ${b.x} ${b.y-3}`);
+   const point=paths[i].getPointAtLength(paths[i].getTotalLength()/2);
+   labels[i].style.left=point.x+'px';labels[i].style.top=point.y+'px';
+  });
+  tick(progress);
+ }
+ function tick(p){progress=p;dots.forEach((dot,i)=>{
+  const active=activeEdges.includes(i)&&p>0&&p<1;dot.setAttribute('visibility',active?'visible':'hidden');
+  if(active){const point=paths[i].getPointAtLength(paths[i].getTotalLength()*p);dot.setAttribute('cx',point.x);dot.setAttribute('cy',point.y);}
+ });}
+ function render(stage){
+  const leftFirst=order==='left',first=leftFirst?'left':'right',second=leftFirst?'right':'left',value=leftFirst?2:3;
+  const pending=stage<2?2:stage===2?1:0,received=stage<2?0:stage===2?value:5,grad=stage===5?'20':'None';
+  root.dataset.stage=String(stage);root.dataset.pending=String(pending);root.dataset.received=String(received);root.dataset.leafGrad=grad;
+  node('pending').textContent=String(pending);node('buffer').textContent=stage>=3?'2 + 3 = 5':String(received);node('grad').textContent=grad;
+  const messages=[
+   ['Seed the scalar loss with 1. The shared square is still waiting for two incoming edges.','标量损失以 1 为种子，共享平方节点仍在等待两条入边。'],
+   ['AddBackward0 sends 1 to each branch; either ready branch may run next.','AddBackward0 向两分支各发送 1，接下来可以执行任一就绪分支。'],
+   [`The ${value}u branch contributes ${value}. One edge is still pending: the square must wait.`,`${value}u 分支贡献 ${value}。还有一条边未到达，平方节点必须等待。`],
+   ['Both contributions have arrived: 2 + 3 = 5. The square is now ready, but has not run yet.','两路贡献到齐：2 + 3 = 5。平方节点现在已就绪，但尚未执行。'],
+   ['The square runs once with 5, sending 10 on each of its two edges. The leaf is ready; .grad is not written yet.','平方节点以 5 执行一次，沿两条边各发送 10。叶子已就绪，尚未写入 .grad。'],
+   ['AccumulateGrad receives 10 + 10 and writes x.grad = 20. This is separate from gathering contributions at u.','AccumulateGrad 收到 10 + 10，写入 x.grad = 20。这与 u 处汇合贡献是两次不同的操作。']
+  ];
+  node('caption').innerHTML=pair(...messages[stage]);
+  const activeNodes=[['root'],['left','right'],[first],[second],['square'],['leaf']][stage];
+  ['root','left','right','square','leaf'].forEach(id=>node(id).dataset.active=String(activeNodes.includes(id)));
+  activeEdges=[[],[0,1],[leftFirst?2:3],[leftFirst?3:2],[4,5],[]][stage];
+  paths.forEach((path,i)=>{
+   const arrived=i<2?stage>=1:i<4?(i===(leftFirst?2:3)?stage>=2:stage>=3):stage>=4;
+   path.dataset.seen=String(arrived);labels[i].dataset.seen=String(arrived);path.dataset.active=String(activeEdges.includes(i));
+  });tick(1);
+ }
+ function complete(){render(5);root.dataset.stage='complete';activeEdges=[];graph.querySelectorAll('[data-active]').forEach(n=>n.dataset.active='false');tick(1);}
+ root.readingDemo={target:figure,barAfter:figure,frames:6,interval:1800,render,tick,complete,cancel:complete};
+ root.querySelectorAll('[data-ag-order]').forEach(button=>button.addEventListener('click',()=>{
+  order=button.dataset.agOrder;root.dataset.order=order;
+  root.querySelectorAll('[data-ag-order]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+  complete();root.dispatchEvent(new Event('processchange'));
+ }));
+ root.dataset.ready='true';root.dataset.order=order;complete();
+ new ResizeObserver(draw).observe(graph);window.addEventListener('languagechange',draw);draw();
+})();
+</script></body></html>
