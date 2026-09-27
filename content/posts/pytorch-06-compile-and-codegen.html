@@ -1,0 +1,322 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>From torch.compile to generated kernels: capture, guards and fusion</title><script type="application/json" id="article-metadata">{
+  "titleEn": "From torch.compile to generated kernels: capture, guards and fusion",
+  "title": "从 torch.compile 到生成内核：图捕获、守卫与融合",
+  "descriptionEn": "TorchDynamo captures tensor operations into FX graphs and guards the assumptions used to specialize them. AOTAutograd prepares differentiation graphs; TorchInductor lowers and schedules computation, fusing compatible operations to avoid materialized intermediates. Cached code is reused only when its guards hold.",
+  "description": "TorchDynamo 将张量操作捕获为 FX 图，并用守卫检查特化所依赖的条件。AOTAutograd 准备求导图，TorchInductor 将图转换为低层中间表示并调度计算，将兼容操作融合以减少中间张量的物化。只有守卫满足时，缓存代码才能复用。",
+  "date": "2026-09-27",
+  "category": "systems",
+  "tags": [
+    "PyTorch",
+    "torch.compile",
+    "TorchInductor",
+    "性能优化",
+    "C++"
+  ],
+  "art": "matrix",
+  "featured": 1,
+  "series": {
+    "id": "pytorch-internals",
+    "titleEn": "Inside PyTorch",
+    "title": "PyTorch 源码之旅",
+    "part": 6
+  }
+}</script>
+<style>
+.cp-lab{border:1px solid #647d6c;border-radius:14px;background:#142019;color:#edf4e8;padding:clamp(12px,2vw,22px);margin-block:28px;overflow:hidden}.cp-lab [data-lang],.cp-fusion [data-lang]{display:block}.cp-input{font:17px/1.6 var(--mono);color:#c4e2ff;margin-bottom:18px}.cp-graph{position:relative;isolation:isolate;display:grid;grid-template-columns:45% 45%;column-gap:10%;grid-template-rows:repeat(4,86px);row-gap:30px;margin-block:16px}
+.cp-node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;padding:8px;border:1px solid #789281;border-radius:9px;background:#213127;font-size:16px;line-height:1.4;text-align:center;box-sizing:border-box}.cp-node strong{font:600 17px/1.5 var(--mono);color:#c4e2ff}.cp-node code{font:16px/1.4 var(--mono);padding:0!important;background:none!important;border:0!important;color:#ecf4e7}.cp-node[data-active=true]{border-color:#c0f47b;box-shadow:0 0 0 2px #c0f47b66;background:#304223}.cp-node[data-bypass=true]{opacity:.5}
+#cp-guards{grid-row:1;grid-column:1/-1;width:60%;justify-self:center}#cp-dynamo{grid-row:2;grid-column:1}#cp-aot{grid-row:3;grid-column:1}#cp-inductor{grid-row:4;grid-column:1}#cp-cache{grid-row:2;grid-column:2}#cp-run{grid-row:3;grid-column:2}#cp-output{grid-row:4;grid-column:2}
+.cp-edges{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible;pointer-events:none}.cp-edge{stroke:#9dc5aa;stroke-width:2;fill:none}.cp-edge[data-used=false]{stroke-dasharray:4 5;opacity:.3}.cp-edge[data-active=true]{stroke:#c0f47b;stroke-width:3}.cp-dot[hidden]{display:none}.cp-dot{fill:#ffbc8b;stroke:#142019;stroke-width:2}.cp-caption{font-size:18px;line-height:1.7;margin:20px 0 0!important;min-height:3.4em}.cp-controls{display:none;border-top:1px solid #607b69;margin-top:18px;padding-top:16px}.cp-lab[data-ready=true] .cp-controls{display:block}.cp-controls summary{display:grid;grid-template-columns:16px minmax(0,1fr);gap:0 8px;list-style:none;cursor:pointer;font-size:18px;line-height:1.7}.cp-controls summary::before{content:'▸';grid-row:1/3}.cp-controls[open] summary::before{content:'▾'}.cp-controls summary [data-lang]{grid-column:2}.cp-controls summary::-webkit-details-marker{display:none}.cp-options{display:flex;flex-wrap:wrap;gap:10px;margin-block:14px}.cp-options button{min-height:44px;padding:8px 12px;font:16px/1.5 var(--mono);background:#253b2c;border:1px solid #779582;border-radius:8px;color:#edf4e8;cursor:pointer}.cp-options button[aria-pressed=true]{background:#c0f47b;color:#162110;border-color:#c0f47b}.cp-options button:focus-visible{outline:3px solid #94c9ff;outline-offset:3px}
+.cp-fusion{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-block:26px}.cp-pane{border:1px solid #637e6b;border-radius:12px;padding:16px;background:#17251c;min-width:0}.cp-pane h3{margin:0 0 18px;font-size:19px;line-height:1.6}.cp-pane p{font-size:17px;line-height:1.65}.cp-stage{min-height:108px;box-sizing:border-box;padding:12px;border:1px solid #607f69;border-radius:8px;background:#23342a;font-size:17px;line-height:1.6}.cp-stage strong{display:block;font:600 16px/1.6 var(--mono);overflow-wrap:anywhere}.cp-arrow{text-align:center;color:#c0f47b;font-size:22px;line-height:1.5}.cp-values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:8px}.cp-values span{padding:4px 2px;border:1px solid #718977;border-radius:4px;text-align:center;font:17px/1.5 var(--mono);color:#eaf1e4}.cp-local{border-style:dashed;background:#263622}.cp-output-values span{background:#c0f47b;color:#172210;border-color:#c0f47b}.cp-count{display:block;margin-top:16px;font:600 19px/1.6 var(--mono);color:#c0f47b}.cp-table{max-width:100%;overflow-x:auto;margin-block:24px}.cp-table table{min-width:460px}.cp-table [data-lang]{display:block}
+@media(max-width:600px){.cp-caption{min-height:0}.cp-node{padding:5px}.cp-node strong{font-size:16px}.cp-fusion{grid-template-columns:1fr}.cp-graph{row-gap:28px}}
+</style></head><body><div class="lesson compile-lesson">
+<h2 class="parallel-text" id="same-function"><span data-lang="en" lang="en">The same function, a different execution plan</span><span data-lang="zh" lang="zh-CN">同一个函数，不同的执行计划</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The previous installments followed individual operators through dispatch, autograd and CUDA submission. Now consider <code>(x + bias).relu() * 2</code>. Eager execution handles these operations one at a time. Capturing the region as a graph lets a compiler consider them together: can the intermediate tensors disappear, and can one generated loop compute the result?</span><span data-lang="zh" lang="zh-CN">前几期沿着单个算子走过了调度、自动微分与 CUDA 提交。现在看 <code>(x + bias).relu() * 2</code>：eager 模式逐个处理这些操作。把这一段捕获为图后，编译器便能一起分析：能否去掉中间张量，让一个生成的循环直接计算结果？</span></p>
+<pre tabindex="0"><code class="language-python" id="compile-forward-backward">import torch
+
+def block(x, bias):
+    return (x + bias).relu() * 2
+
+x = torch.tensor([-2., -1., 1., 2.], requires_grad=True)
+bias = torch.ones(4, requires_grad=True)
+compiled = torch.compile(block, fullgraph=True)
+y = compiled(x, bias)
+torch.testing.assert_close(y, block(x, bias))
+y.sum().backward()
+torch.testing.assert_close(x.grad, torch.tensor([0., 0., 2., 2.]))
+torch.testing.assert_close(bias.grad, x.grad)
+print(&quot;output:&quot;, y.tolist())
+print(&quot;x.grad:&quot;, x.grad.tolist())
+print(&quot;bias.grad:&quot;, bias.grad.tolist())</code></pre>
+<pre tabindex="0"><code class="language-text">output: [0.0, 0.0, 4.0, 6.0]
+x.grad: [0.0, 0.0, 2.0, 2.0]
+bias.grad: [0.0, 0.0, 2.0, 2.0]</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Baseline: <strong>PyTorch 2.10.0</strong>, commit <code>449b17684101</code>, Linux CPU, default Inductor backend unless a custom backend is explicitly selected. The Python programs were executed with <code>2.10.0+cpu</code>; forward values, gradients and capture counts below are observed results. CUDA code generation is discussed from the implementation, not presented as a GPU measurement.</span><span data-lang="zh" lang="zh-CN">基线：<strong>PyTorch 2.10.0</strong>，提交 <code>449b17684101</code>，Linux CPU；除明确指定自定义后端外，使用默认 Inductor 后端。Python 程序已在 <code>2.10.0+cpu</code> 上执行，下文的前向值、梯度和捕获次数均为实际结果。CUDA 代码生成依据实现讲解，不作为 GPU 实测。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>torch.compile(block)</code> returns a wrapper. Compilation is generally triggered when that wrapper first sees inputs, not when the wrapper is created. <code>fullgraph=True</code> requires one captured graph for the function or raises an error; it does not promise one generated kernel. A graph may contain multiple kernels and external library calls.</span><span data-lang="zh" lang="zh-CN"><code>torch.compile(block)</code> 返回包装后的可调用对象。编译通常在包装器首次收到输入时触发，而不是创建包装器时触发。<code>fullgraph=True</code> 要求把函数捕获为一张图，否则报错；它不承诺只生成一个内核。一张图中仍可能包含多个内核和外部库调用。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.compile.html">torch.compile API: graph capture, dynamic shapes and backend selection</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.compile.html">torch.compile API：图捕获、动态形状与后端选择</a></span></p>
+<h2 class="parallel-text" id="compile-route"><span data-lang="en" lang="en">Separate the compilation path from the reuse path</span><span data-lang="zh" lang="zh-CN">区分编译路径与复用路径</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The diagram follows a forward invocation with static shape specialization. On a cache miss, the left branch prepares executable code. On a cache hit, guards allow the call to use an existing variant directly. The AOTAutograd box includes differentiation-graph preparation; backward machine-code compilation can be deferred until the first backward call. This is a control-flow illustration, not a time-proportional trace.</span><span data-lang="zh" lang="zh-CN">图示跟踪静态形状特化下的一次前向调用。缓存未命中时，左侧路径准备可执行代码；命中时，守卫允许调用直接使用已有版本。AOTAutograd 方框包含求导图的准备过程，反向机器码的编译可能推迟到首次反向调用。这是控制流程示意，不是按耗时比例绘制的轨迹。</span></p>
+<div class="cp-lab" id="compile-route-lab" data-case="first"><div id="cp-figure"><div class="cp-input" id="cp-input">x, bias: float32[4] · static</div><div class="cp-graph">
+<div class="cp-node" id="cp-guards"><strong>Guards</strong><span data-lang="en" lang="en">Check assumptions</span><span data-lang="zh" lang="zh-CN">检查特化条件</span></div>
+<div class="cp-node" id="cp-dynamo"><strong>Dynamo</strong><span>Python → FX</span></div>
+<div class="cp-node" id="cp-aot"><strong>AOTAutograd</strong><span data-lang="en" lang="en">FW / BW</span><span data-lang="zh" lang="zh-CN">求导图</span></div>
+<div class="cp-node" id="cp-inductor"><strong>Inductor</strong><span data-lang="en" lang="en">Codegen</span><span data-lang="zh" lang="zh-CN">代码生成</span></div>
+<div class="cp-node" id="cp-cache"><span data-lang="en" lang="en">Variants</span><span data-lang="zh" lang="zh-CN">缓存版本</span><code id="cp-variants">{4}</code></div>
+<div class="cp-node" id="cp-run"><strong>Execute</strong><span data-lang="en" lang="en">Kernel call</span><span data-lang="zh" lang="zh-CN">执行内核</span></div>
+<div class="cp-node" id="cp-output"><span data-lang="en" lang="en">Output</span><span data-lang="zh" lang="zh-CN">输出</span><code id="cp-result">[4]</code></div>
+<svg class="cp-edges" viewBox="0 0 600 434" preserveAspectRatio="none" aria-hidden="true"><defs><marker id="cp-arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#a7d0b0"/></marker></defs>
+<path class="cp-edge" data-edge="capture" d="M210 86L135 116" marker-end="url(#cp-arrowhead)"/><path class="cp-edge" data-edge="hit" data-used="false" d="M390 86L465 116" marker-end="url(#cp-arrowhead)"/>
+<path class="cp-edge" data-edge="aot" d="M135 202V232" marker-end="url(#cp-arrowhead)"/><path class="cp-edge" data-edge="lower" d="M135 318V348" marker-end="url(#cp-arrowhead)"/>
+<path class="cp-edge" data-edge="install" d="M270 391H300V159H330" marker-end="url(#cp-arrowhead)"/><path class="cp-edge" data-edge="run" d="M465 202V232" marker-end="url(#cp-arrowhead)"/><path class="cp-edge" data-edge="output" d="M465 318V348" marker-end="url(#cp-arrowhead)"/>
+<circle class="cp-dot" r="5" hidden/></svg></div><p class="parallel-text cp-caption" id="cp-caption"><span data-lang="en" lang="en">First call: capture and compile a variant for length 4, then execute it.</span><span data-lang="zh" lang="zh-CN">首次调用：为长度 4 捕获并编译一个版本，然后执行。</span></p></div><details class="cp-controls"><summary><span data-lang="en" lang="en">Compare four calls</span><span data-lang="zh" lang="zh-CN">对照四次调用</span></summary><div class="cp-options">
+<button type="button" data-cp-case="first" aria-pressed="true"><span data-lang="en" lang="en">1 · [4] · new</span><span data-lang="zh" lang="zh-CN">1 · [4] · 首次</span></button>
+<button type="button" data-cp-case="reuse" aria-pressed="false"><span data-lang="en" lang="en">2 · [4] · reuse</span><span data-lang="zh" lang="zh-CN">2 · [4] · 复用</span></button>
+<button type="button" data-cp-case="resize" aria-pressed="false"><span data-lang="en" lang="en">3 · [8] · new</span><span data-lang="zh" lang="zh-CN">3 · [8] · 新版本</span></button>
+<button type="button" data-cp-case="return" aria-pressed="false"><span data-lang="en" lang="en">4 · [4] · reuse</span><span data-lang="zh" lang="zh-CN">4 · [4] · 复用</span></button>
+</div></details></div>
+<h2 class="parallel-text" id="fx-and-guards"><span data-lang="en" lang="en">Observe FX graphs and the conditions for reuse</span><span data-lang="zh" lang="zh-CN">观察 FX 图与复用条件</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Dynamo analyzes Python bytecode and extracts supported tensor operations into an FX <code>GraphModule</code>. It specializes under assumptions about inputs and surrounding state. Tensor guards can include type, dtype, device, gradient requirements, size and stride; Python constants and other state can matter too. Equal shapes alone are therefore not a complete cache key. Changing tensor values does not by itself require recompilation for this pointwise block.</span><span data-lang="zh" lang="zh-CN">Dynamo 分析 Python 字节码，将支持的张量操作提取为 FX <code>GraphModule</code>。特化依赖输入与外围状态的一组假设。张量守卫可包含类型、dtype、设备、梯度需求、尺寸和步长；Python 常量等状态也可能参与判断。因此，仅形状相同并不构成完整的缓存键。对于这里的逐元素计算，单纯改变张量中的数值不要求重新编译。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_dynamo/eval_frame.py#L1407">eval_frame.py: Dynamo optimization entry</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_dynamo/eval_frame.py#L1407">eval_frame.py：Dynamo 优化入口</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_dynamo/guards.py#L844">guards.py: fields used in tensor guard checks</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_dynamo/guards.py#L844">guards.py：张量守卫检查的字段</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">A backend receives the FX graph and example inputs, and returns a callable. Returning <code>gm.forward</code> below makes the capture visible without generating optimized kernels. The counter measures backend invocations, not GPU launches, and this experiment deliberately resets compiler state before each policy.</span><span data-lang="zh" lang="zh-CN">后端接收 FX 图和示例输入，并返回可调用对象。下面返回 <code>gm.forward</code>，目的是观察图捕获，不生成优化内核。计数器统计的是后端调用次数，不是 GPU 启动次数；实验在每种策略前显式重置编译器状态。</span></p>
+<pre tabindex="0"><code class="language-python" id="compile-capture-probe">import torch
+
+def block(x, bias):
+    return (x + bias).relu() * 2
+
+for dynamic in (False, True):
+    torch.compiler.reset()
+    graphs = []
+    def inspect_backend(gm, example_inputs):
+        graphs.append(gm)
+        return gm.forward
+    probe = torch.compile(block, backend=inspect_backend,
+                          fullgraph=True, dynamic=dynamic)
+    counts = []
+    for size in (4, 4, 8, 4):
+        x, bias = torch.randn(size), torch.randn(size)
+        torch.testing.assert_close(probe(x, bias), block(x, bias))
+        counts.append(len(graphs))
+    print(&quot;dynamic:&quot;, dynamic, &quot;captures:&quot;, counts)
+    print(&quot;ops:&quot;, [getattr(node.target, &quot;__name__&quot;, str(node.target))
+                   for node in graphs[0].graph.nodes
+                   if node.op in (&quot;call_function&quot;, &quot;call_method&quot;)])</code></pre>
+<pre tabindex="0"><code class="language-text">dynamic: False captures: [1, 1, 2, 2]
+ops: [&#x27;add&#x27;, &#x27;relu&#x27;, &#x27;mul&#x27;]
+dynamic: True captures: [1, 1, 1, 1]
+ops: [&#x27;add&#x27;, &#x27;relu&#x27;, &#x27;mul&#x27;]</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">For these one-dimensional inputs of lengths 4 and 8, symbolic size handling avoids the second capture. It does not make every input valid: layout, dtype, control-flow constraints and special sizes can still require specialization. The default <code>dynamic=None</code> is a separate policy that may generalize after a size-related recompile. Do not turn an observation from this small graph into a promise of zero recompilations for a model.</span><span data-lang="zh" lang="zh-CN">对于这些长度为 4 和 8 的一维输入，符号尺寸处理避免了第二次捕获，但并非任意输入都能复用：布局、dtype、控制流约束和特殊尺寸仍可能要求特化。默认的 <code>dynamic=None</code> 是另一种策略，可能在尺寸变化引起重新编译后尝试泛化。这个小图的结果不代表整个模型都不会重新编译。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">The backend handoff is explicit in <code>OutputGraph._call_user_compiler</code>. FX describes dependencies and operations; its Python representation is not the final machine code.</span><span data-lang="zh" lang="zh-CN">后端交接在 <code>OutputGraph._call_user_compiler</code> 中是显式调用。FX 描述操作及其依赖，图的 Python 表示并不是最终机器码。</span></p>
+<pre tabindex="0"><code class="language-python">compiled_fn = compiler_fn(gm, example_inputs)
+assert callable(compiled_fn)</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_dynamo/output_graph.py#L2366">output_graph.py: pass an FX graph to a backend and receive a callable</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_dynamo/output_graph.py#L2366">output_graph.py：将 FX 图传给后端并接收可调用对象</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/fx.html">torch.fx: Graph, Node and GraphModule</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/fx.html">torch.fx：Graph、Node 与 GraphModule</a></span></p>
+<h2 class="parallel-text" id="aot-backward"><span data-lang="en" lang="en">AOTAutograd prepares the backward computation too</span><span data-lang="zh" lang="zh-CN">AOTAutograd 也准备反向计算</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">For training, AOTAutograd traces differentiation and partitions a joint forward/backward representation into forward and backward graphs. The partition determines which values cross the boundary as saved tensors and which computations may be recomputed. “Ahead of time” here concerns preparing differentiation for the captured region; it does not mean the whole Python application has been compiled offline.</span><span data-lang="zh" lang="zh-CN">训练时，AOTAutograd 跟踪求导过程，将前向／反向联合表示划分为前向图和反向图。划分决定哪些值作为保存的张量跨越边界，哪些计算可能重新执行。这里的“提前”指为捕获区域准备求导，不表示整个 Python 应用已离线编译。</span></p>
+<div class="shared-equation" data-math="\begin{aligned}s_i&amp;=x_i+b_i,\quad y_i=2\max(s_i,0)\\ \bar{x}_i&amp;=\bar{b}_i=2\bar{y}_i\,\mathbf{1}_{s_i&gt;0}\end{aligned}"></div>
+<p class="parallel-text"><span data-lang="en" lang="en">In the first program, summation supplies an output cotangent of 1. The positive-input mask gives gradients <code>[0, 0, 2, 2]</code>; PyTorch’s ReLU uses derivative 0 at the zero boundary. Because the two inputs have identical shapes, no broadcast-gradient reduction is needed. With a broadcast bias, its gradient would also need reduction over the expanded dimensions.</span><span data-lang="zh" lang="zh-CN">第一个程序中的求和为输出端提供全 1 的余切向量。正输入掩码给出梯度 <code>[0, 0, 2, 2]</code>；PyTorch 的 ReLU 在零点采用导数 0。两个输入形状相同，因此不需要广播梯度归约。如果 bias 通过广播参与计算，它的梯度还需要沿展开的维度归约。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_functorch/aot_autograd.py#L713">aot_autograd.py: joint tracing, graph partitioning and compiler callbacks</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_functorch/aot_autograd.py#L713">aot_autograd.py：联合跟踪、图划分与编译回调</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">Inductor’s <code>compile_fx</code> connects separate forward, backward and inference compiler callbacks to AOTAutograd. Compiled backward regions still participate in autograd execution; ordinary <code>torch.compile</code> does not imply that every surrounding backward-engine action or hook has become one graph. This is also distinct from the separately configurable Compiled Autograd feature.</span><span data-lang="zh" lang="zh-CN">Inductor 的 <code>compile_fx</code> 将前向、反向和推理编译回调分别连接到 AOTAutograd。编译后的反向区域仍参与 autograd 执行；普通 <code>torch.compile</code> 不表示外围反向引擎的所有动作或 hook 都变成了一张图。这也区别于单独配置的 Compiled Autograd 功能。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/compile_fx.py#L2809">compile_fx.py: fw_compiler, bw_compiler and inference_compiler</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/compile_fx.py#L2809">compile_fx.py：前向、反向与推理编译回调</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_functorch/_aot_autograd/runtime_wrappers.py#L2378">runtime_wrappers.py: deferred backward compilation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_functorch/_aot_autograd/runtime_wrappers.py#L2378">runtime_wrappers.py：延迟反向编译</a></span></p>
+<h2 class="parallel-text" id="fusion"><span data-lang="en" lang="en">Fusion removes intermediate tensor traffic</span><span data-lang="zh" lang="zh-CN">融合减少中间张量的读写</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Inductor lowers the graph into its internal representation and schedules compatible computations together. For this pointwise chain, one loop can load <code>x[i]</code> and <code>bias[i]</code>, perform add → ReLU → multiply locally, then store <code>y[i]</code>. The two intermediate values still exist in the computation, but need not be materialized as full tensors.</span><span data-lang="zh" lang="zh-CN">Inductor 将图转换为自身的低层中间表示，并把兼容计算组合调度。对于这个逐元素计算链，一个循环即可加载 <code>x[i]</code> 和 <code>bias[i]</code>，在局部完成加法 → ReLU → 乘法，最后存储 <code>y[i]</code>。两个中间值仍存在于计算中，但不必物化为完整张量。</span></p>
+<div class="cp-fusion" id="compile-fusion"><div class="cp-pane"><h3><span data-lang="en" lang="en">Three array passes</span><span data-lang="zh" lang="zh-CN">三次遍历数组</span></h3>
+<div class="cp-stage"><strong>add → t1</strong><div class="cp-values"><span>-1</span><span>0</span><span>2</span><span>3</span></div></div>
+<div class="cp-arrow" aria-hidden="true">↓</div>
+<div class="cp-stage"><strong>relu → t2</strong><div class="cp-values"><span>0</span><span>0</span><span>2</span><span>3</span></div></div>
+<div class="cp-arrow" aria-hidden="true">↓</div>
+<div class="cp-stage"><strong>mul → y</strong><div class="cp-values cp-output-values"><span>0</span><span>0</span><span>4</span><span>6</span></div></div>
+<b class="cp-count">7N = 28</b><p class="parallel-text"><span data-lang="en" lang="en">Logical float reads + writes; t1 and t2 are materialized arrays.</span><span data-lang="zh" lang="zh-CN">逻辑 float 读写次数；t1、t2 是物化数组。</span></p></div><div class="cp-pane"><h3><span data-lang="en" lang="en">One fused pass</span><span data-lang="zh" lang="zh-CN">一次融合遍历</span></h3><div class="cp-stage"><strong>x[i] + bias[i]</strong><span data-lang="en" lang="en">Load two inputs</span><span data-lang="zh" lang="zh-CN">加载两个输入</span></div><div class="cp-arrow" aria-hidden="true">↓</div><div class="cp-stage cp-local"><strong>max(s, 0) * 2</strong><span data-lang="en" lang="en">Loop-local values</span><span data-lang="zh" lang="zh-CN">循环内的局部值</span></div><div class="cp-arrow" aria-hidden="true">↓</div><div class="cp-stage"><strong>store → y</strong><div class="cp-values cp-output-values"><span>0</span><span>0</span><span>4</span><span>6</span></div></div><b class="cp-count">3N = 12</b><p class="parallel-text"><span data-lang="en" lang="en">Same output; no full t1 or t2 buffer in this model.</span><span data-lang="zh" lang="zh-CN">输出相同；此模型不需要完整的 t1、t2 缓冲区。</span></p></div></div>
+<div class="shared-equation" data-math="\begin{aligned}B_{\mathrm{separate}}&amp;=28N\ \mathrm{bytes}\\B_{\mathrm{fused}}&amp;=12N\ \mathrm{bytes}\end{aligned}"></div>
+<p class="parallel-text"><span data-lang="en" lang="en">These counts assume float32, materialized intermediates and one read per input use. They describe logical array accesses, not measured DRAM traffic: caches, vectorization and register allocation alter hardware behavior. The ratio 7/3 is not a promised speedup. Fusion also has limits—dependencies, reductions, register pressure and external library boundaries affect what is legal and worthwhile.</span><span data-lang="zh" lang="zh-CN">这些计数假设使用 float32、中间结果已物化、每次使用输入都读取一次。它们描述逻辑数组访问，不是实测 DRAM 流量：缓存、向量化与寄存器分配会改变硬件行为。7/3 不是承诺的加速比。融合也有限制，依赖、归约、寄存器压力与外部库边界都会影响是否合法、是否值得融合。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/scheduler.py#L3552">scheduler.py: fusion of compatible scheduler nodes</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/scheduler.py#L3552">scheduler.py：融合兼容的调度节点</a></span></p>
+<pre tabindex="0"><code class="language-cpp" id="compile-fusion-cpp" data-godbolt="c++">#include &lt;algorithm&gt;
+#include &lt;cmath&gt;
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+int main(int argc, char** argv) {
+    const int n = argc &gt; 1 ? std::stoi(argv[1]) : 4;
+    if (n &lt; 1 || n &gt; 100000) throw std::invalid_argument(&quot;invalid size&quot;);
+    const float seed[] = {-2.f, -1.f, 1.f, 2.f};
+    std::vector&lt;float&gt; x(n), bias(n, 1.f), t1(n), t2(n), separate(n), fused(n);
+    for (int i = 0; i &lt; n; ++i) x[i] = seed[i % 4];
+    std::size_t separate_accesses = 0, fused_accesses = 0;
+    for (int i = 0; i &lt; n; ++i) {
+        t1[i] = x[i] + bias[i]; separate_accesses += 3;
+    }
+    for (int i = 0; i &lt; n; ++i) {
+        t2[i] = std::max(t1[i], 0.f); separate_accesses += 2;
+    }
+    for (int i = 0; i &lt; n; ++i) {
+        separate[i] = t2[i] * 2.f; separate_accesses += 2;
+    }
+    for (int i = 0; i &lt; n; ++i) {
+        fused[i] = std::max(x[i] + bias[i], 0.f) * 2.f;
+        fused_accesses += 3;
+        if (std::abs(fused[i] - separate[i]) &gt; 1e-6f)
+            throw std::runtime_error(&quot;output mismatch&quot;);
+    }
+    std::cout &lt;&lt; &quot;output:&quot;;
+    for (int i = 0; i &lt; std::min(n, 8); ++i) std::cout &lt;&lt; &#x27; &#x27; &lt;&lt; fused[i];
+    std::cout &lt;&lt; &quot;\nlogical accesses: &quot; &lt;&lt; separate_accesses
+              &lt;&lt; &quot; -&gt; &quot; &lt;&lt; fused_accesses &lt;&lt; &#x27;\n&#x27;;
+}</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Output checked locally and with GCC 14.2 on Godbolt:</span><span data-lang="zh" lang="zh-CN">以下输出已在本地及 Godbolt 的 GCC 14.2 中核对：</span></p>
+<pre tabindex="0"><code class="language-text">output: 0 0 4 6
+logical accesses: 28 -&gt; 12</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">This standalone C++ program makes the dataflow and access-count model executable. It is not Inductor’s generated kernel and does not measure runtime memory transactions; a C++ compiler may itself optimize the loops. Counters cover expression evaluation only, excluding initialization, validation and printing.</span><span data-lang="zh" lang="zh-CN">这个独立 C++ 程序让数据流和访问计数模型可以执行。它不是 Inductor 生成的内核，也不测量运行时内存事务；C++ 编译器自身还可能优化这些循环。计数器只覆盖表达式求值，不包含初始化、校验与打印。</span></p>
+<h2 class="parallel-text" id="generated-code"><span data-lang="en" lang="en">Inspect the generated code, not just the FX graph</span><span data-lang="zh" lang="zh-CN">检查生成代码，而不只看 FX 图</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">Use the following standalone inference program to keep the generated region small. Save it as <code>compile_block.py</code> and run it with the logging command below. The CPU run used for this article generated a fused <code>cpp_fused_add_mul_relu_0</code> kernel with vector loads, local arithmetic and a final store. Names and vector widths depend on the build and target CPU.</span><span data-lang="zh" lang="zh-CN">下面的独立推理程序让生成区域保持简洁。保存为 <code>compile_block.py</code>，再用后面的日志命令运行。本文的 CPU 运行生成了融合的 <code>cpp_fused_add_mul_relu_0</code> 内核，其中包含向量加载、局部算术和最终存储。名称与向量宽度取决于构建和目标 CPU。</span></p>
+<pre tabindex="0"><code class="language-python" id="compile-codegen-example">import torch
+
+def block(x, bias):
+    return (x + bias).relu() * 2
+
+compiled = torch.compile(block, fullgraph=True)
+x = torch.tensor([-2., -1., 1., 2.])
+bias = torch.ones(4)
+with torch.inference_mode():
+    y = compiled(x, bias)
+    torch.testing.assert_close(y, block(x, bias))
+    print(y.tolist())</code></pre>
+<pre tabindex="0"><code class="language-bash">TORCH_LOGS=&quot;graph_code,aot_graphs,output_code&quot; python compile_block.py</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">An arithmetic fragment from the generated CPU kernel is shown below. The two loaded vectors are <code>tmp0</code> and <code>tmp1</code>; <code>tmp5</code> broadcasts the value 2. Vector load/store and wrapper code are omitted, so this excerpt is not standalone.</span><span data-lang="zh" lang="zh-CN">下面摘出生成的 CPU 内核中的算术部分。<code>tmp0</code> 与 <code>tmp1</code> 是加载的两个向量，<code>tmp5</code> 是广播后的数值 2。这里省略了向量加载、存储和包装代码，片段不能单独运行。</span></p>
+<pre tabindex="0"><code class="language-cpp">auto tmp2 = tmp0 + tmp1;
+auto tmp3 = at::vec::clamp_min(tmp2, decltype(tmp2)(0));
+auto tmp6 = tmp3 * tmp5;</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><code>GraphLowering.codegen()</code> invokes the scheduler and generates wrapper code; <code>compile_to_module()</code> makes the result loadable. For supported CUDA computations, Inductor commonly emits Triton kernels, while selected operations may use external libraries. It does not turn every Python statement into handwritten CUDA C++, and the best implementation of a matrix multiply need not be an elementwise fused loop.</span><span data-lang="zh" lang="zh-CN"><code>GraphLowering.codegen()</code> 调用调度器并生成包装代码，<code>compile_to_module()</code> 将结果变为可加载模块。对于支持的 CUDA 计算，Inductor 常生成 Triton 内核，某些操作则可能调用外部库。它并非把每条 Python 语句变成手写 CUDA C++；矩阵乘法的合适实现也未必是逐元素融合循环。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/graph.py#L2350">graph.py: scheduling, wrapper generation and module compilation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/graph.py#L2350">graph.py：调度、包装代码生成与模块编译</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/codegen/cpp.py">codegen/cpp.py: CPU scalar and vector code generation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/codegen/cpp.py">codegen/cpp.py：CPU 标量与向量代码生成</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/codegen/triton.py">codegen/triton.py: Triton kernel generation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_inductor/codegen/triton.py">codegen/triton.py：Triton 内核生成</a></span></p>
+<h2 class="parallel-text" id="graph-breaks"><span data-lang="en" lang="en">A graph break is not a guard failure</span><span data-lang="zh" lang="zh-CN">图中断不是守卫失败</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">A <strong>graph break</strong> ends capture of a region so Python can execute outside that graph; capture may resume afterward. A <strong>guard failure</strong> means an existing specialization does not apply to a call. If no suitable cached variant exists, another capture/compilation may be needed. One concerns capture boundaries, the other reuse conditions. They can occur in the same program but diagnose different problems.</span><span data-lang="zh" lang="zh-CN"><strong>图中断</strong>结束一个区域的捕获，让 Python 在图外执行，之后可能继续捕获。<strong>守卫失败</strong>表示已有特化不适用于本次调用；若没有合适的缓存版本，可能需要再次捕获／编译。前者关乎捕获边界，后者关乎复用条件；同一程序中可以同时出现，但对应不同问题。</span></p>
+<pre tabindex="0"><code class="language-python" id="compile-graph-break">import torch
+
+@torch.compiler.disable
+def observe(value):
+    print(&quot;observed length:&quot;, value.shape[0])
+    return value
+
+def with_boundary(x):
+    y = x + 1
+    y = observe(y)
+    return y.relu() * 2
+
+regions = []
+def record_backend(gm, example_inputs):
+    regions.append(gm)
+    return gm.forward
+
+x = torch.tensor([-2., -1., 1., 2.])
+result = torch.compile(with_boundary, backend=record_backend)(x)
+print(&quot;output:&quot;, result.tolist(), &quot;regions:&quot;, len(regions))
+try:
+    torch.compile(with_boundary, backend=&quot;eager&quot;, fullgraph=True)(x)
+except torch._dynamo.exc.Unsupported:
+    print(&quot;fullgraph: disabled function cannot be included&quot;)</code></pre>
+<pre tabindex="0"><code class="language-text">observed length: 4
+output: [0.0, 0.0, 4.0, 6.0] regions: 2
+fullgraph: disabled function cannot be included</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en">Here the boundary is intentional: <code>torch.compiler.disable</code> keeps the observer in ordinary Python. It demonstrates a graph break without relying on whether a particular print or scalar-extraction pattern happens to be supported in a release. The private exception class is used only to catch this diagnostic in the pinned version. In production, investigate unexpected breaks with <code>TORCH_LOGS="graph_breaks,recompiles,guards"</code>, and avoid disabling guards to hide recompilations.</span><span data-lang="zh" lang="zh-CN">这里的边界是有意设置的：<code>torch.compiler.disable</code> 让观察函数保留在普通 Python 中执行。这样演示图中断，无需依赖某个版本是否恰好支持特定打印或标量提取写法。私有异常类型仅用于在固定版本下捕获此诊断。实际项目中，可用 <code>TORCH_LOGS="graph_breaks,recompiles,guards"</code> 查找意外中断，不要通过关闭守卫掩盖重新编译。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.compiler.disable.html">torch.compiler.disable: exclude a function from compilation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/generated/torch.compiler.disable.html">torch.compiler.disable：将函数排除在编译区域之外</a></span></p>
+<h2 class="parallel-text" id="timing"><span data-lang="en" lang="en">Separate first-call cost from steady-state execution</span><span data-lang="zh" lang="zh-CN">将首次调用成本与稳态执行分开测量</span></h2>
+<p class="parallel-text"><span data-lang="en" lang="en">The first invocation can include capture, compiler work, code loading and execution. A warm invocation still pays guard and wrapper costs. A new process may reuse an on-disk compiler artifact, so “first call” does not automatically mean a completely cold compilation. Report cache conditions and count shape variants rather than averaging compilation into an unexplained latency number.</span><span data-lang="zh" lang="zh-CN">首次调用可能包含图捕获、编译器工作、代码加载与执行。预热后的调用仍有守卫和包装器开销。新进程也可能复用磁盘上的编译产物，因此“首次调用”不自动等于完全冷编译。报告缓存条件并统计形状版本，不要把编译混进一个未说明边界的平均延迟。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">This CPU-only benchmark fixes the thread count and inference context for both paths, verifies results, then retains per-block measurements normalized by the number of runs. It reports the first compiled invocation separately. These block averages are not individual request-latency percentiles. To measure CUDA, use the synchronization boundaries from part 5.</span><span data-lang="zh" lang="zh-CN">这个纯 CPU 基准测试为两条路径固定线程数和推理上下文，先验证结果，再保留按运行次数归一化的分块测量值，并单独报告首次编译调用。分块平均值不是单次请求延迟的分位数。若测量 CUDA，需要采用第五期介绍的同步边界。</span></p>
+<pre tabindex="0"><code class="language-python" id="compile-benchmark">import json
+import platform
+from time import perf_counter
+import torch
+from torch.utils.benchmark import Timer
+
+def block(x, bias):
+    return (x + bias).relu() * 2
+
+torch.set_num_threads(1)
+torch.manual_seed(0)
+x = torch.randn(262144)
+bias = torch.randn_like(x)
+compiled = torch.compile(block, fullgraph=True)
+with torch.inference_mode():
+    begin = perf_counter()
+    actual = compiled(x, bias)
+    first_call = perf_counter() - begin
+    torch.testing.assert_close(actual, block(x, bias))
+    for _ in range(5):
+        compiled(x, bias)
+    measurements = {}
+    for name, fn in ((&quot;eager&quot;, block), (&quot;compiled&quot;, compiled)):
+        sample = Timer(stmt=&quot;fn(x, bias)&quot;,
+                       globals={&quot;fn&quot;: fn, &quot;x&quot;: x, &quot;bias&quot;: bias},
+                       num_threads=1).blocked_autorange(min_run_time=0.2)
+        measurements[name] = {
+            &quot;median_seconds&quot;: sample.median,
+            &quot;runs_per_block&quot;: sample.number_per_run,
+            &quot;seconds_per_call_by_block&quot;: [
+                t / sample.number_per_run for t in sample.raw_times
+            ],
+        }
+print(json.dumps({
+    &quot;torch&quot;: torch.__version__, &quot;machine&quot;: platform.machine(),
+    &quot;device&quot;: &quot;cpu&quot;, &quot;dtype&quot;: str(x.dtype), &quot;shape&quot;: list(x.shape),
+    &quot;threads&quot;: 1, &quot;inference_mode&quot;: True,
+    &quot;cache_policy&quot;: &quot;existing disk caches may be reused&quot;,
+    &quot;first_compiled_call_seconds&quot;: first_call,
+    &quot;steady_state&quot;: measurements,
+}, indent=2))</code></pre>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://docs.pytorch.org/docs/2.10/benchmark_utils.html">torch.utils.benchmark: Timer, blocked_autorange and Measurement</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://docs.pytorch.org/docs/2.10/benchmark_utils.html">torch.utils.benchmark：Timer、blocked_autorange 与 Measurement</a></span></p>
+<p class="parallel-text"><span data-lang="en" lang="en">A short workload can lose to compilation and guard overhead, and a workload already dominated by an optimized library call may have little fusible work. For training, include the first and steady-state backward calls in the chosen measurement boundary. Inspect correctness, guards and generated code before attributing a change to faster arithmetic.</span><span data-lang="zh" lang="zh-CN">短任务可能被编译和守卫开销抵消收益；已经主要耗时于优化库调用的任务，也可能没有多少可融合的工作。训练场景还应在选定边界内测量首次和稳态反向调用。在把性能变化归因于算术加速前，先检查正确性、守卫和生成代码。</span></p>
+<h2 class="parallel-text" id="diagnosis"><span data-lang="en" lang="en">Locate a failure by the stage that introduces it</span><span data-lang="zh" lang="zh-CN">按引入问题的阶段定位故障</span></h2>
+<div class="cp-table" tabindex="0" role="region" aria-labelledby="diagnosis"><table><thead><tr><th><span data-lang="en" lang="en">Backend</span><span data-lang="zh" lang="zh-CN">后端</span></th><th><span data-lang="en" lang="en">What it exercises</span><span data-lang="zh" lang="zh-CN">覆盖的阶段</span></th></tr></thead><tbody>
+<tr><td><code>backend="eager"</code></td><td><span data-lang="en" lang="en">Dynamo capture, then execute the captured graph with PyTorch.</span><span data-lang="zh" lang="zh-CN">Dynamo 捕获，然后用 PyTorch 执行捕获的图。</span></td></tr>
+<tr><td><code>backend="aot_eager"</code></td><td><span data-lang="en" lang="en">Add AOTAutograd graph preparation; execute without Inductor kernel generation.</span><span data-lang="zh" lang="zh-CN">加入 AOTAutograd 图准备，但不进行 Inductor 内核生成。</span></td></tr>
+<tr><td><code>backend="inductor"</code></td><td><span data-lang="en" lang="en">Add lowering, scheduling and generated or external kernels.</span><span data-lang="zh" lang="zh-CN">加入低层表示转换、调度，以及生成的内核或外部内核。</span></td></tr>
+</tbody></table></div>
+<p class="parallel-text"><span data-lang="en" lang="en">Use these backends on a minimal reproducer with matching inputs, gradient mode and tolerances. A failure appearing only with Inductor narrows the investigation; it does not alone identify the faulty pass. The source trail is now connected: tensor metadata informs guards, operator graphs feed compilation, autograd supplies differentiation, and the resulting kernels still execute through the CPU or CUDA runtime.</span><span data-lang="zh" lang="zh-CN">在最小复现中保持输入、梯度模式和误差容限一致，再依次使用这些后端。只有 Inductor 才出现的失败可以缩小排查范围，但不能单凭这一点确定哪个优化过程有错。至此，源码路径已经连起来：张量元信息参与守卫，算子图进入编译，autograd 提供求导，而最终内核仍通过 CPU 或 CUDA 运行时执行。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_dynamo/backends/debugging.py">backends/debugging.py: eager and aot_eager debugging backends</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/_dynamo/backends/debugging.py">backends/debugging.py：eager 与 aot_eager 调试后端</a></span></p>
+</div><script>
+(()=>{
+ const root=document.getElementById('compile-route-lab');if(!root)return;
+ const $=s=>root.querySelector(s),graph=$('.cp-graph'),svg=$('.cp-edges'),dot=$('.cp-dot');
+ const pair=(en,zh)=>`<span data-lang="en" lang="en">${en}</span><span data-lang="zh" lang="zh-CN">${zh}</span>`;
+ const cases={first:{n:4,old:[],next:[4],hit:false},reuse:{n:4,old:[4],next:[4],hit:true},resize:{n:8,old:[4],next:[4,8],hit:false},return:{n:4,old:[4,8],next:[4,8],hit:true}};
+ const missNodes=['guards','dynamo','aot','inductor','cache','run','output'],missEdges=[null,'capture','aot','lower','install','run','output'];
+ const hitNodes=['guards','cache','run','output'],hitEdges=[null,'hit','run','output'];
+ let mode='first',stage=6,progress=1,complete=true;
+ function draw(){const box=graph.getBoundingClientRect();if(!box.width)return;svg.setAttribute('viewBox',`0 0 ${box.width} ${box.height}`);
+  const rect=id=>{const r=$('#cp-'+id).getBoundingClientRect();return {x:r.left-box.left,y:r.top-box.top,w:r.width,h:r.height};};
+  const g=rect('guards'),d=rect('dynamo'),a=rect('aot'),i=rect('inductor'),c=rect('cache'),r=rect('run'),o=rect('output');
+  const down=(u,v)=>`M${u.x+u.w/2} ${u.y+u.h}L${v.x+v.w/2} ${v.y-2}`;
+  const paths={capture:`M${g.x+g.w*.3} ${g.y+g.h}L${d.x+d.w/2} ${d.y-2}`,hit:`M${g.x+g.w*.7} ${g.y+g.h}L${c.x+c.w/2} ${c.y-2}`,aot:down(d,a),lower:down(a,i),install:`M${i.x+i.w} ${i.y+i.h/2}H${box.width/2}V${c.y+c.h/2}H${c.x-2}`,run:down(c,r),output:down(r,o)};
+  for(const [name,path]of Object.entries(paths))$(`[data-edge=${name}]`).setAttribute('d',path);moveDot();
+ }
+ function moveDot(){const spec=cases[mode],edge=(spec.hit?hitEdges:missEdges)[stage];
+  if(complete||!edge){dot.setAttribute('hidden','');return;}dot.removeAttribute('hidden');
+  const path=$(`[data-edge=${edge}]`),point=path.getPointAtLength(path.getTotalLength()*progress);dot.setAttribute('cx',point.x);dot.setAttribute('cy',point.y);
+ }
+ const captions={
+  guards:['Check input/state assumptions against cached variants.','将输入与状态假设同缓存版本进行匹配。'],
+  dynamo:['No matching variant → Dynamo captures supported tensor operations into FX.','没有匹配版本 → Dynamo 将支持的张量操作捕获为 FX 图。'],
+  aot:['Prepare forward/backward graphs; backward kernel compilation may be deferred.','准备前向／反向图；反向内核编译可能推迟。'],
+  inductor:['Lower the graph, schedule compatible operations, and generate executable code.','转换为低层表示，调度兼容操作，生成可执行代码。'],
+  cache:['Store or select the applicable variant; matching guards permit reuse.','保存或选中适用版本；守卫满足时才能复用。'],
+  run:['Call the selected executable; graph capture is not repeated on a cache hit.','调用选中的可执行版本；缓存命中时不重复捕获图。'],
+  output:['The call returns its output; cached variants remain available for later calls.','调用返回输出；缓存版本保留，供后续调用使用。']};
+ function paint(n,done=false){stage=n;complete=done;const spec=cases[mode],id=(spec.hit?hitNodes:missNodes)[n];
+  root.dataset.stage=done?'complete':String(n);root.dataset.hit=String(spec.hit);root.dataset.compileVisited=String(!spec.hit&&(done||n>=1));
+  $('#cp-input').textContent=`x, bias: float32[${spec.n}] · static`;
+  const variants=done||spec.hit||n>=4?spec.next:spec.old;$('#cp-variants').textContent='{'+variants.join(', ')+'}';root.dataset.variants=JSON.stringify(variants);
+  $('#cp-result').textContent=done||id==='output'?`[${spec.n}]`:'…';
+  for(const node of root.querySelectorAll('.cp-node')){node.dataset.active=String(!done&&node.id==='cp-'+id);node.dataset.bypass=String(spec.hit&&['cp-dynamo','cp-aot','cp-inductor'].includes(node.id));}
+  for(const path of root.querySelectorAll('.cp-edge')){const name=path.dataset.edge;path.dataset.used=String(['run','output'].includes(name)||(spec.hit?name==='hit':name!=='hit'));path.dataset.active=String(!done&&name===(spec.hit?hitEdges:missEdges)[n]);}
+  const summary=spec.hit?[`Length ${spec.n}: guards match → reuse the cached variant. The compiler branch is bypassed.`,`长度 ${spec.n}：守卫匹配 → 复用缓存版本，跳过编译路径。`]:[`Length ${spec.n}: capture and compile a new variant, then execute it.`,`长度 ${spec.n}：捕获并编译新版本，然后执行。`];
+  $('#cp-caption').innerHTML=pair(...(done?summary:captions[id]));moveDot();
+ }
+ root.querySelectorAll('[data-cp-case]').forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.cpCase;root.dataset.case=mode;root.readingDemo.frames=cases[mode].hit?4:7;root.querySelectorAll('[data-cp-case]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));paint(cases[mode].hit?3:6,true);root.dispatchEvent(new Event('processchange'));}));
+ root.readingDemo={target:$('#cp-figure'),barAfter:$('#cp-figure'),frames:7,interval:1200,
+  render(n){progress=0;paint(n);},tick(p){progress=p;moveDot();},complete(){paint(cases[mode].hit?3:6,true);},cancel(){paint(cases[mode].hit?3:6,true);}};
+ new ResizeObserver(draw).observe(graph);window.addEventListener('languagechange',draw);paint(6,true);draw();root.dataset.ready='true';
+})();
+</script></body></html>

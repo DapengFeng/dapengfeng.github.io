@@ -115,6 +115,9 @@ An optional `<div data-series-preview>` can embed the list elsewhere; set its at
 
 `npm run test:cuda-streams` 检查第五期的 C++ 顺序模型、同流与跨流依赖、缺少等待的危险时序、主机／GPU 完成边界、有限播放、语言模式、手机排版与静态回退。CUDA Python 示例需要独立的 GPU 环境；本地检查覆盖语法和无 CUDA 路径，不代表已验证 GPU 执行或性能。
 
+`npm run test:compile` checks part 6’s C++ fusion/access model, compiler and cache-hit routes, variant reuse, finite playback, language modes, mobile layout and the static graph. The five complete Python examples were verified separately with PyTorch 2.10.0 CPU, including actual Inductor forward/backward compilation, graph capture, generated CPU code, graph breaks and the CPU benchmark. Website CI checks their syntax without installing PyTorch.
+
+`npm run test:compile` 检查第六期的 C++ 融合／访问模型、编译与缓存命中路径、版本复用、有限播放、语言模式、手机排版及静态图。五个完整 Python 示例已在独立的 PyTorch 2.10.0 CPU 环境验证，覆盖实际 Inductor 前向／反向编译、图捕获、生成的 CPU 代码、图中断和 CPU 基准测试。网站 CI 检查其语法，不安装 PyTorch。
 
 [The article template](examples/article.html) includes bilingual paragraphs, inline and numbered AMS equations, highlighted C++ fragments, an editable complete C++ program, a shared interactive figure, a table, and explanation blocks. Copy its source into content/posts/ and build to preview the site styling and controls.
 
