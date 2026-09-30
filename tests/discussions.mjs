@@ -16,14 +16,18 @@ try{
   </script></body></html>`});
  });
  await page.goto('http://localhost:4206/blog/pytorch-01-what-is-pytorch.html');
- assert.equal(requests.length,0,'widget lazy until footer or compose');
+ assert.equal(requests.length,0,'widget does not compete with the initial article load');
+ assert.equal(await page.locator('link[rel=preconnect][href="https://giscus.app"]').count(),1);
  const launcher=page.locator('.discussion-launcher'),shell=page.locator('.discussion-shell');
+ assert.equal((await launcher.innerText()).trim(),'','launcher has no visible instruction');
+ assert.equal(await launcher.getAttribute('aria-label'),'Open discussion');
  await launcher.click();await page.locator('#discussion-comment iframe').waitFor();
  const comment=page.frameLocator('#discussion-comment iframe');
  await comment.locator('#draft').fill('A scientific question — 未提交草稿');
  assert.equal(requests.length,1);assert.equal(requests[0].searchParams.get('strict'),'1');
  assert.equal(requests[0].searchParams.get('backLink'),'https://dapengfeng.github.io/blog/pytorch-01-what-is-pytorch.html');
  assert.equal(requests[0].searchParams.get('session'),'');
+ assert.equal(requests[0].searchParams.get('theme'),'dark');
  assert.match(await shell.getAttribute('class'),/is-floating/);
  await page.locator('[data-discussion-kind=idea]').click();
  await page.frameLocator('#discussion-idea iframe').locator('#draft').fill('An idea');
@@ -39,15 +43,16 @@ try{
  assert.equal(await cf.evaluate(()=>configs.at(-1).lang),'zh-CN');
  assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
  const status=page.locator('#discussion-comment .discussion-status');
- assert.equal(await page.locator('[data-discussion-link]').count(),0);
+ assert.equal(await page.locator('#article-discussions a').count(),0,'discussion UI has no outbound links');
  await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{origin:'https://giscus.app',source:window,data:{giscus:{discussion:{url:'https://github.com/DapengFeng/dapengfeng.github.io/discussions/10'}}}})));
- assert.ok(await status.isVisible(),'same origin string but wrong source is ignored');
+ assert.equal(await status.getAttribute('data-state'),'empty','same origin string but wrong source is ignored');
  await cf.evaluate(()=>parent.postMessage({giscus:{discussion:{url:'https://github.com/DapengFeng/dapengfeng.github.io/discussions/10'}}},'*'));
- await page.waitForFunction(()=>document.querySelector('#discussion-comment .discussion-status').hidden);
+ await page.waitForFunction(()=>document.querySelector('#discussion-comment .discussion-status').dataset.state==='ready');
  await cf.evaluate(()=>parent.postMessage({giscus:{error:'giscus is not installed on this repository'}},'*'));
  await page.waitForFunction(()=>document.querySelector('#discussion-comment .discussion-status').textContent.includes('接入'));
  for(const language of ['en','zh','both']){
   await page.locator(`[data-language-choice=${language}]`).click();
+  assert.equal(await launcher.getAttribute('aria-label'),language==='zh'?'打开讨论':language==='en'?'Open discussion':'Open discussion / 打开讨论');
   for(const width of [1440,768,390,320]){
    await page.setViewportSize({width,height:800});
    const rect=await shell.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1);
@@ -72,6 +77,36 @@ try{
  const idea=page.frames().find(f=>f.url().includes('giscus.app'));
  await idea.evaluate(()=>parent.postMessage({giscus:{signOut:true}},'*'));
  await page.waitForFunction(()=>!localStorage.getItem('giscus-session'));
+ // Background warming loads only the selected thread and reuses its editor.
+ await page.goto('http://localhost:4206/blog/pytorch-01-what-is-pytorch.html');
+ const beforeWarm=requests.length;
+ await page.frameLocator('#discussion-comment iframe').locator('#draft').waitFor();
+ assert.equal(requests.length,beforeWarm+1,'one idle preload, not three');
+ assert.equal(await page.locator('.discussion-launcher').getAttribute('aria-expanded'),'false');
+ const warmed=page.frames().find(f=>f.url().includes('giscus.app'));
+ assert.deepEqual(await warmed.evaluate(()=>configs),[],'initial locale needs no config navigation');
+ await page.locator('[data-language-choice=both]').click();
+ assert.deepEqual(await warmed.evaluate(()=>configs),[],'en and both share the same widget locale');
+ await page.locator('[data-language-choice=zh]').click();
+ await warmed.waitForFunction(()=>configs.length===1);
+ await page.locator('[data-language-choice=zh]').click();
+ assert.equal(await warmed.evaluate(()=>configs.length),1,'unchanged locale is not sent again');
+ await page.locator('.discussion-launcher').click();
+ assert.equal(requests.length,beforeWarm+1,'opening the warmed editor sends no new request');
+ const saver=await browser.newPage();let saverRequests=0;
+ await saver.addInitScript(()=>{
+  localStorage.setItem('feng-language','en');
+  Object.defineProperty(navigator,'connection',{value:{saveData:true,effectiveType:'4g'}});
+ });
+ await saver.route('https://giscus.app/**',route=>{saverRequests++;return route.fulfill({contentType:'text/html',body:'<textarea aria-label="Comment"></textarea>'});});
+ await saver.goto('http://localhost:4206/blog/pytorch-01-what-is-pytorch.html');
+ await saver.clock.install();await saver.clock.fastForward(5000);
+ await saver.locator('.discussion-launcher').hover();
+ assert.equal(saverRequests,0,'Save-Data skips idle and hover preloads');
+ await saver.locator('.discussion-launcher').click();
+ await saver.frameLocator('#discussion-comment iframe').locator('textarea').waitFor();
+ assert.equal(saverRequests,1,'explicit compose still works with Save-Data');
+ await saver.close();
  const offline=await browser.newPage();
  await offline.addInitScript(()=>localStorage.setItem('feng-language','en'));
  await offline.route('https://giscus.app/**',route=>route.abort());
@@ -91,5 +126,5 @@ try{
  assert.ok(!await nojs.locator('.discussion-status').first().isVisible());
  await nojs.close();
  assert.deepEqual(errors,[]);
- console.log('Discussions: lazy load, thread mapping, floating editor, draft preservation, language, security, OAuth callback, logout and responsive checks passed (mock service; no public posts).');
+ console.log('Discussions: idle preload, locale deduplication, Save-Data, thread mapping, floating editor, drafts, security, OAuth, offline and responsive checks passed (mock service; no public posts).');
 }finally{await browser.close();server.close();}

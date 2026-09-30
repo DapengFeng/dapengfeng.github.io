@@ -7,7 +7,7 @@
  const ORIGIN='https://giscus.app',SESSION='giscus-session';
  const shell=root.querySelector('.discussion-shell'),launcher=root.querySelector('.discussion-launcher'),close=root.querySelector('.discussion-close');
  const threads=[...root.querySelectorAll('.discussion-thread')],buttons=[...root.querySelectorAll('[data-discussion-kind]')];
- const frames=new Map(),timers=new Map();
+ const frames=new Map(),timers=new Map(),frameLanguages=new Map(),loadedFrames=new WeakSet();
  let current=threads[0],floating=false,footerVisible=false;
  const language=()=>document.documentElement.dataset.language||'both';
  const text=(en,zh)=>language()==='zh'?zh:language()==='en'?en:`${en} / ${zh}`;
@@ -30,30 +30,50 @@
  function status(thread,kind){
   state.set(thread,kind);
   const node=thread.querySelector('.discussion-status');
-  node.hidden=kind==='ready';
+  node.hidden=kind==='ready'||kind==='empty';
+  node.dataset.state=kind;
   const frame=frames.get(thread);
   if(frame)frame.hidden=kind==='setup';
-  node.textContent=kind==='loading'?text('Loading GitHub discussion…','正在加载 GitHub 讨论…'):kind==='setup'?text('Comments are waiting for the site owner to connect GitHub.','评论功能等待站点作者完成 GitHub 接入。'):kind==='empty'?text('No posts yet. Start this article’s thread below.','暂无发言，可在下方发起这篇文章的讨论。'):text('Unable to load the discussion. Retry or view it on GitHub.','暂时无法加载讨论，请重试或前往 GitHub 查看。');
+  const message=kind==='loading'?text('Loading GitHub discussion…','正在加载 GitHub 讨论…'):kind==='setup'?text('Comments are waiting for the site owner to connect GitHub.','评论功能等待站点作者完成 GitHub 接入。'):kind==='empty'?text('No posts yet.','暂无发言。'):text('Unable to load the discussion. Please retry.','暂时无法加载讨论，请重试。');
+  node.replaceChildren();
+  const label=document.createElement('span');label.textContent=message;
+  if(kind==='loading')label.className='sr-only';
+  node.append(label);
   thread.querySelector('.discussion-retry').hidden=!['error','setup'].includes(kind);
  }
  function stopTimer(thread){clearTimeout(timers.get(thread));timers.delete(thread);}
  function send(frame,config){frame.contentWindow?.postMessage({giscus:{setConfig:config}},ORIGIN);}
+ function syncLanguage(frame){
+  // giscus routes a lang config message through Next.js, even for the same
+  // locale. The initial iframe URL already selects it; do not navigate twice.
+  const lang=widgetLanguage();
+  if(!loadedFrames.has(frame)||frameLanguages.get(frame)===lang)return;
+  frameLanguages.set(frame,lang);send(frame,{lang});
+ }
  function load(thread){
   if(frames.has(thread))return;
   status(thread,'loading');
   const origin=new URL(location.pathname,location.origin);
   origin.searchParams.set('discussion',thread.dataset.kind);
   origin.hash='article-discussions';
-  const params=new URLSearchParams({origin:origin.href,session,repo:root.dataset.repo,repoId:root.dataset.repoId,category:thread.dataset.category,categoryId:thread.dataset.categoryId,term:thread.dataset.term,strict:'1',description:root.dataset.description,backLink:root.dataset.backlink,theme:'dark_dimmed',reactionsEnabled:'1',emitMetadata:'1',inputPosition:'top'});
+  const params=new URLSearchParams({origin:origin.href,session,repo:root.dataset.repo,repoId:root.dataset.repoId,category:thread.dataset.category,categoryId:thread.dataset.categoryId,term:thread.dataset.term,strict:'1',description:root.dataset.description,backLink:root.dataset.backlink,theme:'dark',reactionsEnabled:'1',emitMetadata:'1',inputPosition:'top'});
   const frame=document.createElement('iframe');
   frame.title=text('GitHub '+thread.dataset.kind,'GitHub '+({comment:'评论',idea:'想法',discussion:'讨论'}[thread.dataset.kind]));
   frame.className='discussion-frame';frame.allow='clipboard-write';frame.referrerPolicy='strict-origin-when-cross-origin';
-  frame.src=`${ORIGIN}/${widgetLanguage()}/widget?${params}`;
+  const lang=widgetLanguage();
+  frame.src=`${ORIGIN}/${lang}/widget?${params}`;
+  frameLanguages.set(frame,lang);
+  frame.addEventListener('load',()=>{loadedFrames.add(frame);syncLanguage(frame);});
   frames.set(thread,frame);
   thread.querySelector('.discussion-embed').append(frame);
   // A load event can mean an error page. Only protocol messages establish readiness.
   timers.set(thread,setTimeout(()=>status(thread,'error'),20000));
-  frame.addEventListener('load',()=>send(frame,{lang:widgetLanguage()}));
+ }
+ function reload(frame,signOut=false){
+  const url=new URL(frame.src),lang=widgetLanguage();
+  url.pathname=`/${lang}/widget`;
+  if(signOut)url.searchParams.delete('session');
+  loadedFrames.delete(frame);frameLanguages.set(frame,lang);frame.src=url.href;
  }
  function select(thread){
   current=thread;
@@ -78,7 +98,7 @@
   // Reload is explicit and only offered after an error; changing config to the
   // same term does not invalidate giscus's query cache.
   const frame=frames.get(thread);
-  if(frame){status(thread,'loading');stopTimer(thread);frame.src=frame.src;timers.set(thread,setTimeout(()=>status(thread,'error'),20000));}
+  if(frame){status(thread,'loading');stopTimer(thread);reload(frame);timers.set(thread,setTimeout(()=>status(thread,'error'),20000));}
   else load(thread);
  }));
  window.addEventListener('message',event=>{
@@ -95,19 +115,19 @@
   }
   if(data.signOut===true){
    session='';storage.set('');
-   for(const f of frames.values()){const url=new URL(f.src);url.searchParams.delete('session');f.src=url.href;}
+   for(const f of frames.values())reload(f,true);
   }
   if(typeof data.error==='string'){
    stopTimer(thread);
    if(/Bad credentials|Invalid state value|State has expired/.test(data.error)&&session){
     session='';storage.set('');
-    for(const f of frames.values()){const url=new URL(f.src);url.searchParams.delete('session');f.src=url.href;}
+    for(const f of frames.values())reload(f,true);
    }
    status(thread,data.error.includes('Discussion not found')?'empty':/not installed|installation/i.test(data.error)?'setup':'error');
   }
  });
  window.addEventListener('languagechange',()=>{
-  for(const thread of threads){if(state.has(thread))status(thread,state.get(thread));const f=frames.get(thread);if(f){send(f,{lang:widgetLanguage()});f.title=text('GitHub '+thread.dataset.kind,'GitHub '+({comment:'评论',idea:'想法',discussion:'讨论'}[thread.dataset.kind]));}}
+  for(const thread of threads){if(state.has(thread))status(thread,state.get(thread));const f=frames.get(thread);if(f){syncLanguage(f);f.title=text('GitHub '+thread.dataset.kind,'GitHub '+({comment:'评论',idea:'想法',discussion:'讨论'}[thread.dataset.kind]));}}
  });
  const observer=new IntersectionObserver(entries=>{
   footerVisible=entries[0].isIntersecting;
@@ -115,6 +135,28 @@
   if(footerVisible)load(current);
  },{rootMargin:'0px'});
  observer.observe(root);
+ // Warm only the selected thread after the article has loaded, leaving first
+ // paint alone. Save-Data/2G connections keep explicit, on-demand loading.
+ const speculativeAllowed=()=>!document.hidden&&!navigator.connection?.saveData&&!['slow-2g','2g'].includes(navigator.connection?.effectiveType);
+ const warm=()=>{if(speculativeAllowed())load(current);};
+ const nearby=new IntersectionObserver(entries=>{if(entries[0].isIntersecting)warm();},{rootMargin:'1500px 0px'});
+ nearby.observe(root);
+ launcher.addEventListener('pointerenter',warm);
+ launcher.addEventListener('focus',warm);
+ for(const button of buttons){
+  const warmType=()=>{if(speculativeAllowed())load(threads.find(t=>t.dataset.kind===button.dataset.discussionKind));};
+  button.addEventListener('pointerenter',warmType);button.addEventListener('focus',warmType);
+ }
+ function scheduleWarm(){
+  if(frames.has(current)||!speculativeAllowed())return;
+  setTimeout(()=>{
+   if(frames.has(current)||!speculativeAllowed())return;
+   if('requestIdleCallback' in window)requestIdleCallback(warm,{timeout:1500});
+   else warm();
+  },2000);
+ }
+ if(document.readyState==='complete')scheduleWarm();else window.addEventListener('load',scheduleWarm,{once:true});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleWarm();});
  const selected=threads.find(t=>t.dataset.kind===callback.searchParams.get('discussion'));
  if(returnedSession||location.hash==='#article-discussions'){if(selected)current=selected;select(current);toggle(true);}
  else launcher.hidden=false;
