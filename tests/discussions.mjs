@@ -1,0 +1,96 @@
+import {chromium} from '@playwright/test';
+import assert from 'node:assert/strict';
+import {serve} from '../scripts/serve.mjs';
+import {chromiumExecutable} from './browser-options.mjs';
+const server=serve(4206),browser=await chromium.launch({headless:true,executablePath:chromiumExecutable(),args:['--no-sandbox']});
+try{
+ const page=await browser.newPage({viewport:{width:1440,height:950}}),errors=[],requests=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>localStorage.setItem('feng-language','en'));
+ await page.route('https://giscus.app/**',route=>{
+  requests.push(new URL(route.request().url()));
+  return route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="en"><title>GitHub test widget</title><body style="background:#222;color:white"><label>Comment <textarea id="draft"></textarea></label><script>
+   window.configs=[];addEventListener('message',e=>{if(e.data.giscus?.setConfig)configs.push(e.data.giscus.setConfig)});
+   parent.postMessage({giscus:{resizeHeight:320}},'*');
+   parent.postMessage({giscus:{error:'Discussion not found'}},'*');
+  </script></body></html>`});
+ });
+ await page.goto('http://localhost:4206/blog/pytorch-01-what-is-pytorch.html');
+ assert.equal(requests.length,0,'widget lazy until footer or compose');
+ const launcher=page.locator('.discussion-launcher'),shell=page.locator('.discussion-shell');
+ await launcher.click();await page.locator('#discussion-comment iframe').waitFor();
+ const comment=page.frameLocator('#discussion-comment iframe');
+ await comment.locator('#draft').fill('A scientific question — 未提交草稿');
+ assert.equal(requests.length,1);assert.equal(requests[0].searchParams.get('strict'),'1');
+ assert.equal(requests[0].searchParams.get('backLink'),'https://dapengfeng.github.io/blog/pytorch-01-what-is-pytorch.html');
+ assert.equal(requests[0].searchParams.get('session'),'');
+ assert.match(await shell.getAttribute('class'),/is-floating/);
+ await page.locator('[data-discussion-kind=idea]').click();
+ await page.frameLocator('#discussion-idea iframe').locator('#draft').fill('An idea');
+ assert.equal(requests[1].searchParams.get('category'),'Ideas');
+ assert.notEqual(requests[1].searchParams.get('term'),requests[0].searchParams.get('term'));
+ await page.locator('[data-discussion-kind=comment]').click();
+ assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
+ await page.locator('.discussion-close').click();await launcher.click();
+ assert.equal(requests.length,2);assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
+ await page.locator('[data-language-choice=zh]').click();
+ await page.waitForFunction(()=>document.querySelector('#discussion-comment .discussion-status').textContent.includes('暂无发言'));
+ const cf=page.frames().find(f=>f.url().includes('giscus.app')&&new URL(f.url()).searchParams.get('category')==='General');
+ assert.equal(await cf.evaluate(()=>configs.at(-1).lang),'zh-CN');
+ assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
+ const fallback=page.locator('#discussion-comment [data-discussion-link]'),old=await fallback.getAttribute('href');
+ await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{origin:'https://giscus.app',source:window,data:{giscus:{discussion:{url:'https://github.com/DapengFeng/dapengfeng.github.io/discussions/10'}}}})));
+ assert.equal(await fallback.getAttribute('href'),old,'same origin string but wrong source is ignored');
+ await cf.evaluate(()=>parent.postMessage({giscus:{discussion:{url:'javascript:alert(1)'}}},'*'));
+ assert.equal(await fallback.getAttribute('href'),old);
+ await cf.evaluate(()=>parent.postMessage({giscus:{discussion:{url:'https://github.com/DapengFeng/dapengfeng.github.io/discussions/10'}}},'*'));
+ await page.waitForFunction(()=>document.querySelector('#discussion-comment [data-discussion-link]').href.endsWith('/10'));
+ await cf.evaluate(()=>parent.postMessage({giscus:{error:'giscus is not installed on this repository'}},'*'));
+ await page.waitForFunction(()=>document.querySelector('#discussion-comment .discussion-status').textContent.includes('接入'));
+ for(const language of ['en','zh','both']){
+  await page.locator(`[data-language-choice=${language}]`).click();
+  for(const width of [1440,768,390,320]){
+   await page.setViewportSize({width,height:800});
+   const rect=await shell.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1);
+   assert.ok(rect.y>=0&&rect.y+rect.height<=800);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  }
+ }
+ await page.screenshot({path:'/tmp/feng-discussions-mobile.png'});
+ await page.locator('.discussion-close').focus();await page.keyboard.press('Escape');
+ assert.equal(await launcher.getAttribute('aria-expanded'),'false');
+ await page.locator('#article-discussions').scrollIntoViewIfNeeded();
+ await page.waitForFunction(()=>document.querySelector('.discussion-launcher').hidden);
+ assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
+ await page.locator('[data-discussion-kind=discussion]').click();
+ await page.frameLocator('#discussion-discussion iframe').locator('#draft').fill('A discussion');
+ assert.equal(new Set(requests.map(r=>r.searchParams.get('term'))).size,3);
+ await page.goto('http://localhost:4206/blog/matrix-multiplication.html?discussion=idea&giscus=mock-session');
+ await page.frameLocator('#discussion-idea iframe').locator('#draft').waitFor();
+ assert.ok(!page.url().includes('giscus='),'callback credential removed from address bar');
+ assert.equal(requests.at(-1).searchParams.get('session'),'mock-session');
+ assert.equal(requests.at(-1).searchParams.get('term'),'/blog/matrix-multiplication.html · idea');
+ const idea=page.frames().find(f=>f.url().includes('giscus.app'));
+ await idea.evaluate(()=>parent.postMessage({giscus:{signOut:true}},'*'));
+ await page.waitForFunction(()=>!localStorage.getItem('giscus-session'));
+ const offline=await browser.newPage();
+ await offline.addInitScript(()=>localStorage.setItem('feng-language','en'));
+ await offline.route('https://giscus.app/**',route=>route.abort());
+ await offline.goto('http://localhost:4206/blog/matrix-multiplication.html');
+ await offline.clock.install();
+ await offline.locator('.discussion-launcher').click();
+ await offline.clock.fastForward(21000);
+ assert.match(await offline.locator('#discussion-comment .discussion-status').textContent(),/Unable to load/);
+ assert.ok(await offline.locator('#discussion-comment .discussion-retry').isVisible());
+ await offline.locator('#discussion-comment .discussion-retry').click();
+ assert.match(await offline.locator('#discussion-comment .discussion-status').textContent(),/Loading/);
+ await offline.close();
+ const nojs=await browser.newPage({javaScriptEnabled:false});
+ await nojs.goto('http://localhost:4206/blog/matrix-multiplication.html');
+ assert.ok(await nojs.locator('#article-discussions noscript').isVisible());
+ assert.ok(!await nojs.locator('.discussion-launcher').isVisible());
+ assert.ok(!await nojs.locator('.discussion-status').first().isVisible());
+ await nojs.close();
+ assert.deepEqual(errors,[]);
+ console.log('Discussions: lazy load, thread mapping, floating editor, draft preservation, language, security, OAuth callback, logout and responsive checks passed (mock service; no public posts).');
+}finally{await browser.close();server.close();}

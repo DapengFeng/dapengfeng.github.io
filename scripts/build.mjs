@@ -22,8 +22,8 @@ export async function build(){
   await write(file,optimizePage(localizePage(html,posts),url,posts.find(post=>post.url===url),group?seriesMetadata(group):undefined));
  }
  for(const post of [null,...posts])await write(sharingImage(post).slice(1),await renderSharingImage(post));
- for(const name of ['site','legacy','reader'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
- for(const name of ['site','surface','article','reading-demos','process-demos','process-models','labs','benchmark-worker','paired','syntax','compiler','code-copy'])await fs.copyFile(`src/scripts/${name}.js`,`dist/assets/${name}.js`);
+ for(const name of ['site','legacy','reader','discussions'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
+ for(const name of ['discussions','site','surface','article','reading-demos','process-demos','process-models','labs','benchmark-worker','paired','syntax','compiler','code-copy'])await fs.copyFile(`src/scripts/${name}.js`,`dist/assets/${name}.js`);
  // MathJax + AMS renders self-contained SVGs at build time, with no browser runtime.
  await write('assets/math.css',mathStyles());
  await fs.copyFile('node_modules/@mathjax/src/LICENSE','dist/assets/mathjax-LICENSE');

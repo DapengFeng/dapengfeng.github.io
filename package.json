@@ -26,7 +26,8 @@
     "test:dispatch": "node tests/dispatch.mjs",
     "test:autograd": "node tests/autograd.mjs",
     "test:cuda-streams": "node tests/cuda-streams.mjs",
-    "test:compile": "node tests/compile.mjs"
+    "test:compile": "node tests/compile.mjs",
+    "test:discussions": "node tests/discussions.mjs"
   },
   "devDependencies": {
     "@mathjax/src": "4.1.3",
