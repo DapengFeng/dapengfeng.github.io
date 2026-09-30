@@ -9,7 +9,7 @@
 .discussion-kinds svg,.discussion-launcher svg{width:20px;height:20px;flex-shrink:0}.discussion-close{flex:0 0 44px;width:44px;padding:10px;align-self:flex-start}
 .discussion-thread{min-width:0}.discussion-status{font-size:16px;color:var(--muted);margin:16px 0;overflow-wrap:anywhere}
 .discussion-frame{display:block;width:100%;height:320px;border:0;color-scheme:dark}
-.discussion-fallback{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:16px}
+.discussion-retry{margin-top:16px}
 .discussion-launcher{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:35;display:flex;align-items:center;gap:14px;padding:12px 18px;min-height:48px;max-width:calc(100vw - 32px);border:1px solid #63734e;border-radius:14px;background:#20281cf5;color:var(--ink);box-shadow:0 8px 28px #0006;text-align:left;font-size:16px}
 .discussion-launcher>span{flex:1}.discussion-launcher>svg:last-child{color:var(--lime);width:16px}
 .discussion-shell.is-floating{position:fixed;z-index:40;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--discussion-keyboard-inset,0px) + max(16px,env(safe-area-inset-bottom)));width:min(660px,calc(100vw - 32px));max-height:min(720px,calc(var(--discussion-viewport-height,100dvh) * .75));overflow:auto;overscroll-behavior:contain;box-shadow:0 16px 70px #000a;border-color:#63734e}

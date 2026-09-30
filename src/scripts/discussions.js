@@ -91,8 +91,6 @@
    if(state.get(thread)==='loading'){stopTimer(thread);status(thread,'ready');}
   }
   if(data.discussion){
-   const url=String(data.discussion.url||'');
-   if(url.startsWith(`https://github.com/${root.dataset.repo}/discussions/`)&&/^\d+$/.test(url.split('/').pop()))thread.querySelector('[data-discussion-link]').href=url;
    stopTimer(thread);status(thread,'ready');
   }
   if(data.signOut===true){

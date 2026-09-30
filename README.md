@@ -1,272 +1,53 @@
-# FENG / Site Maintenance Guide / 知识实验室 · 网站维护说明
+# FENG / Knowledge Lab / 知识实验室
 
-A static website built with native HTML, CSS, and JavaScript, without Jekyll, React, Vue, or a client-side routing framework. Each article is one HTML file containing its English and Chinese text, metadata, and any article-specific styles or scripts. Node.js scripts generate navigation, tables of contents, categories, dates, full-text search, RSS, and the sitemap at build time. The output can be hosted directly on GitHub Pages.
+[Visit the website / 访问网站](https://dapengfeng.github.io/) · [Browse the notebook / 浏览知识库](https://dapengfeng.github.io/blog/)
 
-这是使用原生 HTML、CSS 和 JavaScript 构建的静态网站，不使用 Jekyll、React、Vue 或客户端路由框架。每篇文章使用一个 HTML 文件，包含英文、中文、元信息以及文章自己的样式和脚本。Node.js 脚本仅在构建时生成导航、目录、分类、日期、全文搜索、RSS 与站点地图，产物可直接托管到 GitHub Pages。
+## Mission / 网站使命
 
-## Run locally / 本地运行
+Make technical ideas easier to understand, examine, and apply. This is Dapeng Feng’s personal notebook on mathematics, physics, neuroscience, and computing: a place to connect abstract concepts with their derivations, physical models, source code, and measured behavior.
 
-```bash
-npm ci
-npm run dev
-```
+让技术知识更容易理解、验证和应用。这是冯大鹏的个人知识实验室，记录数学、物理、神经科学与计算机领域的学习，将抽象概念与推导、物理模型、源代码和实际测量联系起来。
 
-Requires Node.js 24. The default preview address is `http://localhost:4173`. Changes to HTML, CSS, JavaScript, or article files trigger a rebuild; refresh the browser to see the update.
+An article should explain how something works and why. Diagrams show structure and relationships; animations show how a process unfolds; runnable examples and benchmarks let readers check an explanation against code and data.
 
-需要 Node.js 24。默认预览地址为 `http://localhost:4173`。修改 HTML、CSS、JavaScript 或文章后会自动重新构建，刷新浏览器即可查看更新。
+每篇文章都应讲清楚一件事如何工作，以及为什么如此。用图形表达结构与关系，用动画展示过程，用可运行示例和基准测试让读者结合代码与数据验证解释。
 
-```bash
-npm run build
-npm run preview
-npm test
-npm run test:browsers
-```
+## Topics / 内容方向
 
-Browser checks use the Chromium version pinned by Playwright, matching CI by default. Install Chromium with `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing Chromium executable. Run `npm run test:browsers` for interaction, language, sorting, layout, formula, and accessibility checks. Every configured suite runs even if an earlier one fails; each has a five-minute limit. Per-suite logs and the result summary are saved under `test-results/browser/`; any failure makes the command exit nonzero. The compiler tests use isolated API responses; add `--live` to `node tests/compiler.mjs` to verify Godbolt itself. Static output is written to `dist/` and requires no server-side application.
-
-浏览器检查默认使用 Playwright 锁定版本的 Chromium，与 CI 保持一致。可执行 `npx playwright install chromium` 安装 Chromium，或通过 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 指定已安装的 Chromium。`npm run test:browsers` 检查交互、语言、排序、排版、公式和无障碍。前面的测试失败后仍会继续检查后续项目；每项限时五分钟，逐项日志和结果汇总保存在 `test-results/browser/`，任意一项失败都会使命令返回非零状态。编译器测试使用隔离的接口响应；运行 `node tests/compiler.mjs --live` 可验证 Godbolt 本身。静态产物输出到 `dist/`，无需服务器端程序。
-
-## GitHub Discussions / GitHub 讨论
-
-Every article has a discussion section and a floating composer, using giscus to authenticate GitHub visitors and publish to `DapengFeng/dapengfeng.github.io`. There are three article-specific threads: Comments and Discussion use the existing General category; Ideas uses Ideas. Each thread is created on its first comment or reaction, not when someone reads the page. Replies and reactions then stay in that thread. This does not create a separate GitHub discussion for every message.
-
-每篇文章自动包含文末讨论区与浮动输入面板，通过 giscus 为 GitHub 访客登录并发表到 `DapengFeng/dapengfeng.github.io`。每篇文章有三个独立话题：“评论”和“讨论”进入现有 General 分类，“想法”进入 Ideas 分类。首次发言或表态时才创建对应话题，阅读页面不会创建；之后的回复与表态保留在该话题中，不会为每条留言创建新 Discussion。
-
-**One-time setup:** install the [giscus GitHub App](https://github.com/apps/giscus) for this repository only. Discussions is already enabled and the public repository/category IDs are configured in `scripts/discussions.mjs`. Push and deploy the code, including the root `giscus.json`, then verify GitHub sign-in and a real submission yourself. No PAT, OAuth client secret, Actions secret, or additional application server is needed. Until the app is installed, the page reports the connection error and offers a GitHub link.
-
-**一次性配置：**安装 [giscus GitHub 应用](https://github.com/apps/giscus)，仅授权本仓库。仓库已开启 Discussions，公开的仓库与分类 ID 已写入 `scripts/discussions.mjs`。推送并部署代码（包括仓库根目录的 `giscus.json`）后，可用自己的 GitHub 账号验证登录和实际发表。无需配置 PAT、OAuth 密钥、Actions Secret 或额外应用服务器。应用尚未安装时，页面会显示接入提示并提供 GitHub 链接。
-
-Thread mapping uses the article URL plus its message type, with giscus strict matching. Renaming a title or switching languages keeps the same thread; changing the published URL changes its mapping. New articles require no manual thread setup. Discussions created manually on GitHub are not matched by loose title similarity: to connect an existing thread, its category and SHA-1 mapping marker must match the term generated by `discussionTerm()` (see [giscus strict matching](https://github.com/giscus/giscus/blob/main/ADVANCED-USAGE.md#data-strict)).
-
-话题以文章 URL 加发言类型关联，并启用 giscus 严格匹配。改标题、切换语言不会更换话题；更改已发布 URL 会改变关联。新文章无需手动创建讨论。在 GitHub 手动创建的话题不会按相似标题自动混入；如需关联旧话题，其分类和 SHA-1 标记必须与 `discussionTerm()` 生成的标识一致，参见 [giscus 严格匹配说明](https://github.com/giscus/giscus/blob/main/ADVANCED-USAGE.md#data-strict)。
-
-The widget loads when readers reach the footer or open the floating panel. Moving between the inline and floating view, or switching message types, keeps each mounted editor and its draft. Reloading/navigating away does not preserve drafts. Site controls follow the language selection; the GitHub widget uses Chinese in Chinese mode and English otherwise. Reader posts remain in their original language. The integration checks both message origin and iframe identity. `npm run test:discussions` uses a mock widget and never publishes to GitHub.
-
-读到文末或展开浮动面板时才加载组件。文末与浮动视图之间切换，以及切换发言类型，均保留各输入区与草稿；刷新或离开页面不保留草稿。本站控件遵循语言选择；GitHub 组件在中文模式使用中文，其他模式使用英文，读者留言保留原语言。接入代码同时检查消息来源域名与 iframe 身份。`npm run test:discussions` 使用模拟组件，不会向 GitHub 发表内容。
-
-## Publish an HTML article / 发布 HTML 文章
-
-1. Copy `examples/article.html` to `content/posts/your-slug.html`. This is the single article directory, including imported visual essays. Subdirectories are supported; article filenames must be unique across the site. Published URLs remain `/blog/your-slug.html`.
-
-   把 `examples/article.html` 复制到 `content/posts/your-slug.html`。所有文章（包括导入的交互长文）统一放在这里。支持子目录，文章文件名必须全站唯一。发布链接仍为 `/blog/your-slug.html`。
-
-2. Set the title, summary, category, tags, and date. Use `YYYY-MM-DD` for `date`, recording the first push or sharing date. Keep it unchanged on later edits; add `updated` to record an update date.
-
-   填写标题、摘要、分类、标签与日期。`date` 使用 `YYYY-MM-DD`，记录首次推送或分享日期；后续编辑保留该日期，如需注明更新则添加 `updated`。
-
-3. Write both languages directly in the same HTML: English first with `data-lang="en"`, immediately followed by Chinese with `data-lang="zh"`. Use `class="parallel-text"` on paired headings or paragraphs, as in the example below. Equations, code, SVG, Canvas, and experiments can sit outside language markers to be shared.
-
-   直接在同一个 HTML 中写两种语言：英文使用 `data-lang="en"`，紧接的中文使用 `data-lang="zh"`。配对的标题或段落使用 `class="parallel-text"`，具体写法见下方示例。公式、代码、SVG、Canvas 与实验可放在语言标记之外，由两种语言共用。
-
-4. Build locally or push to the main branch. New articles automatically appear in the notebook, categories, timeline, search, RSS, and sitemap. Headings `h2` and `h3` receive anchors automatically; `h2` headings also populate the reading contents.
-
-   在本地构建或推送到主分支。新文章会自动进入知识库、分类、时间线、搜索、RSS 与站点地图。`h2` 和 `h3` 自动获得锚点，`h2` 同时进入阅读目录。
-
-Place complete metadata in `<script type="application/json" id="article-metadata">`. The builder also accepts `title`, `meta[name=description]`, `meta[name=category]`, and `meta[name=article:published_time]`. All metadata lives in the article itself; no separate catalog or translation files are needed. Missing required metadata, invalid dates, or a missing language stop the build.
-
-完整元信息写在 `<script type="application/json" id="article-metadata">` 中。构建器也支持 `title`、`meta[name=description]`、`meta[name=category]` 和 `meta[name=article:published_time]`。所有元信息都放在文章自身，无需单独的目录配置或译文文件。必填元信息缺失、日期无效或缺少一种语言都会阻止构建。
-
-```html
-<h2 class="parallel-text">
-  <span lang="en" data-lang="en">The idea</span>
-  <span lang="zh-CN" data-lang="zh">核心思路</span>
-</h2>
-<p class="parallel-text">
-  <span lang="en" data-lang="en">English explanation.</span>
-  <span lang="zh-CN" data-lang="zh">对应的中文解释。</span>
-</p>
-<div data-math="y = Ax"></div>
-```
-
-| Category ID<br>分类 ID | Category<br>分类 |
+| Field / 领域 | Questions / 关注的问题 |
 | --- | --- |
-| `math` | Mathematics & Algorithms<br>数学与算法 |
-| `physics` | Physics & Models<br>物理与模型 |
-| `systems` | Systems & Performance<br>系统与性能 |
-| `benchmark` | Benchmarks<br>基准测试 |
+| Mathematics & Algorithms<br>数学与算法 | How do equations, geometry, and algorithms describe the same problem?<br>公式、几何与算法如何描述同一个问题？ |
+| Physics & Models<br>物理与模型 | What does a model explain, and under which assumptions?<br>模型解释了什么现象，又依赖哪些假设？ |
+| Systems & Performance<br>系统与性能 | How do data layout, execution, and hardware affect a program?<br>数据布局、执行过程与硬件如何影响程序？ |
+| Benchmarks<br>基准测试 | What was measured, under what conditions, and can the result be reproduced?<br>测量了什么、条件是什么、结果能否复现？ |
+| Life & Neuroscience<br>生命与神经科学 | How do biological structures and cellular processes support signal processing?<br>生物结构与细胞过程如何实现信号处理？ |
 
-`draft: true` hides a draft. `archiveOnly: true` includes an article in the archive and search, but excludes it from the homepage notebook. A numeric `featured` sets its order among featured notes. Choose `spike`, `rust`, `gpu`, `matrix`, `math`, `wave`, or `benchmark` for `art` to generate local SVG illustrations.
+## Reading principles / 阅读原则
 
-`draft: true` 隐藏草稿。`archiveOnly: true` 让文章仅进入归档与搜索，不进入首页知识库。数字形式的 `featured` 指定首页精选顺序。`art` 可选 `spike`、`rust`、`gpu`、`matrix`、`math`、`wave` 或 `benchmark`，用于生成本地 SVG 配图。
+- **Explain the mechanism.** State the question, assumptions, reasoning, and limits. Link claims to primary sources and distinguish illustrative models from measurements.
 
-## Equations, diagrams, and interaction / 公式、图表与交互
+  **讲清原理**。说明问题、假设、推理过程与适用范围，为论述提供原始来源，区分示意模型与实际测量。
 
-To add an article to a learning series, include an optional `series` object in its article metadata. Use the same `id`, `titleEn`, and `title` across installments and a unique positive `part` number. The build generates `/series/<id>/`, links it from the homepage and notebook, adds it to the sitemap, and connects published installments with previous/next navigation. Drafts are excluded; planned articles should remain plain text until published. Duplicate part numbers and inconsistent series titles fail the build.
+- **Make figures informative.** A reader should learn from a figure before touching its controls. Add interaction when it helps compare conditions or inspect a process.
 
-若要把文章加入学习专题，在元信息中填写可选的 `series` 对象。各期使用相同的 `id`、`titleEn` 和 `title`，并填写不重复的正整数 `part`。构建自动生成 `/series/<id>/`，在首页和知识库添加入口、写入站点地图，并为已发布文章生成前后期导航。草稿不计入；未发布规划应保留为普通文字。期数重复或专题名称不一致会阻止构建。
+  **让图示传递知识**。读者不操作控件，也应能从图中获得信息；交互用于比较条件或观察过程。
 
-```json
-"series": {
-  "id": "pytorch-internals",
-  "titleEn": "Inside PyTorch",
-  "title": "PyTorch 源码之旅",
-  "part": 2
-}
-```
+- **Keep explanations readable.** Use legible text, clear spacing, and compact figures without hiding important details in small print.
 
-Every installment automatically includes the same compact, collapsible series contents after its body, before related reading, with publication dates and the current installment highlighted. No preview markup is required. To list future parts, declare `series.roadmap` once in any installment’s metadata, for example `[{"part":3,"titleEn":"Operator dispatch","title":"算子调度"}]`. All installments share that plan; published metadata takes precedence as each part appears. New published parts are always added automatically.
+  **保证可读性**。文字清晰、块间留白、图示紧凑，重要说明不藏在小字里。
 
-每一期正文之后、相关阅读之前都会自动出现同一份紧凑、可折叠的专题目录，显示发布日期并突出当前期，无需添加预览标记。若需列出后续规划，在任一期元信息的 `series.roadmap` 中声明一次即可，例如 `[{"part":3,"titleEn":"Operator dispatch","title":"算子调度"}]`。各期共用这份规划；对应章节发布后，自动采用实际文章标题与日期。新增的已发布章节始终自动加入。
+- **Maintain both languages together.** English comes first, immediately followed by Chinese. Readers can choose either language or both; equations, code, and figures are shared.
 
-An optional `<div data-series-preview>` can embed the list elsewhere; set its attribute to a series ID to reference another series. Child entries with `data-series-part` and bilingual titles can add local planned topics. Avoid duplicating the automatically generated directory in ordinary installments.
+  **同步维护双语**。英文在前，对应中文紧随其后。读者可选择一种语言或双语，公式、代码与图示共用。
 
-如需在其他位置引用，可选用 `<div data-series-preview>`，属性值可指定其他专题 ID。带 `data-series-part` 与双语标题的子元素可补充局部规划。普通专题文章无需再重复插入自动生成的目录。
+## Explore and discuss / 阅读与讨论
 
-`npm run test:pytorch` checks the first installment's C++ model, both animations, language modes, mobile layout, and no-JavaScript reading. Its Python/PyTorch examples require a separate local PyTorch 2.10.0 CPU environment; the website build does not install PyTorch. CPU outputs were checked against that version; CUDA diagrams are source-based illustrations rather than GPU measurements.
+Browse the [notebook](https://dapengfeng.github.io/blog/) by topic, follow the learning series in order, or use the [archive](https://dapengfeng.github.io/archive/) and [RSS feed](https://dapengfeng.github.io/feed.xml) to keep up with new articles. Article discussions welcome questions, corrections, and ideas connected to the subject.
 
-`npm run test:pytorch` 检查第一期的 C++ 模型、两组动画、语言模式、手机排版与无 JavaScript 阅读。文中的 Python／PyTorch 示例需要独立的本地 PyTorch 2.10.0 CPU 环境，网站构建不会安装 PyTorch。CPU 输出已按该版本核对；CUDA 图示依据源码，不是 GPU 测量结果。
+通过[知识库](https://dapengfeng.github.io/blog/)按主题阅读，按期学习专题，或用[归档](https://dapengfeng.github.io/archive/)和 [RSS](https://dapengfeng.github.io/feed.xml)关注新文章。欢迎在文章讨论区提出与主题相关的问题、纠正和想法。
 
-`npm run test:tensor` checks the second installment’s C++ address model, five tensor layouts, storage aliasing, scan controls, bilingual labels, responsive layout, and no-JavaScript fallback. Its Python outputs were verified with PyTorch 2.10.0 CPU; the standalone C++ program was also compiled and run with GCC 14.2 on Godbolt.
+## Documentation / 文档
 
-`npm run test:tensor` 检查第二期的 C++ 寻址模型、五种张量布局、存储别名、扫描控件、双语标签、响应式排版和无 JavaScript 回退。Python 输出已在 PyTorch 2.10.0 CPU 下核验，独立 C++ 程序也已通过 Godbolt 的 GCC 14.2 编译并运行。
+Writing conventions, presentation standards, development checks, deployment, and service configuration live in the [documentation index](docs/README.md).
 
-`npm run test:dispatch` checks part 3’s C++ dispatch model, five execution conditions, inference-mode bypass, finite playback, language switching, responsive layout, and the static diagram without JavaScript. The Python examples and custom-operator checks were verified separately with PyTorch 2.10.0 CPU.
-
-`npm run test:dispatch` 检查第三期的 C++ 调度模型、五种执行条件、inference 模式的绕行路径、有限播放、语言切换、响应式排版与无 JavaScript 静态图。Python 示例和自定义算子检查已在独立的 PyTorch 2.10.0 CPU 环境核验。
-
-
-`npm run test:autograd` checks part 4’s C++ dependency scheduler against finite differences, both branch orders, shared-node readiness, duplicate leaf edges, finite animation, language switching, mobile layout, and the no-JavaScript graph. Its six Python examples were verified with PyTorch 2.10.0 CPU.
-
-`npm run test:autograd` 用有限差分核对第四期的 C++ 依赖调度模型，并检查两种分支顺序、共享节点就绪条件、重复叶子边、有限动画、语言切换、手机排版与无 JavaScript 图示。六个 Python 示例已在 PyTorch 2.10.0 CPU 中核验。
-
-`npm run test:cuda-streams` checks part 5’s C++ ordering model, same-stream and cross-stream dependencies, the missing-wait hazard, host/GPU completion boundaries, finite playback, language modes, mobile layout and the static fallback. CUDA Python examples require a separate GPU environment; local checks cover syntax and the no-CUDA paths, not GPU execution or performance.
-
-`npm run test:cuda-streams` 检查第五期的 C++ 顺序模型、同流与跨流依赖、缺少等待的危险时序、主机／GPU 完成边界、有限播放、语言模式、手机排版与静态回退。CUDA Python 示例需要独立的 GPU 环境；本地检查覆盖语法和无 CUDA 路径，不代表已验证 GPU 执行或性能。
-
-`npm run test:compile` checks part 6’s C++ fusion/access model, compiler and cache-hit routes, variant reuse, finite playback, language modes, mobile layout and the static graph. The five complete Python examples were verified separately with PyTorch 2.10.0 CPU, including actual Inductor forward/backward compilation, graph capture, generated CPU code, graph breaks and the CPU benchmark. Website CI checks their syntax without installing PyTorch.
-
-`npm run test:compile` 检查第六期的 C++ 融合／访问模型、编译与缓存命中路径、版本复用、有限播放、语言模式、手机排版及静态图。五个完整 Python 示例已在独立的 PyTorch 2.10.0 CPU 环境验证，覆盖实际 Inductor 前向／反向编译、图捕获、生成的 CPU 代码、图中断和 CPU 基准测试。网站 CI 检查其语法，不安装 PyTorch。
-
-[The article template](examples/article.html) includes bilingual paragraphs, inline and numbered AMS equations, highlighted C++ fragments, an editable complete C++ program, a shared interactive figure, a table, and explanation blocks. Copy its source into content/posts/ and build to preview the site styling and controls.
-
-[文章模板](examples/article.html)包含双语段落、行内与编号 AMS 公式、配色 C++ 片段、可编辑完整 C++ 程序、共用交互图、表格和说明块。将源码复制到 content/posts/ 后构建，即可预览站点样式和控件。
-
-Write SVG, Canvas, tables, and JavaScript directly. The HTML element `<div data-math="y=Ax"></div>` is rendered with MathJax and its AMS extension at build time as offline SVG. Glyphs are shared within each page to reduce repeated paths; each formula has one accessible LaTeX name, with its visual SVG hidden from screen readers. For inline mathematics, use `<span data-math="x" data-display="inline"></span>`. Display equations center the expression within the block and right-align its number, use automatic section-based numbers (1.1, 1.2, 2.1) generated by the AMS counter and rendered inside the formula SVG in parentheses at the right, and include one icon to copy their original LaTeX. For long derivations, use `aligned` to place complete equations or derivation steps on separate rows and align their relation symbols. The renderer does not split an equation automatically; if a complete row is still too wide, its block scrolls horizontally without shrinking the text. Imported equation SVGs with LaTeX labels are normalized to the same style. Use automatic numbering throughout an article; remove old hand-written eq-number labels when migrating. Count logical chapters from 1, including the overview; paired English and Chinese headings count as one chapter. Equation prefixes use the same chapter sequence as the contents.
-
-直接编写 SVG、Canvas、表格与 JavaScript。HTML 元素 `<div data-math="y=Ax"></div>` 会在构建时通过 MathJax 及其 AMS 扩展渲染为 SVG，支持离线显示。页内复用字形以减少重复路径；每个公式保留一个可访问的 LaTeX 名称，其视觉 SVG 对屏幕阅读器隐藏。行内公式使用 `<span data-math="x" data-display="inline"></span>`。独立公式的主体在块内居中、编号右对齐，按章节自动编号（1.1、1.2、2.1），编号由 AMS 自动计数，在公式 SVG 内排版，带圆括号并位于右侧，并提供一个复制原始 LaTeX 的图标。长推导使用 `aligned` 按完整等式或推导步骤分行，并对齐关系符号。渲染器不自动拆开一个等式；完整一行仍然过宽时，在块内横向滚动，不缩小字号。带有 LaTeX 标签的旧公式 SVG 也会统一排版。整篇文章统一自动编号，迁移时移除旧的手写 eq-number 标签。逻辑章节（含概览）从 1 开始计数，成对的中英文标题只算一章；公式前缀直接使用目录的同一章节序列。
-
-Numbering uses MathJax’s `tags: "ams"` counter, reset at each chapter. No generated `\tag` is inserted. Use `aligned` or `gathered` for one number on a multiline block; `align` or `gather` numbers individual rows and advances subsequent equations accordingly.
-
-编号使用 MathJax 的 `tags: "ams"` 计数器，每章重置，不插入生成的 `\tag`。多行共用一个编号时使用 `aligned` 或 `gathered`；逐行编号时使用 `align` 或 `gather`，后续公式序号自动顺延。
-
-The AMS extension supports environments such as `align`, `gather`, `cases`, and `pmatrix`, along with commands such as `\mathbb` and `\operatorname`. Put TeX directly in `data-math`, without dollar delimiters or `\usepackage`. Escape HTML attribute characters, for example `&amp;` for an alignment ampersand.
-
-AMS 扩展支持 `align`、`gather`、`cases`、`pmatrix` 等环境，以及 `\mathbb`、`\operatorname` 等命令。在 `data-math` 中直接写 TeX，不需要美元分隔符或 `\usepackage`。HTML 属性中的特殊字符需要转义，例如对齐用的与号写为 `&amp;`。
-
-Inline CSS in standalone articles is scoped to `.legacy-content` to avoid overriding site navigation; inline scripts are preserved. Use unique IDs or article-local selectors. Shared styles live in `src/styles/`, and interaction scripts in `src/scripts/`. Publish only HTML and scripts you trust.
-
-独立文章的内联 CSS 会限定在 `.legacy-content` 范围，避免覆盖站点导航；内联脚本会保留。请使用唯一 ID 或文章局部选择器。共享样式位于 `src/styles/`，交互脚本位于 `src/scripts/`。仅发布自己信任的 HTML 和脚本。
-
-All block code (including plain `pre`, highlighted fragments, editable examples, and compiler output) receives a compact toolbar with a language label on the left and one copy icon on the right, matching display equations. Copying preserves the current source and indentation without line numbers. Labels follow the language setting; if clipboard access is blocked, a selected text field allows manual copying. Inline code has no button. Do not add article-specific copy controls.
-
-所有块级代码（包括普通 `pre`、高亮片段、可编辑示例和编译输出）会自动添加紧凑工具栏：左侧标识代码语言，右侧显示与独立公式一致的复制图标。复制保留当前源码与缩进，不包含行号。提示遵循语言选择；剪贴板不可用时提供已选中的文本框供手动复制。行内代码不加按钮，无需在文章中手写复制控件。
-
-## Verify code without leaving the article / 在文章内验证代码
-
-Add `data-godbolt="rust"`, `data-godbolt="c++"`, or `data-godbolt="python"` to a complete example’s `<code>` element inside `<pre>`. The article receives an inline Compiler Explorer panel automatically. Editable examples have a line-number gutter, current-line highlight, and focus border. Pencil, copy, reset, and green play icons share the code toolbar; icon tooltips and accessible names follow the selected language. Rust, C++, and Python compile and run; diagnostics, stdout, stderr, exit status, and available assembly appear separately. Pseudocode should remain unmarked.
-
-在完整示例的 `<pre>` 内，为 `<code>` 添加 `data-godbolt="rust"`、`data-godbolt="c++"` 或 `data-godbolt="python"`，文章会自动出现站内 Compiler Explorer 面板。可编辑示例使用行号栏、当前行高亮与焦点边框；铅笔、复制、恢复和绿色播放图标集中在代码工具栏，图标的悬停提示与可访问名称跟随语言选择。Rust、C++ 与 Python 编译后运行，分别显示编译诊断、标准输出、标准错误、退出状态及可用的汇编。伪代码不要添加此标记。
-
-```html
-<pre><code data-godbolt="rust">fn main() {
-    println!("Hello");
-}</code></pre>
-```
-
-Requests go directly to the [Compiler Explorer API](https://github.com/compiler-explorer/compiler-explorer/blob/main/docs/API.md) only after a reader clicks the button. No navigation, API key, or server backend is required. The displayed compiler version and flags identify the check. Compilation alone does not prove runtime correctness; a failed network request is never shown as a passed check. Editing code or changing the example clears the old result and cancels any pending request. Edits are local to the page and are reset on reload or example switching; copy buttons copy the edited code. Optional `data-compiler`, `data-compiler-name`, and `data-compiler-options` attributes override the defaults.
-
-只有读者点击按钮后，才会直接请求 [Compiler Explorer API](https://github.com/compiler-explorer/compiler-explorer/blob/main/docs/API.md)。无需跳转、API 密钥或后端服务；面板显示编译器版本与参数。编译成功不证明运行正确，网络失败也不会显示为验证通过。编辑代码或切换示例会清除旧结果并取消尚未完成的请求。修改仅保留在当前页面，刷新或切换示例时恢复；复制按钮复制当前编辑的代码。可通过 `data-compiler`、`data-compiler-name` 和 `data-compiler-options` 覆盖默认配置。
-
-## Bilingual reading / 双语阅读
-
-On a first visit, IP countries/regions CN, HK, MO, and TW default to Chinese; other locations default to English. Readers can choose English, Chinese, or both, and their saved choice always takes priority. In bilingual mode, English is followed immediately by Chinese.
-
-首次访问时，IP 所在国家或地区为 CN、HK、MO、TW 时默认中文，其余默认英文。读者可选择英文、中文或双语，已保存的手动选择始终优先。双语模式中英文在前，对应中文紧随其后。
-
-Automatic language detection calls [Country](https://country.is/), which receives the visitor’s network IP. The site stores only the selected language, not the IP or country response. Automatic results are cached for the tab session; a saved manual preference skips the lookup. Browser language is used immediately and remains the fallback if the request fails or exceeds 2.5 seconds. VPNs may affect the country result. This README always displays English followed by Chinese.
-
-自动语言判断会请求 [Country](https://country.is/)，服务方会收到访客的网络 IP。本站只保存选中的语言，不保存 IP 或地区查询响应。自动结果在标签页会话中缓存；已有手动偏好时跳过查询。页面先按浏览器语言显示，查询失败或超过 2.5 秒则继续使用该语言。VPN 可能影响地区结果。本 README 始终按英文在前、中文紧随其后的顺序显示。
-
-Interface text comes from `scripts/i18n.mjs`; article titles, summaries, and both body languages live in each article HTML. The build preserves the order you write, derives the bilingual contents from headings, and renders formulas. For shared interactive experiments, keep any language dictionary inside the same HTML, as Spike Notes does.
-
-界面文字由 `scripts/i18n.mjs` 提供；文章标题、摘要与双语正文都在各自的 HTML 中。构建保留你编写的顺序，从标题提取双语目录并渲染公式。共享交互实验所需的语言词典也放在同一 HTML 内，脉冲长文已采用这种方式。
-
-Maintain English and Chinese together in the same file when editing. The build does not translate or assess translation accuracy. Existing articles pair their full explanations in English and Chinese; formulas and code are shared when appropriate. New articles must include both language markers; copy the bilingual template to begin.
-
-修改时在同一文件中同步维护英文和中文。构建不会翻译或判断译文准确性。现有文章的英文与中文完整说明成对排列，公式与代码按需共用。新文章必须包含两种语言标记，可直接复制双语模板开始编写。
-
-## Related reading / 相关阅读
-
-“Continue exploring” is recomputed during each build from published articles. Bilingual titles, tags, summaries, headings and body text contribute to TF-IDF cosine similarity; shared tags and nearby installments in the same series receive extra weight. Category is a small secondary signal, and publication date does not determine relevance. Code blocks, controls and roadmap links are excluded from body text. Up to three related articles are shown; weak matches are omitted. No external service or visitor tracking is required. Add a bilingual HTML article as usual and rebuild to update recommendations.
-
-“继续探索”在每次构建时根据已发布文章重新计算。中英文标题、标签、摘要、章节标题与正文参与 TF-IDF 余弦相似度计算，共同标签和同专题相邻期数额外加权。分类只作为较弱的辅助信号，发布日期不决定相关性。正文分析排除代码块、控件和专题预览链接。最多显示三篇，相关性不足时不强行补满。不依赖外部服务或访客追踪；照常新增双语 HTML 并构建即可更新推荐。
-
-## Search and AI discoverability / 搜索与 AI 可发现性
-
-Every build generates unique English-first bilingual titles and descriptions, canonical URLs, Open Graph and Twitter cards, and 1200 × 630 PNG sharing images. Article images use the English title as graphical text. Author, publication and revision dates, chapter anchors, and explicitly cited references are connected through Schema.org JSON-LD. The same static HTML contains both languages and the full article before JavaScript runs. The 404 page is marked `noindex`; drafts and redirects stay out of the sitemap. `npm test` checks these properties and runs automatically before deployment.
-
-每次构建自动生成各页独有、英文在前的双语标题与摘要、规范链接、Open Graph 与 Twitter 分享元信息，以及 1200 × 630 PNG 分享图；文章分享图以英文标题作为图中文字。作者、发布与更新日期、章节锚点和明确标注的参考链接通过 Schema.org JSON-LD 关联。同一个静态 HTML 在 JavaScript 运行前就包含双语完整正文。404 页面标记为 `noindex`，草稿与跳转页不进入站点地图。`npm test` 检查这些规则，并在部署前自动执行。
-
-Keep `titleEn`, `title`, `descriptionEn`, and `description` accurate in each article's metadata. Explain the result, assumptions, methods, and limits in visible bilingual prose, including a text explanation of interactive figures. Link primary sources where claims are made. Add `data-citation` to a source link to include it in structured citations; links inside `#references` containers and `.sources-grid` are also recognized. Only existing links are included. Do not invent sources, measurements, credentials, or update dates. Language buttons are reading modes on one URL; they are not separate `hreflang` editions.
-
-在文章元信息中准确填写 `titleEn`、`title`、`descriptionEn` 与 `description`。用可见的双语正文说明结论、假设、方法和局限，为交互图补充文字解释。在相关论述处链接原始来源；来源链接添加 `data-citation` 后会进入结构化引用，`#references` 容器与 `.sources-grid` 内的链接也会被识别。只收录实际存在的链接，不编造来源、测量结果、资历或更新日期。语言按钮是同一 URL 的阅读模式，不是独立的 `hreflang` 语言版本。
-
-One-time setup: add `https://dapengfeng.github.io/` as a URL-prefix property in Google Search Console and as a site in Bing Webmaster Tools. Choose HTML meta-tag verification and copy only the tag's `content` value into the repository's Actions variables `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` (Settings → Secrets and variables → Actions → Variables). Deploy, finish verification in each platform, then submit `https://dapengfeng.github.io/sitemap.xml`. Locally, the same environment variables populate the verification tags. Empty variables add no tags. Tokens are public verification identifiers, not account passwords. Account verification and sitemap submission have not been performed by this build.
-
-首次配置：在 Google Search Console 添加 `https://dapengfeng.github.io/` 网址前缀资源，在 Bing Webmaster Tools 添加同一站点。选择 HTML 元标签验证，只把标签的 `content` 值分别填入仓库的 Actions 变量 `GOOGLE_SITE_VERIFICATION` 与 `BING_SITE_VERIFICATION`（Settings → Secrets and variables → Actions → Variables）。部署后在平台完成验证，再提交 `https://dapengfeng.github.io/sitemap.xml`。本地构建也可使用同名环境变量；变量为空时不输出验证标签。这些值是公开验证标识，不是账号密码。构建不会代替账号验证和站点地图提交。
-
-These improvements support crawling, understanding, and attribution; they do not guarantee indexing, rankings, or AI citations. Google says no special GEO schema or `llms.txt` file is required. Monitor actual search queries and indexed pages in the webmaster platforms. See [Google's AI search guidance](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide).
-
-这些改进帮助抓取、理解和来源归属，但不保证收录、排名或 AI 引用。Google 说明无需专用 GEO 标记或 `llms.txt` 文件。请通过站长平台观察真实搜索词与页面收录情况。参见 [Google 的 AI 搜索指南](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide)。
-
-## Deploy to GitHub Pages / 部署到 GitHub Pages
-
-In the repository, go to Settings → Pages → Build and deployment → Source and select **GitHub Actions**. Pushes to `main` or `master` then trigger `.github/workflows/deploy.yml` to build, check, and deploy `dist/`. Pull requests into these branches also build and check the site, without publishing. The workflow installs the pinned Chromium and requires unit and browser checks to pass before publishing. Logs, suite results, and available accessibility or layout details are retained as artifacts for 14 days. Build and deployment jobs are limited to 30 and 10 minutes respectively; Pages write permissions belong only to the deployment job. Manual runs are available through `workflow_dispatch`, and only `main` or `master` can publish. Local edits do not push or publish themselves.
-
-在仓库 Settings → Pages → Build and deployment → Source 中选择 **GitHub Actions**。随后向 `main` 或 `master` 推送，会触发 `.github/workflows/deploy.yml` 自动构建、检查并部署 `dist/`。合入这些分支的 PR 也会构建和检查，但不会发布。工作流安装锁定版本的 Chromium，单元测试和浏览器检查全部通过后才发布；日志、逐项结果及可用的无障碍或排版明细会作为附件保留 14 天。构建和部署分别限时 30 分钟、10 分钟，只有部署任务具有 Pages 写权限。也支持通过 `workflow_dispatch` 手动运行，只有 `main` 或 `master` 分支允许发布。本地修改不会自行推送或发布。
-
-The site uses the root path `/` and targets `https://dapengfeng.github.io`. A project site under a subpath requires a consistent path prefix. Historical date-based article URLs retain redirects. The three newly added HTML articles use the first-push date `2026-09-23`; historical notes retain their recorded dates.
-
-站点使用根路径 `/`，目标地址为 `https://dapengfeng.github.io`。若改成项目子路径站点，需要统一配置路径前缀。历史日期式文章链接保留跳转。三篇新加入的 HTML 文章采用首次推送日期 `2026-09-23`，历史笔记保留原有记录日期。
-
-## Where the implementation lives / 实现位置
-
-- `scripts/templates.mjs`
-
-  Shared HTML page templates.
-
-  共享 HTML 页面模板。
-
-- `scripts/content.mjs`
-
-  HTML discovery, metadata validation, tables of contents, and style scoping.
-
-  HTML 扫描、元信息校验、目录生成与样式隔离。
-
-- `scripts/build.mjs`
-
-  Static pages, RSS, the search index, and the sitemap.
-
-  静态页面、RSS、搜索索引与站点地图。
-
-- `src/scripts/surface.js`
-
-  The animated 3D surface drawn with native Canvas.
-
-  使用原生 Canvas 绘制的三维动态曲面。
-
-- `src/scripts/benchmark-worker.js`
-
-  Measurements on the reader’s device, retaining all raw samples.
-
-  在读者设备上实际测量，保留全部原始样本。
-
-### Reader-first diagrams / 面向阅读的示意图
-
-Show the complete result or comparison before asking readers to operate controls. Use short, finite animation for causal processes; keep parameter comparisons on shared scales. The shared `reading-demos.js` controller plays once in view, pauses offscreen, yields to reader input, and displays the complete diagram for reduced-motion preferences. Code execution and benchmarks remain explicitly triggered.
-
-先展示完整结果或对照，再提供操作控件。因果过程使用短时、有限的动画；参数对比使用统一坐标尺度。共享的 `reading-demos.js` 控制器进入视野后演示一次，离开视野时暂停，读者操作后停止自动接管；减少动态效果模式直接显示完整示意。代码执行与基准测试仍需主动触发。
-
-The process diagrams also interpolate positions continuously: transpose versus copying, packed-storage mappings, two-output symmetric updates, GPU address ownership, a Frank–Wolfe line search, a LIF event, and wave superposition. Numerical models live in `process-models.js`; rendering lives in `process-demos.js`. Spatial animation pauses with the shared controller. Reset events retain the same physical timestamp; GPU particles represent address mappings, not execution timing.
-
-过程图还支持位置的连续插值：转置与复制、紧凑存储映射、对称矩阵的两路更新、GPU 地址归属、Frank–Wolfe 线搜索、LIF 事件及波的叠加。数值模型位于 `process-models.js`，绘图位于 `process-demos.js`。空间动画由共享控制器暂停与恢复；复位事件保持相同的物理时刻，GPU 粒子表示地址映射而非执行时序。
+文章写作、排版规范、开发检查、部署与服务配置统一放在[文档索引](docs/README.md)中。

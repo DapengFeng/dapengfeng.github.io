@@ -38,13 +38,12 @@ try{
  const cf=page.frames().find(f=>f.url().includes('giscus.app')&&new URL(f.url()).searchParams.get('category')==='General');
  assert.equal(await cf.evaluate(()=>configs.at(-1).lang),'zh-CN');
  assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
- const fallback=page.locator('#discussion-comment [data-discussion-link]'),old=await fallback.getAttribute('href');
+ const status=page.locator('#discussion-comment .discussion-status');
+ assert.equal(await page.locator('[data-discussion-link]').count(),0);
  await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{origin:'https://giscus.app',source:window,data:{giscus:{discussion:{url:'https://github.com/DapengFeng/dapengfeng.github.io/discussions/10'}}}})));
- assert.equal(await fallback.getAttribute('href'),old,'same origin string but wrong source is ignored');
- await cf.evaluate(()=>parent.postMessage({giscus:{discussion:{url:'javascript:alert(1)'}}},'*'));
- assert.equal(await fallback.getAttribute('href'),old);
+ assert.ok(await status.isVisible(),'same origin string but wrong source is ignored');
  await cf.evaluate(()=>parent.postMessage({giscus:{discussion:{url:'https://github.com/DapengFeng/dapengfeng.github.io/discussions/10'}}},'*'));
- await page.waitForFunction(()=>document.querySelector('#discussion-comment [data-discussion-link]').href.endsWith('/10'));
+ await page.waitForFunction(()=>document.querySelector('#discussion-comment .discussion-status').hidden);
  await cf.evaluate(()=>parent.postMessage({giscus:{error:'giscus is not installed on this repository'}},'*'));
  await page.waitForFunction(()=>document.querySelector('#discussion-comment .discussion-status').textContent.includes('接入'));
  for(const language of ['en','zh','both']){

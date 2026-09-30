@@ -20,7 +20,7 @@ export function discussions(post) {
  ${discussionKinds.map((k,i)=>`<div class="discussion-thread" id="discussion-${k.id}" ${i?'hidden':''} data-kind="${k.id}" data-term="${e(discussionTerm(post.url,k.id))}" data-category="${k.category}" data-category-id="${k.categoryId}">
  <p class="discussion-status" role="status" hidden>${pair('Loading GitHub discussion…','正在加载 GitHub 讨论…')}</p>
  <div class="discussion-embed"></div>
- <div class="discussion-fallback"><a data-discussion-link href="${root}?discussions_q=${encodeURIComponent('"'+discussionTerm(post.url,k.id)+'"') }" target="_blank" rel="noopener noreferrer">${pair('View this thread on GitHub ↗','在 GitHub 查看此讨论 ↗')}</a><button type="button" class="discussion-retry" hidden>${pair('Reload','重新加载',true)}</button></div>
+ <button type="button" class="discussion-retry" hidden>${pair('Reload','重新加载',true)}</button>
  </div>`).join('')}
  </div>
  <noscript><p>${pair('JavaScript is required for embedded comments. You can also join the discussion on GitHub.','内嵌评论需要 JavaScript，也可前往 GitHub 参与讨论。')}</p></noscript>
