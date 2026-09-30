@@ -29,14 +29,12 @@ try{
  assert.equal(requests[0].searchParams.get('session'),'');
  assert.equal(requests[0].searchParams.get('theme'),'dark');
  assert.match(await shell.getAttribute('class'),/is-floating/);
- await page.locator('[data-discussion-kind=idea]').click();
- await page.frameLocator('#discussion-idea iframe').locator('#draft').fill('An idea');
- assert.equal(requests[1].searchParams.get('category'),'Ideas');
- assert.notEqual(requests[1].searchParams.get('term'),requests[0].searchParams.get('term'));
- await page.locator('[data-discussion-kind=comment]').click();
- assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
+ assert.equal(await page.locator('.discussion-thread').count(),1);
+ assert.equal(await page.locator('[data-discussion-kind]').count(),0);
+ assert.equal(requests[0].searchParams.get('term'),'/blog/pytorch-01-what-is-pytorch.html · comment');
+ assert.equal(new URL(requests[0].searchParams.get('origin')).search,'','auth return no longer carries a type');
  await page.locator('.discussion-close').click();await launcher.click();
- assert.equal(requests.length,2);assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
+ assert.equal(requests.length,1);assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
  await page.locator('[data-language-choice=zh]').click();
  await page.waitForFunction(()=>document.querySelector('#discussion-comment .discussion-status').textContent.includes('暂无发言'));
  const cf=page.frames().find(f=>f.url().includes('giscus.app')&&new URL(f.url()).searchParams.get('category')==='General');
@@ -66,22 +64,30 @@ try{
  await page.locator('#article-discussions').scrollIntoViewIfNeeded();
  await page.waitForFunction(()=>document.querySelector('.discussion-launcher').hidden);
  assert.equal(await comment.locator('#draft').inputValue(),'A scientific question — 未提交草稿');
- await page.locator('[data-discussion-kind=discussion]').click();
- await page.frameLocator('#discussion-discussion iframe').locator('#draft').fill('A discussion');
- assert.equal(new Set(requests.map(r=>r.searchParams.get('term'))).size,3);
+ assert.ok(!await page.locator('.discussion-toolbar').isVisible(),'no redundant toolbar inline');
+ assert.equal(await page.locator('.discussion-frame').count(),1);
+ // Old category links and OAuth callbacks now return to the same article thread.
  await page.goto('http://localhost:4206/blog/matrix-multiplication.html?discussion=idea&giscus=mock-session');
- await page.frameLocator('#discussion-idea iframe').locator('#draft').waitFor();
+ await page.frameLocator('#discussion-comment iframe').locator('#draft').waitFor();
  assert.ok(!page.url().includes('giscus='),'callback credential removed from address bar');
+ assert.ok(!page.url().includes('discussion='),'legacy category removed from address bar');
  assert.equal(requests.at(-1).searchParams.get('session'),'mock-session');
- assert.equal(requests.at(-1).searchParams.get('term'),'/blog/matrix-multiplication.html · idea');
- const idea=page.frames().find(f=>f.url().includes('giscus.app'));
- await idea.evaluate(()=>parent.postMessage({giscus:{signOut:true}},'*'));
+ assert.equal(requests.at(-1).searchParams.get('term'),'/blog/matrix-multiplication.html · comment');
+ const authenticated=page.frames().find(f=>f.url().includes('giscus.app'));
+ await authenticated.evaluate(()=>parent.postMessage({giscus:{signOut:true}},'*'));
  await page.waitForFunction(()=>!localStorage.getItem('giscus-session'));
- // Background warming loads only the selected thread and reuses its editor.
+ for(const kind of ['comment','idea','discussion']){
+  await page.goto('http://localhost:4206/blog/matrix-multiplication.html?discussion='+kind);
+  await page.frameLocator('#discussion-comment iframe').locator('#draft').waitFor();
+  assert.equal(await launcher.getAttribute('aria-expanded'),'true');
+  assert.equal(requests.at(-1).searchParams.get('term'),'/blog/matrix-multiplication.html · comment');
+  assert.equal(requests.at(-1).searchParams.get('category'),'General');
+ }
+ // Background warming loads one thread and reuses its editor.
  await page.goto('http://localhost:4206/blog/pytorch-01-what-is-pytorch.html');
  const beforeWarm=requests.length;
  await page.frameLocator('#discussion-comment iframe').locator('#draft').waitFor();
- assert.equal(requests.length,beforeWarm+1,'one idle preload, not three');
+ assert.equal(requests.length,beforeWarm+1,'one idle preload');
  assert.equal(await page.locator('.discussion-launcher').getAttribute('aria-expanded'),'false');
  const warmed=page.frames().find(f=>f.url().includes('giscus.app'));
  assert.deepEqual(await warmed.evaluate(()=>configs),[],'initial locale needs no config navigation');
