@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import { escape as e, site } from './config.mjs';
 export const dictionary = {
+ '旅行与见闻':'Travel & Journals','沿途的风景，与日常之外的观察':'Landscapes and observations beyond the everyday','九寨沟':'Jiuzhaigou','游记':'Travel journal','山水':'Landscapes','摄影':'Photography',
  '让知识，变得可见':'Ideas, made visible','知识分类':'Topics','关于实验室':'About the lab','按首次分享时间，回看每一次探索。后续更新保留首次发布日期。':'Revisit each exploration by its first publication date. Later edits keep the original date.',
  '知识实验室':'Knowledge Lab','探索':'Explore','知识库':'Notebook','分类':'Topics','时间线':'Timeline','关于':'About',
  '搜索知识':'Search','跳到主要内容':'Skip to content','FENG 知识实验室首页':'FENG Knowledge Lab home','展开导航':'Open navigation','GitHub（新窗口）':'GitHub (new window)',
@@ -22,7 +23,7 @@ export const dictionary = {
  '从一个问题开始，在公式、图形与实验之间找到答案。':'Begin with a question. Explore equations, diagrams, and experiments.',
  '筛选标题、摘要与标签…':'Filter titles, summaries, and tags…','筛选知识库':'Filter the notebook','没有找到匹配的笔记':'No matching notes found',
  '试试其他关键词，或换一个探索方向。':'Try another keyword or explore a different topic.','清除筛选 →':'Clear filters →','完整归档 →':'Complete archive →',
- '四个方向，无限联结':'Four fields. Infinite connections','建立索引，也发现知识之间的联系。':'Map the ideas. Discover the connections.','浏览分类':'Explore topic',
+ '不同方向，无限联结':'Different fields. Infinite connections','建立索引，也发现知识之间的联系。':'Map the ideas. Discover the connections.','浏览分类':'Explore topic',
  '想法的时间线':'A timeline of ideas','按分享时间，回看每一次探索。原始发布日期不详的文章，明确标注收录日期。':'Revisit each exploration, ordered by its first publication date.',
  '发布':'Published','收录':'Added','更新':'Updated','早期记录':'Early notes', '你好，我是冯大鹏':'Hi, I’m Dapeng Feng','这是我的个人知识实验室。':'Welcome to my personal knowledge lab.',
  '把抽象的概念，变成可以观察的东西。':'Turn abstract concepts into things you can observe.',

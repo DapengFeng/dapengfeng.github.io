@@ -12,6 +12,7 @@ import {optimizePage,renderSharingImage,sharingImage} from './seo.mjs';
 export async function build(){
  const posts=await loadContent(),series=collectSeries(posts),recommend=createRelatedRecommender(posts);
  await fs.rm('dist',{recursive:true,force:true});await fs.mkdir('dist/assets',{recursive:true});
+ await fs.cp('content/assets','dist/assets/content',{recursive:true});
  async function write(file,content){await fs.mkdir(path.dirname('dist/'+file),{recursive:true});await fs.writeFile('dist/'+file,content);}
  const pages=[['index.html',templates.home(posts)],['blog/index.html',templates.library(posts)],['categories/index.html',templates.categoryPage(posts)],['archive/index.html',templates.archive(posts)],['about/index.html',templates.about()],['404.html',templates.shell({title:'未找到页面',body:'<main id="main" class="site-width page-heading"><span class="overline">404 / UNCHARTED TERRITORY</span><h1>这里还没有留下笔记。</h1><a class="lime-button" href="/">返回首页 →</a></main>'})]];
  for(const group of series)pages.push([group.url.slice(1)+'index.html',templates.seriesPage(group)]);
