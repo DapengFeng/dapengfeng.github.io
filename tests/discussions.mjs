@@ -9,7 +9,8 @@ try{
  await page.addInitScript(()=>localStorage.setItem('feng-language','en'));
  await page.route('https://giscus.app/**',route=>{
   requests.push(new URL(route.request().url()));
-  return route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="en"><title>GitHub test widget</title><body style="background:#222;color:white"><label>Comment <textarea id="draft"></textarea></label><script>
+  const theme=requests.at(-1).searchParams.get('theme');
+  return route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="en"><title>GitHub test widget</title><link rel="stylesheet" crossorigin="anonymous" href="${theme}"><body style="background:#222;color:white"><div class="gsc-left-header"><h4 class="gsc-comments-count">0 comments</h4><em>– Powered by / 由 <a href="https://giscus.app">giscus</a> 提供支持</em></div><p id="reader-content"><em>A reader’s reference to <a href="https://giscus.app">giscus</a></em></p><label>Comment <textarea id="draft"></textarea></label><script>
    window.configs=[];addEventListener('message',e=>{if(e.data.giscus?.setConfig)configs.push(e.data.giscus.setConfig)});
    parent.postMessage({giscus:{resizeHeight:320}},'*');
    parent.postMessage({giscus:{error:'Discussion not found'}},'*');
@@ -27,7 +28,10 @@ try{
  assert.equal(requests.length,1);assert.equal(requests[0].searchParams.get('strict'),'1');
  assert.equal(requests[0].searchParams.get('backLink'),'https://dapengfeng.github.io/blog/pytorch-01-what-is-pytorch.html');
  assert.equal(requests[0].searchParams.get('session'),'');
- assert.equal(requests[0].searchParams.get('theme'),'dark');
+ assert.equal(requests[0].searchParams.get('theme'),'http://localhost:4206/assets/giscus-theme.css');
+ await comment.locator('.gsc-left-header>em').waitFor({state:'hidden'});
+ assert.ok(await comment.locator('.gsc-comments-count').isVisible());
+ assert.ok(await comment.locator('#reader-content em').isVisible(),'reader content is never hidden by branding styles');
  assert.match(await shell.getAttribute('class'),/is-floating/);
  assert.equal(await page.locator('.discussion-thread').count(),1);
  assert.equal(await page.locator('[data-discussion-kind]').count(),0);

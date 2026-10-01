@@ -5,7 +5,6 @@
 #article-content a[href]:not(:where(.brand,.skip,.primary-link,.back-top,[role="button"])):visited{color:#cfbce9;text-decoration-color:#a78dbf}
 #article-content a[href]:not(:where(.brand,.skip,.primary-link,.back-top,[role="button"])):hover{color:#d0ecff;background:#9ed5ff14;text-decoration-thickness:2px;text-decoration-color:currentColor}
 #article-content a[href]:focus-visible{outline:2px solid #9ed5ff;outline-offset:3px;border-radius:2px}
-#article-content a[data-external-link]:not([data-link-arrow])::after{content:"";display:inline-block;width:.75em;height:.75em;margin-left:.2em;vertical-align:baseline;background:currentColor;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 12 12 4M4 4h8v8' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
 #article-content a[href] code{color:inherit}
 #article-content,#article-content .legacy-content,#article-content .prose{font-size:18px;line-height:1.85;color:#e8eddf;--muted:#bdc7b5}
 #article-content :is(p,.parallel-text){font-size:18px;line-height:1.85}

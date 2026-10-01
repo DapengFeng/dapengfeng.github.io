@@ -4,9 +4,9 @@
 
 ## Typography and links / 字号与链接
 
-Use the shared reading styles: 18px body text, 16px code and controls, and space between content blocks. Use `lesson-note` for explanations and `lesson-scroll` for wide tables. Keep essential explanations readable when making diagrams compact. Link text should name the destination document, API, or source file and symbol. The site adds link styling and external-link arrows; do not add duplicate arrows.
+Use the shared reading styles: 18px body text, 16px code and controls, and space between content blocks. Use `lesson-note` for explanations and `lesson-scroll` for wide tables. Keep essential explanations readable when making diagrams compact. Link text should name the destination document, API, or source file and symbol. The site uses underlines, color, and hover/focus feedback to identify links. Do not append decorative diagonal arrows.
 
-使用共用阅读样式：正文 18px，代码与控件文字 16px，内容块之间留出空隙。说明使用 `lesson-note`，宽表格使用 `lesson-scroll`。压缩图示布局时保留关键说明的可读性。链接文字应写明目标文档、API 或源码文件与符号；站点会添加链接样式与外链箭头，不要重复添加箭头。
+使用共用阅读样式：正文 18px，代码与控件文字 16px，内容块之间留出空隙。说明使用 `lesson-note`，宽表格使用 `lesson-scroll`。压缩图示布局时保留关键说明的可读性。链接文字应写明目标文档、API 或源码文件与符号；站点通过下划线、颜色以及悬停和焦点反馈标识链接，不附加装饰性的右上角箭头。
 
 [The article template](../../examples/article.html) includes bilingual paragraphs, inline and numbered AMS equations, highlighted C++ fragments, an editable complete C++ program, a shared interactive figure, a table, and explanation blocks. Copy its source into content/posts/ and build to preview the site styling and controls.
 

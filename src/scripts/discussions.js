@@ -51,7 +51,7 @@
   if(frame)return;
   const origin=new URL(location.pathname,location.origin);
   origin.hash='article-discussions';
-  const params=new URLSearchParams({origin:origin.href,session,repo:root.dataset.repo,repoId:root.dataset.repoId,category:thread.dataset.category,categoryId:thread.dataset.categoryId,term:thread.dataset.term,strict:'1',description:root.dataset.description,backLink:root.dataset.backlink,theme:'dark',reactionsEnabled:'1',emitMetadata:'1',inputPosition:'top'});
+  const params=new URLSearchParams({origin:origin.href,session,repo:root.dataset.repo,repoId:root.dataset.repoId,category:thread.dataset.category,categoryId:thread.dataset.categoryId,term:thread.dataset.term,strict:'1',description:root.dataset.description,backLink:root.dataset.backlink,theme:new URL('/assets/giscus-theme.css',location.origin).href,reactionsEnabled:'1',emitMetadata:'1',inputPosition:'top'});
   frame=document.createElement('iframe');
   frame.title=text('GitHub discussion','GitHub 讨论');
   frame.className='discussion-frame';frame.allow='clipboard-write';frame.referrerPolicy='strict-origin-when-cross-origin';
