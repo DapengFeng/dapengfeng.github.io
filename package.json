@@ -27,15 +27,18 @@
     "test:autograd": "node tests/autograd.mjs",
     "test:cuda-streams": "node tests/cuda-streams.mjs",
     "test:compile": "node tests/compile.mjs",
-    "test:discussions": "node tests/discussions.mjs"
+    "test:discussions": "node tests/discussions.mjs",
+    "test:sharing": "node tests/sharing.mjs"
   },
   "devDependencies": {
     "@mathjax/src": "4.1.3",
     "@playwright/test": "1.55.1",
     "axe-core": "4.10.3",
     "cheerio": "1.1.2",
+    "jsqr": "1.4.0",
     "postcss": "8.5.28",
     "postcss-prefix-selector": "2.1.1",
+    "qrcode": "1.5.4",
     "sharp": "0.35.4"
   }
 }

@@ -28,6 +28,7 @@ Use these guides to write articles, maintain the site, and configure publishing.
 | [GitHub Pages deployment / GitHub Pages 部署](operations/deployment.md) | Repository settings, Actions, branches, permissions, and historical URLs.<br>仓库设置、Actions、分支、权限与历史链接。 |
 | [Search and AI discoverability / 搜索与 AI 可发现性](operations/discoverability.md) | Metadata, citations, SEO/GEO, verification variables, and sitemap submission.<br>元信息、引用、SEO/GEO、验证变量与站点地图提交。 |
 | [GitHub Discussions / GitHub 讨论](operations/discussions.md) | giscus setup, article mapping, message types, login, and draft behavior.<br>giscus 配置、文章关联、发言类型、登录与草稿行为。 |
+| [Article sharing / 文章分享](operations/sharing.md) | Platform sharing, QR codes, image generation, language selection, and compatibility.<br>平台分享、二维码、图片生成、语言选择与兼容性。 |
 
 ## Keep the guides current / 文档维护
 
