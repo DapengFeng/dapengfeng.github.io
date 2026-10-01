@@ -32,7 +32,7 @@ export const dictionary = {
  '这个实验室里有什么？':'What’s inside the lab?',
  '数学与算法的图形解释，物理与动力系统的交互模型，系统编程的经验，以及基准测试的设计与测量方法。':'Visual explanations of mathematics and algorithms, interactive physical and dynamical models, systems programming notes, and experiments in benchmarking.',
  '在 GitHub 找到我':'Find me on GitHub','通过 RSS 订阅 →':'Subscribe via RSS →','知识笔记':'Field notes','本篇目录':'In this note','文章目录':'Table of contents',
- '短篇笔记':'Short note','回到顶部 ↑':'Back to top ↑','打印 / 保存 PDF':'Print / Save PDF','继续探索':'Keep exploring','返回知识库 →':'Back to notebook →',
+ '短篇笔记':'Short note','回到顶部 ↑':'Back to top ↑','继续探索':'Keep exploring','返回知识库 →':'Back to notebook →',
  '凸优化':'Convex optimization','矩阵计算':'Matrix computation','性能优化':'Performance','动力系统':'Dynamical systems','交互实验':'Interactive lab','内存安全':'Memory safety','线性代数':'Linear algebra','存储布局':'Memory layout','早期项目':'Early project','计算机视觉':'Computer vision','波动':'Waves','相位':'Phase',
  '原文未标注发布日期；以上为本站收录日期。':'The original did not specify a publication date; the date above records its addition to this site.',
  '未找到页面':'Page not found','这里还没有留下笔记。':'There isn’t a note here yet.','返回首页 →':'Back to the lab →',

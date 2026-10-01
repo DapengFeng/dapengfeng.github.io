@@ -46,7 +46,6 @@
    }finally{button.disabled=false;}
   });
  });
- document.getElementById('print-article').addEventListener('click',()=>print());
  function reveal(){if(!location.hash)return;let target;try{target=document.getElementById(decodeURIComponent(location.hash.slice(1)));}catch{return;}if(!target)return;for(let node=target.parentElement;node;node=node.parentElement)if(node.tagName==='DETAILS')node.open=true;}
  window.addEventListener('hashchange',reveal);reveal();update();
 })();
