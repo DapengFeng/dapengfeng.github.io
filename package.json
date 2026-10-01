@@ -27,6 +27,7 @@
     "test:autograd": "node tests/autograd.mjs",
     "test:cuda-streams": "node tests/cuda-streams.mjs",
     "test:compile": "node tests/compile.mjs",
+    "test:vision": "node tests/vision.mjs",
     "test:discussions": "node tests/discussions.mjs",
     "test:sharing": "node tests/sharing.mjs"
   },
@@ -39,6 +40,7 @@
     "postcss": "8.5.28",
     "postcss-prefix-selector": "2.1.1",
     "qrcode": "1.5.4",
-    "sharp": "0.35.4"
+    "sharp": "0.35.4",
+    "three": "0.180.0"
   }
 }

@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import { escape as e, site } from './config.mjs';
 export const dictionary = {
  '旅行与见闻':'Travel & Journals','沿途的风景，与日常之外的观察':'Landscapes and observations beyond the everyday','九寨沟':'Jiuzhaigou','游记':'Travel journal','山水':'Landscapes','摄影':'Photography',
+ '生命与神经科学':'Life & Neuroscience','从细胞结构到神经计算':'From cell structure to neural computation','视网膜':'Retina','神经科学':'Neuroscience','视觉':'Vision','信号处理':'Signal processing',
  '让知识，变得可见':'Ideas, made visible','知识分类':'Topics','关于实验室':'About the lab','按首次分享时间，回看每一次探索。后续更新保留首次发布日期。':'Revisit each exploration by its first publication date. Later edits keep the original date.',
  '知识实验室':'Knowledge Lab','探索':'Explore','知识库':'Notebook','分类':'Topics','时间线':'Timeline','关于':'About',
  '搜索知识':'Search','跳到主要内容':'Skip to content','FENG 知识实验室首页':'FENG Knowledge Lab home','展开导航':'Open navigation','GitHub（新窗口）':'GitHub (new window)',

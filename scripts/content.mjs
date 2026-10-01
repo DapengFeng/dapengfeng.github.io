@@ -59,7 +59,7 @@ export async function parseContent(file) {
   if (data.draft) return null;
   if (data.date instanceof Date) data.date = data.date.toISOString().slice(0, 10);
   if (!data.title || !/^\d{4}-\d{2}-\d{2}$/.test(data.date || '') || new Date(data.date).toISOString().slice(0,10) !== data.date) throw new Error(`${file}: title and valid YYYY-MM-DD date are required. Use HTML meta or article-metadata JSON.`);
-  if (!categories.some(c => c.id === data.category)) throw new Error(`${file}: category must be math, physics, systems or benchmark.`);
+  if (!categories.some(c => c.id === data.category)) throw new Error(`${file}: category must be one of ${categories.map(c => c.id).join(', ')}.`);
   if (data.updated && (!/^\d{4}-\d{2}-\d{2}$/.test(data.updated) || data.updated < data.date)) throw new Error(`${file}: updated must be YYYY-MM-DD and not precede date.`);
   if (data.tags && !Array.isArray(data.tags)) throw new Error(`${file}: tags must be an array.`);
   // Both languages are authored in this file, in reading order. No translation lookup.
