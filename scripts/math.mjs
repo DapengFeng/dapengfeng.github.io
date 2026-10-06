@@ -3,6 +3,7 @@ import {TeX} from '@mathjax/src/js/input/tex.js';
 import {SVG} from '@mathjax/src/js/output/svg.js';
 import {liteAdaptor} from '@mathjax/src/js/adaptors/liteAdaptor.js';
 import {RegisterHTMLHandler} from '@mathjax/src/js/handlers/html.js';
+import {escape as escapeHtml} from './config.mjs';
 import '@mathjax/src/js/util/asyncLoad/esm.js';
 import '@mathjax/src/js/input/tex/base/BaseConfiguration.js';
 import '@mathjax/src/js/input/tex/ams/AmsConfiguration.js';
@@ -22,6 +23,36 @@ const math = mathjax.document('', {
   OutputJax: svg
 });
 export function mathStyles() { return adaptor.cssText(svg.styleSheet(math)); }
+
+// Independent equations can be switched without a browser MathJax runtime
+// or a page-wide glyph cache. Keep their rendering separate from article counters.
+const standaloneSvg = new SVG({fontCache: 'local', useXlink: false, linebreaks: {inline: false}});
+await standaloneSvg.font.loadDynamicFiles();
+const standaloneMath = mathjax.document('', {
+  InputJax: new TeX({packages: ['base', 'ams', 'newcommand'], tags: 'none',
+    formatError(_jax, error) { throw new Error(`Invalid LaTeX: ${error.message}`); }}),
+  OutputJax: standaloneSvg
+});
+function renderStandaloneMath(latex, display) {
+  const node = standaloneMath.convert(latex, {display, em: 16, ex: 8, containerWidth: 1280});
+  adaptor.setAttribute(node, 'role', 'math');
+  adaptor.setAttribute(node, 'aria-label', latex);
+  for (const image of adaptor.tags(node, 'svg')) {
+    adaptor.setAttribute(image, 'aria-hidden', 'true');
+    adaptor.setAttribute(image, 'focusable', 'false');
+    adaptor.removeAttribute(image, 'role');
+  }
+  return adaptor.outerHTML(node);
+}
+export function renderDisplayMath(latex) { return renderStandaloneMath(latex, true); }
+export function renderInlineMathText(text) {
+  let html = '', cursor = 0;
+  for (const match of text.matchAll(/\\\(([\s\S]*?)\\\)/g)) {
+    html += escapeHtml(text.slice(cursor, match.index)) + renderStandaloneMath(match[1], false);
+    cursor = match.index + match[0].length;
+  }
+  return html + escapeHtml(text.slice(cursor));
+}
 function typeset(latex, inline) {
   // AMS owns the counter. Bare display expressions get a numbered equation environment.
   const environment = /^\s*\\begin\{(?:equation|align|alignat|flalign|gather|multline|eqnarray)\*?\}/.test(latex);

@@ -10,7 +10,34 @@ const browser=await chromium.launch({...(executablePath?{executablePath}:{}),hea
 const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
 try{
  await page.goto('http://localhost:4175/');assert.equal(await page.locator('.featured-card').count(),visiblePosts.filter(p=>p.featured).length);await page.locator('[data-language-choice="en"]').click();assert.equal(await page.locator('.hero-copy h1 [data-lang="zh"]').isVisible(),false);await page.reload();assert.equal(await page.locator('[data-language-choice="en"]').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('select#site-language').count(),0);
- await page.locator('#surface-frequency').fill('2.4');await page.locator('#surface-frequency').dispatchEvent('input');assert.equal(await page.locator('#frequency-value').textContent(),'2.4');await page.locator('#surface-toggle').click();assert.equal(await page.locator('#surface-toggle').getAttribute('aria-pressed'),'true');
+ await page.waitForSelector('[data-daily-math][data-rendered="true"]');assert.equal(await page.locator('#surface-toggle').count(),0);
+ // Navigation follows scroll direction, but never hides during keyboard, menu, or search use.
+ await page.emulateMedia({reducedMotion:'reduce'});
+ const header=page.locator('.lab-header');
+ const scrollTo=async y=>{
+  await page.evaluate(y=>{document.activeElement?.blur();window.scrollTo({top:y,behavior:'instant'});},y);
+  await page.evaluate(()=>new Promise(requestAnimationFrame));
+ };
+ for(const width of [1440,390]){
+  await page.setViewportSize({width,height:900});await scrollTo(0);
+  const mainTop=await page.locator('#main').evaluate(n=>n.getBoundingClientRect().top+scrollY);
+  await scrollTo(500);await page.waitForFunction(()=>document.querySelector('.lab-header').classList.contains('is-retracted'));
+  assert.ok((await header.boundingBox()).y+(await header.boundingBox()).height<=0,'navigation leaves the reading area');
+  assert.equal(await page.locator('#main').evaluate(n=>n.getBoundingClientRect().top+scrollY),mainTop,'retracting navigation must not shift page content');
+  await scrollTo(450);await page.waitForFunction(()=>!document.querySelector('.lab-header').classList.contains('is-retracted'));
+  await scrollTo(550);await page.waitForFunction(()=>document.querySelector('.lab-header').classList.contains('is-retracted'));
+  await page.keyboard.press('Tab');assert.equal(await header.evaluate(n=>n.classList.contains('is-retracted')),false,'keyboard navigation reveals the header');
+  if(width===390){
+   await scrollTo(0);await page.locator('.mobile-menu').click();await scrollTo(600);
+   assert.equal(await header.evaluate(n=>n.classList.contains('is-retracted')),false,'expanded menu remains visible');
+   await page.keyboard.press('Escape');assert.equal(await page.locator('.mobile-menu').getAttribute('aria-expanded'),'false');
+  }
+  await scrollTo(0);await scrollTo(700);await page.waitForFunction(()=>document.querySelector('.lab-header').classList.contains('is-retracted'));
+  await page.keyboard.press('Control+k');await page.waitForSelector('#knowledge-search[open]');
+  assert.equal(await header.evaluate(n=>n.classList.contains('is-retracted')),false,'search reveals navigation');
+  await page.keyboard.press('Escape');await scrollTo(0);
+ }
+ await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
  await page.locator('.search-trigger').click();await page.locator('#global-search').fill('EventProp');await page.waitForSelector('.search-result');assert.equal(await page.locator('.search-results a[href="/blog/spike_notes.html"]').count(),1);await page.keyboard.press('Escape');assert.equal(await page.locator('dialog').isVisible(),false);
  await page.goto('http://localhost:4175/blog/?category=physics');assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),1);await page.locator('[data-category-filter="all"]').click();await page.locator('#library-search').fill('CUDA Rust');assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),1);await page.locator('#library-search').fill('no-such-result-1234');assert.equal(await page.locator('.empty-state').isVisible(),true);await page.locator('[data-reset-filters]').click();assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),visiblePosts.length);
  await page.goto('http://localhost:4175/blog/spike_notes.html');assert.equal(await page.locator('.paired-article').count(),1);assert.equal(await page.locator('.article-toc nav a').count(),8);assert.ok(await page.locator('.parallel-text').count()>=170,'full bilingual article remains present');

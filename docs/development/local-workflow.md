@@ -48,11 +48,17 @@ See [testing and validation](testing.md) for browser installation, test coverage
 
   静态页面、RSS、搜索索引与站点地图。
 
-- `src/scripts/surface.js`
+- `src/scripts/surface.js`, `src/scripts/daily-math*.js`, `src/styles/daily-math.css`
 
-  The animated 3D surface drawn with native Canvas.
+  Date-scheduled mathematical backgrounds and responsive annotations. The canvas plays automatically at up to 30 fps, honors reduced motion, and stops off screen. Formula SVGs are typeset with MathJax/AMS during the build. The homepage loads one dated topic; permanent links and yearly archives preserve history. Read [Daily mathematics](../authoring/daily-mathematics.md) for the topic library, scheduling commands, duplicate checks, and replenishment workflow.
 
-  使用原生 Canvas 绘制的三维动态曲面。
+  按日期排期的数学背景与响应式原理注释。Canvas 自动播放，帧率不超过每秒 30 帧，尊重减少动态效果设置，在屏幕外停止。公式在构建时通过 MathJax/AMS 排版为 SVG。首页只加载一个日期主题，通过永久链接和年度归档保留历史。题库、排期命令、重复检查与补充工作流见[每日数学](../authoring/daily-mathematics.md)。
+
+- `src/scripts/site.js`, `src/styles/site.css`
+
+  The sticky navigation retracts while scrolling down and returns while scrolling up or using the keyboard. Expanded menus and search keep it visible. Transforms preserve the document layout, and reduced-motion preferences disable the transition.
+
+  顶部导航向下滚动时收起，向上滚动或使用键盘时恢复；菜单或搜索打开时保持可见。通过平移保留原有文档布局，系统开启“减少动态效果”时取消过渡动画。
 
 - `src/scripts/benchmark-worker.js`
 

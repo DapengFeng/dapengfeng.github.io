@@ -49,6 +49,46 @@
   }
   $('.mobile-menu')?.addEventListener('click',e=>{const open=$('.desktop-nav').classList.toggle('open');e.currentTarget.setAttribute('aria-expanded',String(open));});
   const dialog=$('#knowledge-search'), input=$('#global-search'), results=$('.search-results');
+  const header=$('.lab-header'),navigation=$('.desktop-nav'),menu=$('.mobile-menu');
+  let previousScroll=Math.max(0,scrollY),scrollDirection=0,scrollDistance=0,headerFrame=0;
+  function revealHeader(){
+    header?.classList.remove('is-retracted');
+    previousScroll=Math.max(0,scrollY);scrollDistance=0;scrollDirection=0;
+  }
+  if(header){
+    // Translate the sticky header without changing its height or shifting the page.
+    const updateHeader=()=>{
+      headerFrame=0;
+      const y=Math.max(0,Math.min(scrollY,document.documentElement.scrollHeight-innerHeight));
+      const delta=y-previousScroll;previousScroll=y;
+      const keyboardFocus=header.contains(document.activeElement)&&document.activeElement.matches(':focus-visible');
+      if(y<=header.offsetHeight||navigation?.classList.contains('open')||dialog?.open||keyboardFocus){revealHeader();return;}
+      if(!delta)return;
+      const direction=Math.sign(delta);
+      scrollDistance=direction===scrollDirection?scrollDistance+Math.abs(delta):Math.abs(delta);
+      scrollDirection=direction;
+      if(direction>0&&scrollDistance>=36)header.classList.add('is-retracted');
+      if(direction<0&&scrollDistance>=12)header.classList.remove('is-retracted');
+    };
+    window.addEventListener('scroll',()=>{if(!headerFrame)headerFrame=requestAnimationFrame(updateHeader);},{passive:true});
+    header.addEventListener('focusin',revealHeader);
+    menu?.addEventListener('click',revealHeader);
+    navigation?.addEventListener('click',event=>{
+      if(event.target.closest('a')){navigation.classList.remove('open');menu?.setAttribute('aria-expanded','false');revealHeader();}
+    });
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Tab')revealHeader();
+      if(event.key==='Escape'&&navigation?.classList.contains('open')){
+        navigation.classList.remove('open');menu?.setAttribute('aria-expanded','false');menu?.focus();revealHeader();
+      }
+    });
+    dialog?.addEventListener('close',revealHeader);
+    window.addEventListener('pageshow',revealHeader);
+    new ResizeObserver(()=>{
+      document.documentElement.style.setProperty('--site-header-height',`${header.offsetHeight}px`);
+      revealHeader();
+    }).observe(header);
+  }
   let searchData=null,loading=null;
   async function loadSearch(){if(searchData)return searchData;if(!loading)loading=fetch('/search-index.json').then(r=>{if(!r.ok)throw Error('Search unavailable');return r.json();}).then(data=>searchData=data).catch(error=>{loading=null;throw error;});return loading;}
   async function search(){
@@ -59,7 +99,7 @@
       results.innerHTML=found.length?found.map(p=>`<a class="search-result" href="${esc(p.url)}"><small>${esc(p.date)} · ${bi(p.categoryEn,p.categoryZh)}</small><strong>${bi(p.titleEn||p.title,p.title)}</strong><span>${bi(p.descriptionEn||p.description,p.description)}</span></a>`).join(''):`<div class="empty-state">${bi('No matching notes. Try another keyword.','没有找到匹配的笔记，试试其他关键词。')}</div>`;
     }catch{results.innerHTML=bi('Search could not load. Please try again.','搜索暂时无法加载，请重试。');}
   }
-  function openSearch(){if(!dialog.open)dialog.showModal();input.focus();search();}
+  function openSearch(){revealHeader();if(!dialog.open)dialog.showModal();input.focus();search();}
   $$('.search-trigger').forEach(b=>b.addEventListener('click',openSearch));
   $('[data-close-search]')?.addEventListener('click',()=>dialog.close());
   dialog?.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});

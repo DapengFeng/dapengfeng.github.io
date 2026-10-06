@@ -2,6 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {renderShareAssets} from './sharing-assets.mjs';
+import {loadDailyMath} from './daily-math.mjs';
+import {dateInfo} from '../src/scripts/daily-math.js';
+import {mathNote,mathPage,mathArchive,mathMetadata,mathHead,mathScript} from './daily-math-views.mjs';
 import {mathStyles} from './math.mjs';
 import {loadContent} from './content.mjs';
 import {site,categories,escape as e} from './config.mjs';
@@ -11,22 +14,37 @@ import {createRelatedRecommender} from './related.mjs';
 import {localizePage,dictionary} from './i18n.mjs';
 import {optimizePage,renderSharingImage,sharingImage} from './seo.mjs';
 export async function build(){
+ const {entries}=await loadDailyMath(),today=dateInfo().date;
  const posts=await loadContent(),series=collectSeries(posts),recommend=createRelatedRecommender(posts);
  await fs.rm('dist',{recursive:true,force:true});await fs.mkdir('dist/assets',{recursive:true});
  await fs.cp('content/assets','dist/assets/content',{recursive:true});
  async function write(file,content){await fs.mkdir(path.dirname('dist/'+file),{recursive:true});await fs.writeFile('dist/'+file,content);}
- const pages=[['index.html',templates.home(posts)],['blog/index.html',templates.library(posts)],['categories/index.html',templates.categoryPage(posts)],['archive/index.html',templates.archive(posts)],['about/index.html',templates.about()],['404.html',templates.shell({title:'未找到页面',body:'<main id="main" class="site-width page-heading"><span class="overline">404 / UNCHARTED TERRITORY</span><h1>这里还没有留下笔记。</h1><a class="lime-button" href="/">返回首页 →</a></main>'})]];
+ const pages=[['index.html',templates.home(posts,entries.find(t=>t.date===today),today)],['blog/index.html',templates.library(posts)],['categories/index.html',templates.categoryPage(posts)],['archive/index.html',templates.archive(posts)],['about/index.html',templates.about()],['404.html',templates.shell({title:'未找到页面',body:'<main id="main" class="site-width page-heading"><span class="overline">404 / UNCHARTED TERRITORY</span><h1>这里还没有留下笔记。</h1><a class="lime-button" href="/">返回首页</a></main>'})]];
  for(const group of series)pages.push([group.url.slice(1)+'index.html',templates.seriesPage(group)]);
  for(const p of posts)pages.push([p.url.slice(1),templates.article(p,posts,recommend(p))]);
+ const mathMeta=new Map(),years=[...new Set(entries.map(t=>t.date.slice(0,4)))];
+ for(const year of ['',...years]){
+  const url=`/math/${year?year+'/':''}`,meta=[year?`Mathematics · ${year}`:'Daily mathematics',year?`${year} 年每日数学`:'每日数学',`Mathematical principles, equations and animated diagrams${year?' from '+year:''}.`,`数学原理、公式与动态图${year?'：'+year+' 年往期':'的日期归档'}。`];
+  pages.push([url.slice(1)+'index.html',templates.shell({title:meta[0],url,body:mathArchive(entries,today,year),extraHead:mathHead,extraScripts:'<script type="module" src="/assets/math-archive.js"></script>'})]);mathMeta.set(url,meta);
+ }
+ for(const t of entries){
+  const url=`/math/${t.date}/`;
+  pages.push([url.slice(1)+'index.html',templates.shell({title:t.en,url,body:mathPage(t),extraHead:mathHead,extraScripts:mathScript})]);
+  mathMeta.set(url,mathMetadata(t));
+  await write(`assets/daily-math/${t.date}.json`,JSON.stringify({date:t.date,id:t.id,renderer:t.renderer,html:mathNote(t)}));
+ }
  for(const [file,html]of pages){
   const url=file==='index.html'?'/':'/'+file.replace(/index\.html$/, '');
   const group=series.find(group=>group.url===url);
-  await write(file,optimizePage(localizePage(html,posts),url,posts.find(post=>post.url===url),group?seriesMetadata(group):undefined));
+  let output=optimizePage(localizePage(html,posts),url,posts.find(post=>post.url===url),group?seriesMetadata(group):mathMeta.get(url));
+  const future=/^\/math\/(\d{4}-\d{2}-\d{2})\/$/.exec(url);
+  if(future&&future[1]>today)output=output.replace(/(<meta name="robots" content=")[^"]*/, '$1noindex,follow');
+  await write(file,output);
  }
  for(const post of posts)await renderShareAssets(post,write);
  for(const post of [null,...posts])await write(sharingImage(post).slice(1),await renderSharingImage(post));
- for(const name of ['site','legacy','reader','discussions','giscus-theme','sharing'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
- for(const name of ['eye-viewer','eye-renderer','eye-model','sharing','discussions','site','surface','article','reading-demos','process-demos','process-models','labs','benchmark-worker','paired','syntax','compiler','code-copy'])await fs.copyFile(`src/scripts/${name}.js`,`dist/assets/${name}.js`);
+ for(const name of ['daily-math','site','legacy','reader','discussions','giscus-theme','sharing'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
+ for(const name of ['daily-math','daily-math-models','daily-math-drawings','math-archive','eye-viewer','eye-renderer','eye-model','sharing','discussions','site','surface','article','reading-demos','process-demos','process-models','labs','benchmark-worker','paired','syntax','compiler','code-copy'])await fs.copyFile(`src/scripts/${name}.js`,`dist/assets/${name}.js`);
  for(const name of ['three.module.min.js','three.core.min.js'])await fs.copyFile(`node_modules/three/build/${name}`,`dist/assets/${name}`);
  await fs.copyFile('node_modules/three/LICENSE','dist/assets/three-LICENSE');
  // MathJax + AMS renders self-contained SVGs at build time, with no browser runtime.
@@ -38,12 +56,12 @@ export async function build(){
  await write('search-index.json',JSON.stringify(index));
  const items=posts.map(p=>`<item><title>${e(p.titleEn||p.title)} / ${e(p.title)}</title><link>${site.url}${p.url}</link><guid isPermaLink="true">${site.url}${p.url}</guid><pubDate>${new Date(p.date+'T12:00:00+08:00').toUTCString()}</pubDate><description>${e(p.descriptionEn||p.description)}</description><category>${e(p.category)}</category></item>`).join('');
  await write('feed.xml',`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>FENG / Knowledge Lab</title><link>${site.url}</link><description>${e(site.description)}</description><language>en</language>${items}</channel></rss>`);
- await write('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['/','/blog/','/categories/','/archive/','/about/',...series.map(group=>group.url),...posts.map(p=>p.url)].map(url=>`<url><loc>${site.url}${url}</loc>${posts.find(p=>p.url===url)?`<lastmod>${posts.find(p=>p.url===url).updated||posts.find(p=>p.url===url).date}</lastmod>`:''}</url>`).join('')}</urlset>`);
+ await write('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['/','/blog/','/categories/','/archive/','/about/','/math/',...years.filter(y=>y<=today.slice(0,4)).map(y=>`/math/${y}/`),...entries.filter(t=>t.date<=today).map(t=>`/math/${t.date}/`),...series.map(group=>group.url),...posts.map(p=>p.url)].map(url=>`<url><loc>${site.url}${url}</loc>${posts.find(p=>p.url===url)?`<lastmod>${posts.find(p=>p.url===url).updated||posts.find(p=>p.url===url).date}</lastmod>`:''}</url>`).join('')}</urlset>`);
  await write('robots.txt',`User-agent: *\nAllow: /\nSitemap: ${site.url}/sitemap.xml\n`);await write('.nojekyll','');
  // Preserve historical Jekyll permalinks and old section URLs.
  const redirects=[['search/index.html','/blog/'],['publications/index.html','/about/']];
  for(const p of posts.filter(p=>p.date<'2026-01-01')){const date=p.date.replaceAll('-','/');redirects.push([`${date}/${p.slug}/index.html`,p.url]);}
- for(const [file,to]of redirects)await write(file,`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${to}"><link rel="canonical" href="${site.url}${to}"><title>Moved · FENG</title><a href="${to}">Continue / 继续阅读 →</a></html>`);
+ for(const [file,to]of redirects)await write(file,`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${to}"><link rel="canonical" href="${site.url}${to}"><title>Moved · FENG</title><a href="${to}">Continue / 继续阅读</a></html>`);
  console.log(`Built ${posts.length} bilingual notes and ${pages.length} pages → dist/`);return posts;
 }
 if(process.argv[1]===fileURLToPath(import.meta.url))await build();

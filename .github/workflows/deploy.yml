@@ -4,6 +4,8 @@ on:
     branches: [master, main]
   pull_request:
     branches: [master, main]
+  schedule:
+    - cron: '23 16 * * *' # 00:23 Asia/Shanghai
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,11 +18,17 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - name: Check daily mathematics history and inventory
+        run: npm run math:check -- --require-today
+        env:
+          MATH_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
       - name: Install Chinese fonts for sharing images
         run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - run: npm run build

@@ -29,7 +29,10 @@
     "test:compile": "node tests/compile.mjs",
     "test:vision": "node tests/vision.mjs",
     "test:discussions": "node tests/discussions.mjs",
-    "test:sharing": "node tests/sharing.mjs"
+    "test:sharing": "node tests/sharing.mjs",
+    "test:daily-math": "node tests/daily-math.mjs",
+    "math:check": "node scripts/daily-math-cli.mjs check",
+    "math:plan": "node scripts/daily-math-cli.mjs plan"
   },
   "devDependencies": {
     "@mathjax/src": "4.1.3",

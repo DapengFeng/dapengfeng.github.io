@@ -13,6 +13,7 @@ Use these guides to write articles, maintain the site, and configure publishing.
 | [Articles and learning series / 文章与学习专题](authoring/publishing.md) | HTML workflow, metadata, dates, categories, series navigation, and related reading.<br>HTML 工作流、元信息、日期、分类、专题导航与相关阅读。 |
 | [Bilingual content and reading / 双语内容与阅读](authoring/language.md) | English–Chinese pairing, shared figures, language selection, and translation maintenance.<br>中英对应、图示共用、语言选择与译文维护。 |
 | [Presentation and interactive examples / 排版与交互示例](authoring/presentation.md) | Typography, links, AMS equations, numbering, code blocks, copying, Godbolt, and diagrams.<br>字号、链接、AMS 公式、编号、代码块、复制、Godbolt 与示意图。 |
+| [Daily mathematics / 每日数学](authoring/daily-mathematics.md) | Reviewed topic library, dated publishing, permanent history and inventory checks.<br>核对后的题库、按日发布、永久历史与库存检查。 |
 
 ## 2. Development and validation / 开发与验证
 

@@ -1,13 +1,53 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {load} from 'cheerio';
-import {renderMath} from '../scripts/math.mjs';
+import {renderMath,renderDisplayMath,renderInlineMathText} from '../scripts/math.mjs';
+import {loadDailyMath} from '../scripts/daily-math.mjs';
+const {topics:scenes}=await loadDailyMath();
 
 function render(latex, inline=false) {
  const $=load('<div id="formula"></div>');
  $('#formula').attr('data-math',latex).attr('data-display',inline?'inline':'display');
  renderMath($);return $;
 }
+test('daily display equations retain their own glyphs across topic changes',()=>{
+ const allIds=new Set();
+ for(const latex of scenes.flatMap(scene=>[scene.formula,scene.compactFormula].filter(Boolean))){
+  const $=load(renderDisplayMath(latex));
+  assert.equal($('mjx-container[display="true"][role="math"]').attr('aria-label'),latex);
+  assert.equal($('[data-mml-node="merror"],script').length,0);
+  $('use').each((_,el)=>{
+   const id=$(el).attr('href').slice(1);
+   assert.equal($(`[id="${id}"]`).length,1,'glyphs resolve within this expression, including after a daily switch');
+  });
+  $('[id]').each((_,el)=>{
+   const id=$(el).attr('id');assert.ok(!allIds.has(id),'expressions do not collide in the same page');allIds.add(id);
+  });
+ }
+ assert.equal(render('a=b')('.formula-block').attr('data-equation-number'),'1.1','home expressions do not alter article numbering');
+ assert.throws(()=>renderDisplayMath(String.raw`\unknownCommand{x}`),/Invalid LaTeX/);
+});
+test('daily inline mathematics preserves prose, escapes HTML, and uses text style',()=>{
+ const sources=scenes.flatMap(scene=>[scene.descriptionEn,scene.descriptionZh,scene.readingEn,scene.readingZh]);
+ sources.push(String.raw`a < b & <script>literal</script>: \(\frac{1}{2}\), then \(x^2\).`);
+ for(const source of sources){
+  const $=load(`<p>${renderInlineMathText(source)}</p>`);
+  assert.equal($('script,mjx-container[display],[data-mml-node="merror"]').length,0);
+  assert.equal($('mjx-container svg:not([aria-hidden="true"])').length,0,'each expression has one accessible label, without duplicate unlabeled glyph images');
+  assert.deepEqual($('mjx-container').map((_,el)=>$(el).attr('aria-label')).get(),[...source.matchAll(/\\\(([\s\S]*?)\\\)/g)].map(match=>match[1]));
+  $('mjx-container').each((_,el)=>{
+   const formula=$(el);
+   assert.equal(formula.children('svg').length,1,'short inline expressions stay intact at line boundaries');
+   formula.find('use').each((_,glyph)=>{
+    const id=$(glyph).attr('href').slice(1);
+    assert.equal(formula.find(`[id="${id}"]`).length,1,'inline glyphs are self-contained');
+   });
+   formula.replaceWith($('<span></span>').text(`\\(${formula.attr('aria-label')}\\)`));
+  });
+  assert.equal($('p').text(),source,'surrounding words, punctuation, and math source survive typesetting');
+ }
+ assert.throws(()=>renderInlineMathText(String.raw`Broken \(\unknownCommand{x}\)`),/Invalid LaTeX/);
+});
 test('AMS environments and commands render to standalone SVG with exact copy source',()=>{
  for(const latex of [String.raw`\begin{align} a&=b+c\\d&=e \end{align}`,String.raw`\begin{gather} a=b\\c=d \end{gather}`,String.raw`f(x)=\begin{cases}x^2 & x\ge 0\\-x & x<0\end{cases}`,String.raw`A=\begin{pmatrix}1&2\\3&4\end{pmatrix},\quad x\in\mathbb{R},\quad\operatorname{rank}(A)=2`,String.raw`\begin{aligned}a&=b\\c&=d\end{aligned}\tag{1}`]){
   const $=render(latex);

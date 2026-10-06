@@ -1,0 +1,162 @@
+[
+  {
+    "date": "2026-10-06",
+    "id": "fourier",
+    "concept": "fourier-odd-harmonic-synthesis"
+  },
+  {
+    "date": "2026-10-07",
+    "id": "lissajous",
+    "concept": "lissajous-rational-closure"
+  },
+  {
+    "date": "2026-10-08",
+    "id": "standing",
+    "concept": "membrane-nodal-lines"
+  },
+  {
+    "date": "2026-10-09",
+    "id": "heat",
+    "concept": "heat-kernel-mass-conservation"
+  },
+  {
+    "date": "2026-10-10",
+    "id": "saddle",
+    "concept": "saddle-directional-curvature"
+  },
+  {
+    "date": "2026-10-11",
+    "id": "mobius",
+    "concept": "mobius-single-boundary"
+  },
+  {
+    "date": "2026-10-12",
+    "id": "phyllotaxis",
+    "concept": "golden-angle-equal-area"
+  },
+  {
+    "date": "2026-10-13",
+    "id": "euler",
+    "concept": "complex-exponential-projection"
+  },
+  {
+    "date": "2026-10-14",
+    "id": "taylor",
+    "concept": "sine-local-polynomial-approximation"
+  },
+  {
+    "date": "2026-10-15",
+    "id": "beats",
+    "concept": "near-frequency-amplitude-envelope"
+  },
+  {
+    "date": "2026-10-16",
+    "id": "gibbs",
+    "concept": "fourier-jump-overshoot-limit"
+  },
+  {
+    "date": "2026-10-17",
+    "id": "convolution",
+    "concept": "unit-box-overlap-convolution"
+  },
+  {
+    "date": "2026-10-18",
+    "id": "gaussian",
+    "concept": "gaussian-reciprocal-bandwidth"
+  },
+  {
+    "date": "2026-10-19",
+    "id": "aliasing",
+    "concept": "integer-sampling-frequency-ambiguity"
+  },
+  {
+    "date": "2026-10-20",
+    "id": "bezier",
+    "concept": "de-casteljau-recursive-interpolation"
+  },
+  {
+    "date": "2026-10-21",
+    "id": "cycloid",
+    "concept": "rolling-circle-point-trajectory"
+  },
+  {
+    "date": "2026-10-22",
+    "id": "spiral",
+    "concept": "log-spiral-rotation-scaling"
+  },
+  {
+    "date": "2026-10-23",
+    "id": "ellipse",
+    "concept": "ellipse-constant-focal-sum"
+  },
+  {
+    "date": "2026-10-24",
+    "id": "involute",
+    "concept": "circle-taut-string-unwinding"
+  },
+  {
+    "date": "2026-10-25",
+    "id": "determinant",
+    "concept": "linear-map-oriented-area"
+  },
+  {
+    "date": "2026-10-26",
+    "id": "eigenvectors",
+    "concept": "invariant-directions-of-symmetric-map"
+  },
+  {
+    "date": "2026-10-27",
+    "id": "svd",
+    "concept": "rotation-stretch-rotation-factorization"
+  },
+  {
+    "date": "2026-10-28",
+    "id": "gradient",
+    "concept": "quadratic-gradient-contraction"
+  },
+  {
+    "date": "2026-10-29",
+    "id": "newton",
+    "concept": "tangent-root-iteration"
+  },
+  {
+    "date": "2026-10-30",
+    "id": "bisection",
+    "concept": "sign-bracketing-interval-halving"
+  },
+  {
+    "date": "2026-10-31",
+    "id": "riemann",
+    "concept": "integral-as-rectangle-limit"
+  },
+  {
+    "date": "2026-11-01",
+    "id": "divergence",
+    "concept": "radial-field-outward-flux"
+  },
+  {
+    "date": "2026-11-02",
+    "id": "curl",
+    "concept": "rotational-field-circulation"
+  },
+  {
+    "date": "2026-11-03",
+    "id": "walk",
+    "concept": "independent-step-mean-square-distance"
+  },
+  {
+    "date": "2026-11-04",
+    "id": "clt",
+    "concept": "standardized-uniform-sum-normal-limit"
+  },
+  {
+    "date": "2026-11-05",
+    "id": "poisson",
+    "concept": "rare-bernoulli-poisson-limit"
+  },
+  {
+    "date": "2026-11-06",
+    "id": "bayes",
+    "concept": "beta-bernoulli-conjugate-update"
+  }
+]

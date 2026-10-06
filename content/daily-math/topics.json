@@ -1,0 +1,621 @@
+[
+  {
+    "id": "fourier",
+    "concept": "fourier-odd-harmonic-synthesis",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "fourier",
+    "source": {
+      "url": "https://mathworld.wolfram.com/FourierSeriesSquareWave.html",
+      "en": "MathWorld · Fourier series",
+      "zh": "MathWorld · 傅里叶级数"
+    },
+    "en": "Fourier synthesis",
+    "zh": "傅里叶合成",
+    "descriptionEn": "A square wave can be decomposed into odd sine harmonics. Their amplitudes are \\(\\frac{4}{\\pi n}\\): higher frequencies contribute less. Adding the seven terms shown approximates the square wave.",
+    "descriptionZh": "方波可以分解为奇次正弦谐波，各项振幅为 \\(\\frac{4}{\\pi n}\\)，频率越高，振幅越小。将图中的七项相加，就得到方波的近似。",
+    "formula": "f_7(t) = \\frac{4}{\\pi} \\sum_{k=0}^{6} \\frac{\\sin((2k+1)t)}{2k+1}",
+    "readingEn": "Vector \\(n\\) rotates at angular speed \\(n\\), with length \\(\\frac{4}{\\pi n}\\). Connecting the vectors adds their vertical projections: the tip traces the wave, and the bars show amplitudes.",
+    "readingZh": "第 \\(n\\) 根向量以角速度 \\(n\\) 旋转，长度为 \\(\\frac{4}{\\pi n}\\)。首尾相接后，末端高度就是各竖直投影之和，描出波形；柱形高度表示振幅。"
+  },
+  {
+    "id": "lissajous",
+    "concept": "lissajous-rational-closure",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "lissajous",
+    "source": {
+      "url": "https://mathworld.wolfram.com/LissajousCurve.html",
+      "en": "MathWorld · Lissajous curves",
+      "zh": "MathWorld · 李萨如曲线"
+    },
+    "en": "Lissajous curves",
+    "zh": "李萨如曲线",
+    "descriptionEn": "The point combines perpendicular oscillations with a \\(3:2\\) frequency ratio. After three horizontal cycles and two vertical cycles, both phases return together, closing the curve.",
+    "descriptionZh": "光点合成了频率比为 \\(3:2\\) 的两个垂直振动。横向完成三个周期、纵向完成两个周期后，两者同时回到原相位，轨迹因此闭合。",
+    "formula": "x = \\sin(3t), \\qquad y = \\cos(2t)",
+    "readingEn": "The horizontal coordinate follows \\(\\sin(3t)\\); the vertical coordinate follows \\(\\cos(2t)\\). The bright trail shows recent positions along the same fixed curve.",
+    "readingZh": "横坐标按 \\(\\sin(3t)\\) 变化，纵坐标按 \\(\\cos(2t)\\) 变化。亮色尾迹标出最近经过的位置，整条曲线本身保持不变。"
+  },
+  {
+    "id": "standing",
+    "concept": "membrane-nodal-lines",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "standing",
+    "source": {
+      "url": "https://users.hep.manchester.ac.uk/u/rjones/rect_modes/modes.html",
+      "en": "Manchester · Membrane modes",
+      "zh": "曼彻斯特大学 · 膜的振型"
+    },
+    "en": "Standing waves",
+    "zh": "驻波",
+    "descriptionEn": "For a square membrane with fixed edges, \\(\\sin(2x)\\sin(3y)\\) sets the mode shape and the cosine factor reverses its displacement in time. Wherever a sine factor is zero, the membrane stays still.",
+    "descriptionZh": "对于边缘固定的方形膜，\\(\\sin(2x)\\sin(3y)\\) 决定振型，余弦因子控制位移随时间正负交替。任一正弦因子为零的位置，始终保持静止。",
+    "formula": "u(x,y,t) = \\sin(2x)\\sin(3y)\\cos(\\sqrt{13}\\,t)",
+    "compactFormula": "\\begin{aligned}u(x,y,t) &= \\sin(2x)\\sin(3y)\\\\ &\\quad\\cdot\\cos(\\sqrt{13}\\,t)\\end{aligned}",
+    "readingEn": "The gold line marks \\(x=\\pi/2\\); the cyan lines mark \\(y=\\pi/3\\) and \\(2\\pi/3\\). These nodal lines separate six regions that oscillate with alternating signs.",
+    "readingZh": "金线标出 \\(x=\\pi/2\\)，青线标出 \\(y=\\pi/3\\) 和 \\(2\\pi/3\\)。这些节线分出六个区域，相邻区域的位移符号相反。"
+  },
+  {
+    "id": "heat",
+    "concept": "heat-kernel-mass-conservation",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "heat",
+    "source": {
+      "url": "https://mathworld.wolfram.com/GaussianKernel.html",
+      "en": "MathWorld · Gaussian kernel",
+      "zh": "MathWorld · 高斯核"
+    },
+    "en": "The heat kernel",
+    "zh": "热核",
+    "descriptionEn": "A concentrated pulse diffuses into a Gaussian. Its width grows as \\(\\sqrt{t}\\) and its peak falls as \\(1/t\\); in two dimensions these changes preserve the total integral over the plane.",
+    "descriptionZh": "集中的脉冲扩散为高斯分布：宽度按 \\(\\sqrt{t}\\) 增大，峰值按 \\(1/t\\) 降低。在二维平面上，两者恰好使整个分布的积分保持不变。",
+    "formula": "G(x,y,t) = \\frac{1}{4\\pi t} \\exp\\!\\left(-\\frac{x^2+y^2}{4t}\\right)",
+    "compactFormula": "G(x,y,t) = \\frac{1}{4\\pi t} e^{-\\frac{x^2+y^2}{4t}}",
+    "readingEn": "The mesh shows this density spreading with time. The plot is a finite window into an unbounded plane; each animation cycle restarts the same diffusion process.",
+    "readingZh": "网格显示密度如何随时间摊开。画面只是无限平面的一块有限窗口；每轮动画重新演示同一次扩散过程。"
+  },
+  {
+    "id": "saddle",
+    "concept": "saddle-directional-curvature",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "saddle",
+    "source": {
+      "url": "https://mathworld.wolfram.com/SaddlePoint.html",
+      "en": "MathWorld · Saddle points",
+      "zh": "MathWorld · 鞍点"
+    },
+    "en": "A saddle point",
+    "zh": "鞍点",
+    "descriptionEn": "For \\(z=x^2-y^2\\), the gradient is zero at the origin. Along \\(x\\) the height increases, but along \\(y\\) it decreases, so the origin is neither a local minimum nor a local maximum.",
+    "descriptionZh": "对 \\(z=x^2-y^2\\)，原点的梯度为零；但沿 \\(x\\) 方向高度增大，沿 \\(y\\) 方向高度减小，因此原点既不是局部极小值，也不是局部极大值。",
+    "formula": "z = x^2-y^2",
+    "readingEn": "The gold section is \\(z=x^2\\); the cyan section is \\(z=-y^2\\). Moving points compare these two directions on the same stationary surface.",
+    "readingZh": "金色截线对应 \\(z=x^2\\)，青色截线对应 \\(z=-y^2\\)。两个光点沿截线移动，对照同一个静止曲面上的升降方向。"
+  },
+  {
+    "id": "mobius",
+    "concept": "mobius-single-boundary",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "mobius",
+    "source": {
+      "url": "https://mathworld.wolfram.com/MoebiusStrip.html",
+      "en": "MathWorld · Möbius strip",
+      "zh": "MathWorld · 莫比乌斯带"
+    },
+    "en": "The Möbius strip",
+    "zh": "莫比乌斯带",
+    "descriptionEn": "A half-twist joins one edge of a strip to the opposite edge. This identification creates a nonorientable surface: the two apparent sides belong to one continuous side.",
+    "descriptionZh": "纸带扭转半周再首尾相接，一端的一侧便接到另一端的对侧。这种连接形成不可定向曲面，看似两面，实际是连续的同一面。",
+    "formula": "(0,v) \\sim (2\\pi,-v)",
+    "readingEn": "The gold point follows the boundary. After one turn it reaches the opposite edge of the original strip; after two turns it returns, revealing a single connected boundary.",
+    "readingZh": "金色光点沿边界移动：绕一周到达原纸带的另一条边，再绕一周才回到起点，显出两条边已连成一条完整边界。"
+  },
+  {
+    "id": "phyllotaxis",
+    "concept": "golden-angle-equal-area",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "phyllotaxis",
+    "source": {
+      "url": "https://mathworld.wolfram.com/GoldenAngle.html",
+      "en": "MathWorld · Golden angle",
+      "zh": "MathWorld · 黄金角"
+    },
+    "en": "The golden angle",
+    "zh": "黄金角",
+    "descriptionEn": "Successive points turn by the golden angle, about \\(137.5^\\circ\\). This irrational fraction of a full turn avoids repeated radial alignments; \\(r=\\sqrt{n}\\) makes the area enclosed grow linearly with point count.",
+    "descriptionZh": "相邻点转过约 \\(137.5^\\circ\\) 的黄金角。它占整周的比例是无理数，因此不会周期性地落在同一射线上；\\(r=\\sqrt{n}\\) 使圆内面积随点数线性增长。",
+    "formula": "r_n = \\sqrt{n}, \\qquad \\theta_n = n\\pi(3-\\sqrt{5})",
+    "compactFormula": "\\begin{aligned}r_n &= \\sqrt{n},\\\\\\theta_n &= n\\pi(3-\\sqrt{5})\\end{aligned}",
+    "readingEn": "The bright points appear in placement order. Two families of visible spirals emerge from this one angle-and-radius rule, a common model of sunflower seed arrangements.",
+    "readingZh": "亮点按放置顺序出现。仅凭这一组转角与半径规则，就会浮现两组旋向相反的螺旋，这是向日葵种子排列的一种常用模型。"
+  },
+  {
+    "id": "euler",
+    "concept": "complex-exponential-projection",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "euler",
+    "en": "Euler’s formula",
+    "zh": "欧拉公式",
+    "source": {
+      "url": "https://mathworld.wolfram.com/EulerFormula.html",
+      "en": "MathWorld · Euler’s formula",
+      "zh": "MathWorld · 欧拉公式"
+    },
+    "formula": "e^{i\\theta}=\\cos\\theta+i\\sin\\theta",
+    "descriptionEn": "A complex exponential of unit magnitude traces the unit circle. Its real and imaginary parts are the horizontal and vertical projections, so multiplication by \\(e^{i\\theta}\\) represents a rotation.",
+    "descriptionZh": "模长为一的复指数沿单位圆运动。实部和虚部分别是水平、竖直投影，因此乘以 \\(e^{i\\theta}\\) 对应一次旋转。",
+    "readingEn": "The rotating radius and its projections share one angle. The curve on the right records the imaginary part, \\(\\sin\\theta\\), as that angle increases.",
+    "readingZh": "旋转半径与两个投影共用同一个角度。右侧曲线记录角度增大时的虚部 \\(\\sin\\theta\\)。"
+  },
+  {
+    "id": "taylor",
+    "concept": "sine-local-polynomial-approximation",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "taylor",
+    "en": "Taylor approximation",
+    "zh": "泰勒逼近",
+    "source": {
+      "url": "https://mathworld.wolfram.com/TaylorSeries.html",
+      "en": "MathWorld · Taylor approximation",
+      "zh": "MathWorld · 泰勒逼近"
+    },
+    "formula": "P_m(x)=\\sum_{k=0}^{m-1}\\frac{(-1)^k x^{2k+1}}{(2k+1)!}",
+    "descriptionEn": "Matching derivatives at zero produces a polynomial approximation to \\(\\sin x\\). Every additional odd-power term captures another derivative; for any fixed finite interval, the sequence converges to the sine curve.",
+    "descriptionZh": "在零点匹配各阶导数，可以构造 \\(\\sin x\\) 的多项式近似。每增加一个奇次幂项，就匹配更高阶导数；在任意固定的有限区间上，这组近似收敛到正弦曲线。",
+    "readingEn": "The cyan curve is \\(\\sin x\\). The green polynomial uses one through five terms in turn: agreement appears first near zero and extends outward.",
+    "readingZh": "青色曲线是 \\(\\sin x\\)，绿色多项式依次使用一至五项。近似先在零点附近吻合，再逐渐向两侧延伸。"
+  },
+  {
+    "id": "beats",
+    "concept": "near-frequency-amplitude-envelope",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "beats",
+    "en": "Beats",
+    "zh": "拍频",
+    "source": {
+      "url": "https://openstax.org/books/university-physics-volume-1/pages/17-6-beats",
+      "en": "OpenStax · Beats",
+      "zh": "OpenStax · 拍频"
+    },
+    "formula": "\\sin(10t)+\\sin(11t)=2\\cos(t/2)\\sin(21t/2)",
+    "descriptionEn": "Two nearby frequencies alternate between reinforcement and cancellation. Their sum has a rapidly oscillating carrier and a slowly varying amplitude; successive loudness peaks are separated by the reciprocal of the frequency difference.",
+    "descriptionZh": "两个相近频率的振动交替相长、相消。叠加结果包含快速振荡的载波和缓慢变化的振幅；相邻响度峰值的时间间隔是两者频率差的倒数。",
+    "readingEn": "The green trace adds angular frequencies 10 and 11. The gold boundaries show \\(\\pm2|\\cos(t/2)|\\); the amplitude vanishes where those boundaries meet.",
+    "readingZh": "绿色曲线叠加角频率为 10 和 11 的振动。金色边界为 \\(\\pm2|\\cos(t/2)|\\)，边界相遇时振幅降为零。",
+    "compactFormula": "\\begin{aligned}\\sin(10t)+\\sin(11t)\\\\=2\\cos(t/2)\\sin(21t/2)\\end{aligned}"
+  },
+  {
+    "id": "gibbs",
+    "concept": "fourier-jump-overshoot-limit",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "gibbs",
+    "en": "Gibbs phenomenon",
+    "zh": "吉布斯现象",
+    "source": {
+      "url": "https://mathworld.wolfram.com/GibbsPhenomenon.html",
+      "en": "MathWorld · Gibbs phenomenon",
+      "zh": "MathWorld · 吉布斯现象"
+    },
+    "formula": "S_N(x)=\\frac4\\pi\\sum_{k=0}^{N-1}\\frac{\\sin((2k+1)x)}{2k+1}",
+    "descriptionEn": "Near a jump, a truncated Fourier series overshoots. Increasing the term count narrows the ringing region, but the limiting overshoot remains about 9% of the jump height. Pointwise convergence away from the jump does not imply uniform convergence.",
+    "descriptionZh": "在跳跃间断点附近，截断的傅里叶级数会出现过冲。增加项数使振铃区域收窄，但极限过冲仍约为跳跃高度的 9%。远离间断点的逐点收敛，并不意味着一致收敛。",
+    "readingEn": "Three, eleven, and thirty-one terms are shown successively against a square wave. Watch the peaks beside zero rather than just the flatter sections.",
+    "readingZh": "图中依次使用三项、十一项和三十一项，并以方波作参照。注意零点两侧的峰值，而不只是逐渐变平的区段。",
+    "compactFormula": "\\begin{gathered}S_N(x)=\\\\\\frac4\\pi\\sum_{k=0}^{N-1}\\frac{\\sin((2k+1)x)}{2k+1}\\end{gathered}"
+  },
+  {
+    "id": "convolution",
+    "concept": "unit-box-overlap-convolution",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "convolution",
+    "en": "Convolution as overlap",
+    "zh": "卷积的重叠面积",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Convolution.html",
+      "en": "MathWorld · Convolution as overlap",
+      "zh": "MathWorld · 卷积的重叠面积"
+    },
+    "formula": "(\\mathbf1_{[0,1]}*\\mathbf1_{[0,1]})(t)=\\max(0,1-|t-1|)",
+    "descriptionEn": "Convolution multiplies one function by a reflected, shifted copy of the other and integrates the product. For two unit boxes, that integral equals their overlap length, producing a triangular function.",
+    "descriptionZh": "卷积将一个函数与另一个函数翻转、平移后的副本相乘，再对乘积积分。两个单位矩形的卷积就是它们的重叠长度，因此得到三角形函数。",
+    "readingEn": "The fixed interval is \\([0,1]\\); the moving interval is \\([t-1,t]\\). Their highlighted intersection grows and shrinks, while the lower point records its length.",
+    "readingZh": "固定区间为 \\([0,1]\\)，移动区间为 \\([t-1,t]\\)。高亮交集先增大再缩小，下方光点记录它的长度。",
+    "compactFormula": "\\begin{aligned}(\\mathbf1_{[0,1]}*\\mathbf1_{[0,1]})(t)\\\\=\\max(0,1-|t-1|)\\end{aligned}"
+  },
+  {
+    "id": "gaussian",
+    "concept": "gaussian-reciprocal-bandwidth",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "gaussian",
+    "en": "Gaussian Fourier duality",
+    "zh": "高斯函数的时频宽度",
+    "source": {
+      "url": "https://mathworld.wolfram.com/FourierTransformGaussian.html",
+      "en": "MathWorld · Gaussian Fourier duality",
+      "zh": "MathWorld · 高斯函数的时频宽度"
+    },
+    "formula": "\\widehat f(\\omega)=\\sqrt{2\\pi}\\sigma e^{-\\sigma^2\\omega^2/2}",
+    "descriptionEn": "Under the transform convention \\(\\widehat f(\\omega)=\\int f(x)e^{-i\\omega x}\\,dx\\), a Gaussian \\(f(x)=e^{-x^2/(2\\sigma^2)}\\) stays Gaussian. Its spatial width is proportional to \\(\\sigma\\), while its frequency width is proportional to \\(1/\\sigma\\).",
+    "descriptionZh": "采用变换约定 \\(\\widehat f(\\omega)=\\int f(x)e^{-i\\omega x}\\,dx\\) 时，高斯函数 \\(f(x)=e^{-x^2/(2\\sigma^2)}\\) 的变换仍是高斯函数。空间宽度正比于 \\(\\sigma\\)，频率宽度则正比于 \\(1/\\sigma\\)。",
+    "readingEn": "Green shows the spatial profile and gold the frequency profile, with both peaks normalized to one to compare widths. A wider profile on one side means a narrower profile on the other.",
+    "readingZh": "绿色表示空间分布，金色表示频率分布；两者峰值均归一化为一，以便比较宽度。一侧变宽，另一侧就变窄。"
+  },
+  {
+    "id": "aliasing",
+    "concept": "integer-sampling-frequency-ambiguity",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "aliasing",
+    "en": "Sampling aliasing",
+    "zh": "采样混叠",
+    "source": {
+      "url": "https://mathworld.wolfram.com/SamplingTheorem.html",
+      "en": "MathWorld · Sampling aliasing",
+      "zh": "MathWorld · 采样混叠"
+    },
+    "formula": "\\sin(2\\pi\\cdot7n/6)=\\sin(2\\pi\\cdot n/6)",
+    "descriptionEn": "Sampling at 6 Hz cannot distinguish these 1 Hz and 7 Hz sinusoids: they differ by a whole cycle between adjacent samples. Without a suitable band limit before sampling, distinct continuous signals can produce identical sample sequences.",
+    "descriptionZh": "以 6 Hz 采样时，图中的 1 Hz 与 7 Hz 正弦波无法区分：它们在相邻采样点之间相差一个完整周期。采样前若没有适当的带限，不同连续信号就可能得到完全相同的样本序列。",
+    "readingEn": "The slowly varying green wave and rapidly varying cyan wave meet at every gold sample. The moving marker visits times \\(n/6\\), not the unobserved points between them.",
+    "readingZh": "缓慢变化的绿色波与快速变化的青色波经过每一个金色采样点。移动标记依次经过 \\(n/6\\) 时刻，不经过样本之间未观测的位置。"
+  },
+  {
+    "id": "bezier",
+    "concept": "de-casteljau-recursive-interpolation",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "bezier",
+    "en": "Bézier interpolation",
+    "zh": "贝塞尔插值",
+    "source": {
+      "url": "https://mathworld.wolfram.com/BezierCurve.html",
+      "en": "MathWorld · Bézier interpolation",
+      "zh": "MathWorld · 贝塞尔插值"
+    },
+    "formula": "B(t)=\\sum_{k=0}^3\\binom3k(1-t)^{3-k}t^kP_k",
+    "descriptionEn": "A cubic Bézier curve is built from four control points. Repeated linear interpolation with the same parameter produces a point on the curve; the endpoint tangents follow the first and last edges of the control polygon.",
+    "descriptionZh": "三次贝塞尔曲线由四个控制点确定。使用同一参数反复做线性插值，就得到曲线上的点；两端切线分别沿控制多边形的首边和末边。",
+    "readingEn": "Gold segments join first-stage interpolation points; the cyan segment joins the next pair. Its moving green point traces the final curve as \\(t\\) runs from zero to one.",
+    "readingZh": "金色线段连接第一轮插值点，青色线段连接下一轮的两个点。其上的绿色光点在 \\(t\\) 从零走到一时描出曲线。"
+  },
+  {
+    "id": "cycloid",
+    "concept": "rolling-circle-point-trajectory",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "cycloid",
+    "en": "Cycloid",
+    "zh": "摆线",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Cycloid.html",
+      "en": "MathWorld · Cycloid",
+      "zh": "MathWorld · 摆线"
+    },
+    "formula": "x=t-\\sin t,\\qquad y=1-\\cos t",
+    "descriptionEn": "A point on the rim of a unit circle rolling without slipping traces a cycloid. The center translates by the same distance as the rim unwinds, combining uniform translation with circular motion.",
+    "descriptionZh": "单位圆无滑动滚动时，圆周上一点描出摆线。圆心的平移距离等于圆周展开的弧长，因而轨迹由匀速平移与圆周运动叠加而成。",
+    "readingEn": "The gold radius tracks the marked rim point. At each ground contact, translation and rotation cancel its instantaneous velocity, forming a cusp.",
+    "readingZh": "金色半径跟随圆周上的标记点。每次接触地面时，平移与旋转带来的瞬时速度相消，轨迹形成尖点。"
+  },
+  {
+    "id": "spiral",
+    "concept": "log-spiral-rotation-scaling",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "spiral",
+    "en": "Logarithmic spiral",
+    "zh": "对数螺线",
+    "source": {
+      "url": "https://mathworld.wolfram.com/LogarithmicSpiral.html",
+      "en": "MathWorld · Logarithmic spiral",
+      "zh": "MathWorld · 对数螺线"
+    },
+    "formula": "r(\\theta)=ae^{b\\theta},\\qquad r(\\theta+\\alpha)=e^{b\\alpha}r(\\theta)",
+    "descriptionEn": "For a logarithmic spiral, rotating through a fixed angle multiplies the radius by a fixed factor. The angle between the tangent and radius stays constant, expressing the same self-similarity at every scale.",
+    "descriptionZh": "对数螺线每转过一个固定角度，半径就乘以同一个比例因子。切线与半径的夹角保持不变，因此不同尺度下保留相同的形态。",
+    "readingEn": "The point moves outward on \\(r=0.1e^{0.2\\theta}\\). The highlighted radius grows exponentially; each full turn multiplies its length by \\(e^{0.4\\pi}\\).",
+    "readingZh": "光点沿 \\(r=0.1e^{0.2\\theta}\\) 向外移动，高亮半径按指数增长。每转一整圈，长度就乘以 \\(e^{0.4\\pi}\\)。",
+    "compactFormula": "\\begin{aligned}r(\\theta)&=ae^{b\\theta}\\\\r(\\theta+\\alpha)&=e^{b\\alpha}r(\\theta)\\end{aligned}"
+  },
+  {
+    "id": "ellipse",
+    "concept": "ellipse-constant-focal-sum",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "ellipse",
+    "en": "Ellipse and its foci",
+    "zh": "椭圆与焦点",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Ellipse.html",
+      "en": "MathWorld · Ellipse and its foci",
+      "zh": "MathWorld · 椭圆与焦点"
+    },
+    "formula": "|PF_1|+|PF_2|=2a",
+    "descriptionEn": "An ellipse consists of points whose distances to two fixed foci have a constant sum. For semiaxes \\(a>b\\), the foci lie at distance \\(\\sqrt{a^2-b^2}\\) from the center along the major axis.",
+    "descriptionZh": "椭圆上任一点到两个固定焦点的距离之和保持不变。设半轴为 \\(a>b\\)，焦点位于长轴上，距中心 \\(\\sqrt{a^2-b^2}\\)。",
+    "readingEn": "As the point travels around the ellipse, the green and gold focal segments exchange length. The stacked bar below keeps the same total length, \\(2a\\).",
+    "readingZh": "光点沿椭圆运动时，绿色与金色焦距线段此消彼长。下方叠加条的总长度始终为 \\(2a\\)。"
+  },
+  {
+    "id": "involute",
+    "concept": "circle-taut-string-unwinding",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "involute",
+    "en": "Circle involute",
+    "zh": "圆的渐开线",
+    "source": {
+      "url": "https://mathworld.wolfram.com/CircleInvolute.html",
+      "en": "MathWorld · Circle involute",
+      "zh": "MathWorld · 圆的渐开线"
+    },
+    "formula": "\\begin{aligned}x&=\\cos t+t\\sin t\\\\y&=\\sin t-t\\cos t\\end{aligned}",
+    "descriptionEn": "Unwinding a taut string from a unit circle makes its free end trace an involute. The straight portion remains tangent to the circle, and its length equals the arc length already unwound.",
+    "descriptionZh": "将绷紧的细线从单位圆上逐渐展开，自由端就描出渐开线。展开后的直线段始终与圆相切，其长度等于已经展开的圆弧长度。",
+    "readingEn": "The gold point is the tangency point, and the green point is the free end. The tangent segment length increases as \\(t\\), even though the circle radius stays one.",
+    "readingZh": "金色点是切点，绿色点是自由端。圆的半径始终为一，而切线段长度随 \\(t\\) 增加。"
+  },
+  {
+    "id": "determinant",
+    "concept": "linear-map-oriented-area",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "determinant",
+    "en": "Determinant and area",
+    "zh": "行列式与面积",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Determinant.html",
+      "en": "MathWorld · Determinant and area",
+      "zh": "MathWorld · 行列式与面积"
+    },
+    "formula": "\\operatorname{area}(A\\Omega)=|\\det A|\\operatorname{area}(\\Omega)",
+    "descriptionEn": "A linear map sends a unit square to the parallelogram spanned by its column vectors. The determinant measures oriented area: its magnitude is the area scale and its sign records whether orientation is reversed.",
+    "descriptionZh": "线性映射将单位正方形变为由矩阵列向量张成的平行四边形。行列式度量有向面积：绝对值是面积缩放倍数，符号表示方向是否翻转。",
+    "readingEn": "The grid deforms continuously from the identity to \\(A=\\left(\\begin{smallmatrix}1.3&0.6\\\\0.4&1.1\\end{smallmatrix}\\right)\\). At the endpoint, the highlighted square has area 1.19.",
+    "readingZh": "网格从恒等变换连续形变到 \\(A=\\left(\\begin{smallmatrix}1.3&0.6\\\\0.4&1.1\\end{smallmatrix}\\right)\\)。在终点，高亮正方形的像面积为 1.19。",
+    "compactFormula": "\\begin{aligned}\\operatorname{area}(A\\Omega)\\\\=|\\det A|\\operatorname{area}(\\Omega)\\end{aligned}"
+  },
+  {
+    "id": "eigenvectors",
+    "concept": "invariant-directions-of-symmetric-map",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "eigenvectors",
+    "en": "Eigenvector directions",
+    "zh": "特征向量的方向",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Eigenvector.html",
+      "en": "MathWorld · Eigenvector directions",
+      "zh": "MathWorld · 特征向量的方向"
+    },
+    "formula": "A v=\\lambda v,\\qquad A=\\begin{pmatrix}2&1\\\\1&2\\end{pmatrix}",
+    "descriptionEn": "An eigenvector keeps its line of direction under a linear transformation. For this symmetric matrix, the directions \\((1,1)\\) and \\((1,-1)\\) are perpendicular, with scale factors three and one.",
+    "descriptionZh": "特征向量在线性变换后仍处于原来的直线上。对于这个对称矩阵，\\((1,1)\\) 与 \\((1,-1)\\) 两个方向相互垂直，对应伸缩倍数分别为三和一。",
+    "readingEn": "Gray spokes show the original unit circle. Green vectors along one diagonal stretch threefold; gold vectors along the other remain unchanged while intermediate directions turn.",
+    "readingZh": "灰色辐条标出原单位圆。一条对角线上的绿色向量伸长为三倍，另一条上的金色向量保持不变，其间的一般方向则发生转动。"
+  },
+  {
+    "id": "svd",
+    "concept": "rotation-stretch-rotation-factorization",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "svd",
+    "en": "Singular value decomposition",
+    "zh": "奇异值分解",
+    "source": {
+      "url": "https://mathworld.wolfram.com/SingularValueDecomposition.html",
+      "en": "MathWorld · Singular value decomposition",
+      "zh": "MathWorld · 奇异值分解"
+    },
+    "formula": "A=U\\Sigma V^{\\mathsf T}",
+    "descriptionEn": "A real matrix factors into orthogonal transformations and independent axis scalings. A unit circle becomes an ellipse whose semiaxis lengths are the singular values; its principal directions are the left singular vectors.",
+    "descriptionZh": "实矩阵可以分解为正交变换与各坐标轴上的独立缩放。单位圆由此变为椭圆，半轴长度是奇异值，主轴方向是左奇异向量。",
+    "readingEn": "The marked circle first rotates by \\(V^{\\mathsf T}\\), stretches by factors 2 and 0.6, then rotates by \\(U\\). The moving seam makes the otherwise invisible first rotation visible.",
+    "readingZh": "带标记的圆先经 \\(V^{\\mathsf T}\\) 旋转，再按 2 和 0.6 缩放，最后经 \\(U\\) 旋转。移动的标记线使圆轮廓上不易察觉的第一步旋转可见。"
+  },
+  {
+    "id": "gradient",
+    "concept": "quadratic-gradient-contraction",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "gradient",
+    "en": "Gradient descent",
+    "zh": "梯度下降",
+    "source": {
+      "url": "https://mathworld.wolfram.com/MethodofSteepestDescent.html",
+      "en": "MathWorld · Gradient descent",
+      "zh": "MathWorld · 梯度下降"
+    },
+    "formula": "x_{k+1}=x_k-\\eta\\nabla f(x_k)",
+    "descriptionEn": "For \\(f(x,y)=(x^2+4y^2)/2\\), the gradient is normal to elliptical level sets. With step size 0.2, each update multiplies the horizontal coordinate by 0.8 and the vertical coordinate by 0.2, approaching the minimum.",
+    "descriptionZh": "对于 \\(f(x,y)=(x^2+4y^2)/2\\)，梯度垂直于椭圆形等高线。步长取 0.2 时，每次更新将横坐标乘以 0.8、纵坐标乘以 0.2，逐渐接近最小值点。",
+    "readingEn": "The dots are actual iterates from \\((2.6,1.5)\\). Their curved path reflects unequal curvature along the two axes; connecting segments indicate updates, not a continuous physical trajectory.",
+    "readingZh": "光点是从 \\((2.6,1.5)\\) 出发的真实迭代点。路径弯曲源于两个方向的曲率不同；连接线表示离散更新，不是连续的物理运动轨迹。"
+  },
+  {
+    "id": "newton",
+    "concept": "tangent-root-iteration",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "newton",
+    "en": "Newton’s method",
+    "zh": "牛顿迭代",
+    "source": {
+      "url": "https://mathworld.wolfram.com/NewtonsMethod.html",
+      "en": "MathWorld · Newton’s method",
+      "zh": "MathWorld · 牛顿迭代"
+    },
+    "formula": "x_{k+1}=x_k-\\frac{f(x_k)}{f'(x_k)}",
+    "descriptionEn": "Newton’s method replaces a curve locally by its tangent and takes that tangent’s root as the next estimate. For \\(f(x)=x^2-2\\), this gives \\(x_{k+1}=(x_k+2/x_k)/2\\), converging rapidly from the positive start shown.",
+    "descriptionZh": "牛顿法在局部用切线代替曲线，将切线的零点作为下一次估计。对 \\(f(x)=x^2-2\\)，更新为 \\(x_{k+1}=(x_k+2/x_k)/2\\)，从图中的正初值出发会快速收敛。",
+    "readingEn": "The gold tangent starts at each green point on the parabola. Its intersection with the horizontal axis becomes the next input; the iterations approach \\(\\sqrt2\\).",
+    "readingZh": "金色切线经过抛物线上的绿色点，与横轴的交点成为下一次输入。各次迭代逐渐接近 \\(\\sqrt2\\)。"
+  },
+  {
+    "id": "bisection",
+    "concept": "sign-bracketing-interval-halving",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "bisection",
+    "en": "Bisection",
+    "zh": "二分法",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Bisection.html",
+      "en": "MathWorld · Bisection",
+      "zh": "MathWorld · 二分法"
+    },
+    "formula": "b_k-a_k=\\frac{b_0-a_0}{2^k}",
+    "descriptionEn": "If a continuous function has opposite signs at two endpoints, a root lies between them. Testing the midpoint and retaining the sign-changing half shrinks the bracket predictably, without using derivatives.",
+    "descriptionZh": "连续函数在两个端点异号时，区间内至少存在一个零点。检查中点并保留两端异号的一半区间，就能以确定的速度缩小范围，无需计算导数。",
+    "readingEn": "The bracket begins at \\([1,2]\\) for \\(f(x)=x^3-x-2\\). Gold marks each midpoint; the shaded strip retains the half that still contains a sign change.",
+    "readingZh": "图中对 \\(f(x)=x^3-x-2\\) 从 \\([1,2]\\) 开始搜索。金色点标记中点，阴影保留仍含符号变化的半区间。"
+  },
+  {
+    "id": "riemann",
+    "concept": "integral-as-rectangle-limit",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "riemann",
+    "en": "Riemann sums",
+    "zh": "黎曼和",
+    "source": {
+      "url": "https://mathworld.wolfram.com/RiemannSum.html",
+      "en": "MathWorld · Riemann sums",
+      "zh": "MathWorld · 黎曼和"
+    },
+    "formula": "\\lim_{n\\to\\infty}\\frac1n\\sum_{k=0}^{n-1}\\frac1{1+(k/n)^2}=\\frac\\pi4",
+    "descriptionEn": "An integral is the limit of weighted samples as the partition becomes fine. On \\([0,1]\\), the decreasing function \\(1/(1+x^2)\\) makes left-endpoint rectangles overestimate the area; the excess tends to zero.",
+    "descriptionZh": "积分是分割不断加细时加权采样和的极限。在 \\([0,1]\\) 上，\\(1/(1+x^2)\\) 单调递减，因此左端点矩形高估曲线下的面积；多出的面积趋于零。",
+    "readingEn": "The green rectangles use 4, 8, 16, and 32 intervals. Their top-left corners meet the gold curve, whose exact enclosed area is \\(\\pi/4\\).",
+    "readingZh": "绿色矩形依次使用 4、8、16 和 32 个区间，左上角落在金色曲线上。曲线下的准确面积为 \\(\\pi/4\\)。"
+  },
+  {
+    "id": "divergence",
+    "concept": "radial-field-outward-flux",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "divergence",
+    "en": "Divergence and flux",
+    "zh": "散度与通量",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Divergence.html",
+      "en": "MathWorld · Divergence and flux",
+      "zh": "MathWorld · 散度与通量"
+    },
+    "formula": "\\nabla\\!\\cdot(x,y)=2,\\qquad\\oint_{\\partial D}F\\cdot n\\,ds=2\\pi r^2",
+    "descriptionEn": "Divergence measures local net outflow. For the radial field \\(F=(x,y)\\), the outward flux through a radius-\\(r\\) circle equals its area times the constant divergence, two.",
+    "descriptionZh": "散度度量局部净流出量。径向场 \\(F=(x,y)\\) 穿过半径为 \\(r\\) 的圆周的向外通量，等于圆面积乘以恒定散度二。",
+    "readingEn": "Particles separate as they follow the radial field. The gold circle is a fixed boundary: outward velocity there has magnitude \\(r\\), so integrating around its circumference gives \\(2\\pi r^2\\).",
+    "readingZh": "粒子沿径向场运动时彼此远离。金色圆是固定边界，其上向外速度大小为 \\(r\\)，沿圆周积分即得 \\(2\\pi r^2\\)。",
+    "compactFormula": "\\begin{aligned}\\nabla\\!\\cdot(x,y)&=2\\\\\\oint_{\\partial D}F\\cdot n\\,ds&=2\\pi r^2\\end{aligned}"
+  },
+  {
+    "id": "curl",
+    "concept": "rotational-field-circulation",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "curl",
+    "en": "Curl and circulation",
+    "zh": "旋度与环流",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Curl.html",
+      "en": "MathWorld · Curl and circulation",
+      "zh": "MathWorld · 旋度与环流"
+    },
+    "formula": "(\\nabla\\!\\times F)_z=2,\\qquad\\oint_{\\partial D}F\\cdot d\\ell=2\\pi r^2",
+    "descriptionEn": "For \\(F=(-y,x)\\), particles rotate counterclockwise without radial expansion. The out-of-plane curl is two, and its area integral equals the counterclockwise circulation around the boundary.",
+    "descriptionZh": "对于 \\(F=(-y,x)\\)，粒子逆时针旋转而不沿径向扩张。垂直平面方向的旋度为二，其面积分等于沿边界逆时针方向的环流。",
+    "readingEn": "All particles have the same angular speed; outer particles move faster along larger circles. No particle crosses the gold circle, so flux is zero even though circulation is nonzero.",
+    "readingZh": "所有粒子角速度相同，外侧粒子沿更大的圆以更高线速度运动。没有粒子穿过金色圆，因此通量为零，但环流并不为零。",
+    "compactFormula": "\\begin{aligned}(\\nabla\\!\\times F)_z&=2\\\\\\oint_{\\partial D}F\\cdot d\\ell&=2\\pi r^2\\end{aligned}"
+  },
+  {
+    "id": "walk",
+    "concept": "independent-step-mean-square-distance",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "walk",
+    "en": "Random walk",
+    "zh": "随机游走",
+    "source": {
+      "url": "https://mathworld.wolfram.com/RandomWalk2-Dimensional.html",
+      "en": "MathWorld · Random walk",
+      "zh": "MathWorld · 随机游走"
+    },
+    "formula": "\\mathbb E\\|S_n\\|^2=n,\\qquad r_{\\mathrm{rms}}=\\sqrt n",
+    "descriptionEn": "Independent unit steps with uniformly random directions have zero mean. Cross terms cancel in the expected squared displacement, leaving one contribution per step; typical distance grows like the square root of elapsed steps.",
+    "descriptionZh": "方向均匀随机的独立单位步长，均值为零。位移平方的期望中交叉项相消，每一步贡献一项，因此典型距离按步数的平方根增长。",
+    "readingEn": "Eight fixed sample paths unfold together. The gold circle has radius \\(\\sqrt n\\), an ensemble root-mean-square scale, not a boundary that confines individual walks.",
+    "readingZh": "八条固定样本轨迹一起展开。金色圆半径为 \\(\\sqrt n\\)，表示总体均方根尺度，并非限制每条轨迹的边界。"
+  },
+  {
+    "id": "clt",
+    "concept": "standardized-uniform-sum-normal-limit",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "clt",
+    "en": "Central limit theorem",
+    "zh": "中心极限定理",
+    "source": {
+      "url": "https://mathworld.wolfram.com/CentralLimitTheorem.html",
+      "en": "MathWorld · Central limit theorem",
+      "zh": "MathWorld · 中心极限定理"
+    },
+    "formula": "\\frac{\\sum_{i=1}^n U_i-n/2}{\\sqrt{n/12}}\\xrightarrow{d}\\mathcal N(0,1)",
+    "descriptionEn": "For independent uniform variables on \\([0,1]\\), subtracting the sum’s mean and dividing by its standard deviation puts every sum on the same scale. As the count grows, the standardized distribution approaches a normal distribution.",
+    "descriptionZh": "对相互独立的 \\([0,1]\\) 均匀随机变量，将和减去均值、再除以标准差，就能放在同一尺度上比较。项数增加时，标准化后的分布趋近于正态分布。",
+    "readingEn": "Green shows the exact standardized density for one through eight summands, not a sampled histogram. The gold curve is the standard normal density.",
+    "readingZh": "绿色展示一至八项求和后标准化的准确密度，而非抽样直方图。金色曲线是标准正态密度。"
+  },
+  {
+    "id": "poisson",
+    "concept": "rare-bernoulli-poisson-limit",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "poisson",
+    "en": "Poisson limit",
+    "zh": "泊松极限",
+    "source": {
+      "url": "https://mathworld.wolfram.com/PoissonDistribution.html",
+      "en": "MathWorld · Poisson limit",
+      "zh": "MathWorld · 泊松极限"
+    },
+    "formula": "\\binom nk(\\lambda/n)^k(1-\\lambda/n)^{n-k}\\to e^{-\\lambda}\\frac{\\lambda^k}{k!}",
+    "descriptionEn": "When independent Bernoulli trials become numerous and their success probability decreases with \\(np=\\lambda\\) fixed, the count of successes approaches a Poisson distribution. The mean count stays fixed while individual events become rare.",
+    "descriptionZh": "当独立伯努利试验次数增加、成功概率减小，并保持 \\(np=\\lambda\\) 不变时，成功次数趋近于泊松分布。平均次数保持不变，而单次事件越来越罕见。",
+    "readingEn": "Green bars show \\(\\operatorname{Bin}(n,3/n)\\) for increasing \\(n\\); gold dots mark \\(\\operatorname{Poisson}(3)\\). Horizontal positions are integer event counts, not continuous measurements.",
+    "readingZh": "绿色柱表示 \\(n\\) 逐渐增大时的 \\(\\operatorname{Bin}(n,3/n)\\)，金色点表示 \\(\\operatorname{Poisson}(3)\\)。横向位置是整数事件次数，不是连续测量值。",
+    "compactFormula": "\\begin{aligned}\\binom nk(\\lambda/n)^k(1-\\lambda/n)^{n-k}\\\\\\longrightarrow e^{-\\lambda}\\frac{\\lambda^k}{k!}\\end{aligned}"
+  },
+  {
+    "id": "bayes",
+    "concept": "beta-bernoulli-conjugate-update",
+    "status": "ready",
+    "reviewedOn": "2026-10-06",
+    "renderer": "bayes",
+    "en": "Bayesian updating",
+    "zh": "贝叶斯更新",
+    "source": {
+      "url": "https://mathworld.wolfram.com/BetaDistribution.html",
+      "en": "MathWorld · Bayesian updating",
+      "zh": "MathWorld · 贝叶斯更新"
+    },
+    "formula": "p\\mid h,t\\sim\\operatorname{Beta}(1+h,1+t)",
+    "descriptionEn": "A uniform prior for a Bernoulli success probability is a Beta(1,1) distribution. After observing \\(h\\) successes and \\(t\\) failures, multiplying by the likelihood yields Beta(1+h,1+t), describing uncertainty about that same probability.",
+    "descriptionZh": "伯努利成功概率的均匀先验是 Beta(1,1) 分布。观察到 \\(h\\) 次成功和 \\(t\\) 次失败后，将先验乘以似然，得到 Beta(1+h,1+t)，描述对同一概率的不确定性。",
+    "readingEn": "The gold line is the initial prior. The green posterior changes as the fixed sequence 1,1,0,1,0,1,1,1 arrives; green observation dots indicate successes and cyan dots failures.",
+    "readingZh": "金色线是初始先验。固定序列 1、1、0、1、0、1、1、1 依次出现时，绿色后验随之更新；绿色观测点表示成功，青色点表示失败。"
+  }
+]
