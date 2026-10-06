@@ -29,7 +29,7 @@ export async function mountEye(root){
  const shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=128;
  const ctx=shadowCanvas.getContext('2d'),grad=ctx.createRadialGradient(64,64,5,64,64,64);grad.addColorStop(0,'rgba(56,62,56,.24)');grad.addColorStop(.35,'rgba(56,62,56,.12)');grad.addColorStop(1,'rgba(56,62,56,0)');ctx.fillStyle=grad;ctx.fillRect(0,0,128,128);
  const shadowTexture=new T.CanvasTexture(shadowCanvas),shadow=new T.Mesh(new T.PlaneGeometry(3.5,3.5),new T.MeshBasicMaterial({map:shadowTexture,transparent:true,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=-1.19;scene.add(shadow);
- let yaw=.77,pitch=.28,distance=4.5,mode='cut',selected='lens',visible=true,initializing=true,raf=0,lost=false,disposed=false,drag=null,moved=false;
+ let yaw=.77,pitch=.28,distance=4.5,mode='cut',selected='wall',visible=true,initializing=true,raf=0,lost=false,disposed=false,drag=null,moved=false;
  const target=new T.Vector3(0,-.02,-.10),pin=root.querySelector('.eye-pin'),detail=root.querySelector('.eye-detail'),title=root.querySelector('.eye-part-title');
  const clamp=T.MathUtils.clamp;
  let stageWidth=0,stageHeight=0;
@@ -63,10 +63,10 @@ export async function mountEye(root){
  }
  function setMode(next){
   mode=next;eye.setMode(mode);renderer.shadowMap.needsUpdate=true;root.querySelectorAll('[data-eye-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.eyeMode===mode)));
-  if(mode==='whole'){yaw=.08;pitch=.04;select('iris');}else{yaw=.77;pitch=.28;selected='lens';if(mode==='layers'){yaw=1.05;pitch=.24;}}
+  if(mode==='whole'){yaw=.08;pitch=.04;select('iris');}else{yaw=.77;pitch=.28;selected='wall';if(mode==='layers'){yaw=1.05;pitch=.24;}}
   distance=mode==='layers'?5.2:4.5;select(selected);request();
  }
- function reset(){setMode('cut');select('lens');}
+ function reset(){setMode('cut');select('wall');}
  root.querySelectorAll('[data-eye-mode]').forEach(button=>button.addEventListener('click',()=>setMode(button.dataset.eyeMode)));
  root.querySelectorAll('[data-eye-part]').forEach(button=>button.addEventListener('click',()=>{if(mode==='whole'&&['lens','ciliary','wall'].includes(button.dataset.eyePart))setMode('cut');select(button.dataset.eyePart,true);}));
  root.querySelector('[data-eye-reset]').addEventListener('click',reset);
@@ -93,7 +93,7 @@ export async function mountEye(root){
  const onVisibility=()=>{visible=!document.hidden&&stage.getBoundingClientRect().bottom>0&&stage.getBoundingClientRect().top<innerHeight;if(visible)request();};document.addEventListener('visibilitychange',onVisibility);
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();lost=true;cancelAnimationFrame(raf);raf=0;root.dataset.eyeState='fallback';canvas.hidden=true;poster.hidden=false;pin.hidden=true;});
  canvas.addEventListener('webglcontextrestored',()=>{lost=false;renderer.shadowMap.needsUpdate=true;root.dataset.eyeState='ready';canvas.hidden=false;poster.hidden=true;resize();request();});
- select('lens');resize();if(renderer.extensions.has('KHR_parallel_shader_compile'))await renderer.compileAsync(scene,camera);else renderer.compile(scene,camera);initializing=false;visible=true;draw();
+ select('wall');resize();if(renderer.extensions.has('KHR_parallel_shader_compile'))await renderer.compileAsync(scene,camera);else renderer.compile(scene,camera);initializing=false;visible=true;draw();
  canvas.hidden=false;poster.hidden=true;root.dataset.eyeState='ready';
  return {renderer,eye,camera,scene,draw:()=>{visible=true;draw();},setMode,select,dispose(){disposed=true;cancelAnimationFrame(raf);resizeObserver.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',onVisibility);eye.dispose();environment.dispose();shadowTexture.dispose();shadow.geometry.dispose();shadow.material.dispose();key.shadow.map?.dispose();renderer.dispose();}};
 }

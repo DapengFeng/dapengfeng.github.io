@@ -13,7 +13,7 @@ try{
  await page.addInitScript(()=>localStorage.setItem('feng-language','both'));
  await page.goto(url);
  assert.equal(await page.locator('#vision-essay h2').count(),8);
- assert.equal(await page.locator('#vision-essay .v-plate').count(),6);
+ assert.equal(await page.locator('#vision-essay .v-plate').count(),9);
  assert.equal(await page.locator('#vision-essay canvas').count(),1);
  assert.ok(!requests.some(u=>/three\.(core|module)\.min\.js/.test(u)),'3D renderer is deferred until the figure is near the viewport');
  assert.equal(await page.locator('#vision-essay .compiler-editor').count(),2);
@@ -22,6 +22,9 @@ try{
  const eye=page.locator('[data-eye-viewer]');await eye.scrollIntoViewIfNeeded();
  await page.waitForFunction(()=>document.querySelector('[data-eye-viewer]')?.eyeViewer,{},{timeout:120000});
  assert.equal(await eye.getAttribute('data-eye-state'),'ready');
+ assert.equal(await page.locator('[data-eye-part=wall]').getAttribute('aria-pressed'),'true');
+ assert.ok(await page.locator('.eye-detail').textContent().then(s=>s.includes('retina')&&s.includes('视网膜')));
+ assert.deepEqual(await page.locator('.eye-caption a').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),['#vision-anatomy','#vision-anatomy']);
  const cut=await page.locator('.eye-stage canvas').screenshot();
  assert.ok((await sharp(cut).stats()).channels.slice(0,3).some(c=>c.stdev>25),'model must render visible geometry and shading');
  await page.locator('[data-eye-mode=whole]').click();
@@ -68,7 +71,7 @@ try{
   }
  }
  await page.setViewportSize({width:1440,height:1000});await page.locator('[data-language-choice=zh]').click();
- for(const id of ['vision-anatomy','vision-physics','vision-cell','vision-color','vision-contrast','vision-events'])await page.locator('#'+id).screenshot({path:`/tmp/feng-${id}-desktop.png`});
+ for(const id of ['vision-scene','vision-anatomy','vision-physics','vision-cell','vision-color','vision-contrast-worked','vision-contrast','vision-events','vision-cortex'])await page.locator('#'+id).screenshot({path:`/tmp/feng-${id}-desktop.png`,style:'.lab-header,.site-skip,.discussion-launcher{visibility:hidden!important}'});
  await page.setViewportSize({width:390,height:844});await page.locator('[data-language-choice=both]').click();
  await page.locator('.eye-stage').scrollIntoViewIfNeeded();
  await page.waitForFunction(()=>{const r=document.querySelector('[data-eye-viewer]'),b=r.querySelector('.eye-stage').getBoundingClientRect();return Math.abs(r.eyeViewer.camera.aspect-b.width/b.height)<.001;});
@@ -76,13 +79,23 @@ try{
  assert.ok((await sharp(mobile).stats()).channels.slice(0,3).some(c=>c.stdev>25),'mobile resizing must retain rendered anatomy');
  await page.screenshot({path:'/tmp/feng-eye-mobile-viewport.png'});
  await page.evaluate(()=>document.activeElement?.blur());
- await page.locator('#vision-anatomy').screenshot({path:'/tmp/feng-vision-anatomy-mobile.png'});
+ for(const id of ['vision-scene','vision-anatomy','vision-cell','vision-contrast-worked','vision-cortex'])await page.locator('#'+id).screenshot({path:`/tmp/feng-${id}-mobile.png`,style:'.lab-header,.site-skip,.discussion-launcher{visibility:hidden!important}'});
  await page.locator('#vision-contrast').screenshot({path:'/tmp/feng-vision-contrast-mobile.png'});
+ // Technical expansions remain keyboard-accessible, with formulas and editable code.
+ const expansions=page.locator('#vision-essay .v-depth');
+ for(const detail of await expansions.all()){
+  assert.equal(await detail.getAttribute('open'),null);
+  await detail.locator(':scope > summary').focus();await page.keyboard.press('Enter');
+  assert.equal(await detail.evaluate(n=>n.open),true);
+ }
+ assert.equal(await page.locator('#vision-essay .compiler-editor:visible').count(),2);
+ assert.ok(await page.locator('#vision-essay .v-depth .formula-block:visible').count()>0);
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'expanded technical material must not overflow');
  await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
  const audit=await page.evaluate(()=>axe.run(document.getElementById('vision-essay'),{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}}));
  assert.deepEqual(audit.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)})),[]);
  const noJS=await browser.newPage({javaScriptEnabled:false,viewport:{width:390,height:844}});await noJS.goto(url);
- assert.equal(await noJS.locator('#vision-essay .v-plate').count(),6);
+ assert.equal(await noJS.locator('#vision-essay .v-plate').count(),9);
  await noJS.locator('.eye-poster').scrollIntoViewIfNeeded();await noJS.waitForFunction(()=>document.querySelector('.eye-poster').complete);
  assert.equal(await noJS.locator('.eye-poster').evaluate(img=>img.complete&&img.naturalWidth>0),true);
  assert.equal(await noJS.locator('.eye-tools').isVisible(),false);
@@ -101,5 +114,5 @@ try{
  await fallback.goto(url);await fallback.locator('[data-eye-viewer]').scrollIntoViewIfNeeded();
  await fallback.waitForFunction(()=>document.querySelector('[data-eye-viewer]').dataset.eyeState==='fallback');
  assert.equal(await fallback.locator('.eye-poster').isVisible(),true);await fallback.close();
- console.log('Vision article passed: 3D anatomy/camera/separation/GPU fallback, six static plates, bilingual reading, 5 widths, accessible labels/contrast, no-JavaScript figures, and shared code editors.');
+ console.log('Vision article passed: 3D anatomy/camera/separation/GPU fallback, nine static plates and keyboard-accessible technical expansions, bilingual reading, 5 widths, accessible labels/contrast, no-JavaScript figures, and shared code editors.');
 }finally{await browser.close();server.close();}
