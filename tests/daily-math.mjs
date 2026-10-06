@@ -1,5 +1,6 @@
-import {chromium} from '@playwright/test';
+import {chromium,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import fs from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {serve} from '../scripts/serve.mjs';
@@ -25,11 +26,23 @@ try{
  assert.equal(await page.locator('.daily-math-background > canvas').count(),1);
  assert.equal(await page.locator('.daily-math-background > .daily-math-note').count(),1,'animation and explanation belong to the same background layer');
  assert.equal(await root.locator('button').count(),0,'the background has no playback control');
- const canvas=()=>page.locator('#surface-canvas').evaluate(c=>c.toDataURL());
+ const canvas=async()=>createHash('sha256').update(await page.locator('#surface-canvas').evaluate(c=>c.toDataURL())).digest('hex');
+ async function setReducedMotion(reducedMotion){
+  // emulateMedia updates the query before Chromium delivers its change event.
+  // Wait on the real browser event before advancing the paused animation clock.
+  await page.evaluate(()=>{
+   window.dailyMathMotionChanged=false;
+   matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>{window.dailyMathMotionChanged=true;},{once:true});
+  });
+  await page.emulateMedia({reducedMotion});
+  await expect.poll(()=>page.evaluate(()=>window.dailyMathMotionChanged),{
+   timeout:5000,message:`Chromium must deliver the ${reducedMotion} media change before checking animation`,
+  }).toBe(true);
+ }
  const initial=await canvas();await page.clock.runFor(1000);assert.equal(await canvas(),initial,'paused image must stay still');
- await page.emulateMedia({reducedMotion:'no-preference'});await page.clock.runFor(800);
+ await setReducedMotion('no-preference');await page.clock.runFor(800);
  assert.notEqual(await canvas(),initial,'animation plays automatically when reduced motion is disabled');
- await page.emulateMedia({reducedMotion:'reduce'});await page.clock.runFor(32);
+ await setReducedMotion('reduce');await page.clock.runFor(32);
  const still=await canvas();await page.clock.runFor(800);
  assert.equal(await canvas(),still,'changing the system preference to reduced motion stops the animation');
  const renders=new Set();
