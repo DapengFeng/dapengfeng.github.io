@@ -33,7 +33,10 @@ export function header(active='') {
 }
 export function footer() { return `<footer class="lab-footer site-width"><div><a class="footer-name" href="/">FENG<span> / 知识实验室</span></a><p>保持好奇，把复杂的事想明白。</p></div><div class="footer-links"><a href="/archive/">文章归档</a><a href="/feed.xml">RSS</a><a href="https://github.com/DapengFeng">GitHub</a><span>© ${new Date().getFullYear()} ${pair(site.author,site.authorZh)}</span></div></footer>`; }
 export function shell({title, description=site.description, body, active='', url='/', extraHead='', extraScripts=''}) {
- const values={TITLE:e(title),DESCRIPTION:e(description),CANONICAL:site.url+url,TYPE:url.endsWith('.html')?'article':'website',SITE_URL:site.url,EXTRA_HEAD:extraHead,HEADER:header(active),BODY:body,FOOTER:footer(),EXTRA_SCRIPTS:extraScripts};
+ const token=process.env.CLOUDFLARE_WEB_ANALYTICS_TOKEN?.trim();
+ if(token&&!/^[a-f0-9]{32}$/i.test(token))throw Error('CLOUDFLARE_WEB_ANALYTICS_TOKEN must be the 32-character token from the Cloudflare Web Analytics snippet, not a variable name or the full snippet.');
+ const analytics=token?`<script type="module" src="/assets/analytics.js" data-analytics-token="${e(token)}" data-analytics-host="${e(new URL(site.url).hostname)}"></script>`:'';
+ const values={TITLE:e(title),DESCRIPTION:e(description),CANONICAL:site.url+url,TYPE:url.endsWith('.html')?'article':'website',SITE_URL:site.url,EXTRA_HEAD:extraHead,HEADER:header(active),BODY:body,FOOTER:footer(),EXTRA_SCRIPTS:extraScripts,ANALYTICS:analytics};
  return layoutTemplate.replace(/\{\{([A-Z_]+)\}\}/g,(_,key)=>values[key]??'');
 }
 export function dateMeta(p) { return `<span>${p.dateKind==='added'?'收录':'发布'} <time datetime="${p.date}">${p.date.replaceAll('-','.')}</time></span><span>${p.minutes} 分钟阅读</span>`; }

@@ -10,6 +10,6 @@ The site uses the root path `/` and targets `https://dapengfeng.github.io`. A pr
 
 站点使用根路径 `/`，目标地址为 `https://dapengfeng.github.io`。若改成项目子路径站点，需要统一配置路径前缀。历史日期式文章链接保留跳转。
 
-See [testing](../development/testing.md) for failed check reports and [search configuration](discoverability.md) for Actions verification variables.
+See [testing](../development/testing.md) for failed check reports, [search configuration](discoverability.md) for Actions verification variables, and [Web Analytics](analytics.md) for the optional Cloudflare beacon variable.
 
-检查失败时的报告位置见[测试与验证](../development/testing.md)，Actions 中的站点验证变量见[搜索配置](discoverability.md)。
+检查失败时的报告位置见[测试与验证](../development/testing.md)，Actions 中的站点验证变量见[搜索配置](discoverability.md)，可选的 Cloudflare 统计变量见[访问统计](analytics.md)。
