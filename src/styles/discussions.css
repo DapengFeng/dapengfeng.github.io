@@ -16,11 +16,18 @@
 @keyframes discussion-loading{to{transform:rotate(360deg)}}
 .discussion-frame{display:block;width:100%;height:320px;border:0;color-scheme:normal;background:transparent}
 .discussion-retry{margin-top:16px}
-.discussion-launcher{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:35;display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid var(--discussion-border);border-radius:50%;background:#21262d;color:var(--discussion-fg);box-shadow:0 4px 16px #0006}
-.discussion-launcher:hover{background:#30363d;border-color:#8b949e}.discussion-launcher svg{width:22px;height:22px}
+/* One fixed group for the article actions; keep targets equal and within safe areas. */
+.article-action-dock{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:35;display:flex;align-items:center;gap:4px;padding:5px;border:1px solid #46513f;border-radius:999px;background:#1a2019f5;color:var(--ink);box-shadow:0 6px 24px #0006;backdrop-filter:blur(12px)}
+.article-action-dock>button{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:10px;border:1px solid transparent;border-radius:50%;background:transparent;color:inherit;box-shadow:none}
+.article-action-dock>button svg{width:22px;height:22px}
+.article-action-dock>.article-support-trigger{color:var(--lime)}
+.article-action-dock>button:hover{background:#303e28;border-color:#677a56}
+.article-action-dock>button:focus-visible{outline:2px solid var(--lime);outline-offset:1px}
+.article-action-dock:not(:has(>button:not([hidden]))){display:none}
+.article-page{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
 .discussion-shell.is-floating{position:fixed;z-index:40;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--discussion-keyboard-inset,0px) + max(16px,env(safe-area-inset-bottom)));width:min(660px,calc(100vw - 32px));max-height:min(720px,calc(var(--discussion-viewport-height,100dvh) * .75));overflow:auto;overscroll-behavior:contain;box-shadow:0 16px 70px #000a}
 .discussion-shell.is-floating .discussion-toolbar{display:flex;position:sticky;top:-16px;z-index:1}
-body:has(dialog[open]) .discussion-launcher,body:has(dialog[open]) .discussion-shell.is-floating{visibility:hidden}
+body:has(dialog[open]) .article-action-dock,body:has(dialog[open]) .discussion-shell.is-floating,body:has(.discussion-shell.is-floating) .article-action-dock{visibility:hidden}
 @media(max-width:600px){.discussion-shell{padding:12px}.discussion-heading h2{font-size:22px}.discussion-toolbar{gap:8px;margin:-12px -12px 12px;padding-inline:8px}.discussion-shell.is-floating .discussion-toolbar{top:-12px}}
 @media(prefers-reduced-motion:reduce){.discussion-status[data-state=loading]:before{animation:none;border-style:dotted}}
 @media print{.article-discussions{display:none!important}}

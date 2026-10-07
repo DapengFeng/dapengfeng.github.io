@@ -2,9 +2,9 @@
 
 [Documentation index / 文档索引](../README.md)
 
-Every blog article has a share icon beside its publication details and after its body. The dialog offers WeChat, RedNote, X, LinkedIn, Telegram, link/text copying, and a downloadable image. The system share option appears when the browser supports it; the available destination apps depend on the device. Native file sharing appears after a local poster has loaded and the browser reports support. Opening a share sheet does not mean a post has been published.
+Every blog article has a share icon in the fixed bottom-right toolbar, alongside support and discussion. The dialog offers WeChat, RedNote, X, LinkedIn, Telegram, link/text copying, and a downloadable image. The system share option appears when the browser supports it; the available destination apps depend on the device. Native file sharing appears after a local poster has loaded and the browser reports support. Opening a share sheet does not mean a post has been published.
 
-每篇 blog 在发布信息旁与正文末尾都有分享图标。面板提供微信、小红书、X、LinkedIn、Telegram、链接／文案复制和图片下载。浏览器支持时显示系统分享，可选目标应用由设备决定。分享图加载完成且浏览器支持文件分享后，才显示图片系统分享按钮。打开系统分享面板不代表已经发表内容。
+每篇 blog 右下角的浮动工具栏提供分享图标，与赞赏、讨论入口并列。面板提供微信、小红书、X、LinkedIn、Telegram、链接／文案复制和图片下载。浏览器支持时显示系统分享，可选目标应用由设备决定。分享图加载完成且浏览器支持文件分享后，才显示图片系统分享按钮。打开系统分享面板不代表已经发表内容。
 
 WeChat uses a scannable article QR code and a saved sharing image. RedNote uses a saved image plus editable, copyable text. These are manual publishing workflows; this implementation does not call platform SDKs, authenticate to social accounts, or submit posts automatically. X, LinkedIn, and Telegram open their own sharing pages for the reader to review and submit. There are no third-party sharing scripts or QR services.
 

@@ -5,3 +5,7 @@ test-results/
 .vscode/
 *.log
 .DS_Store
+.env.local
+
+# Local payment research
+/docs/private/blog-support-payments.md

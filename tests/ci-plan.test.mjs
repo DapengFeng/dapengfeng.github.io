@@ -31,6 +31,9 @@ test('analytics and daily publications keep basic coverage without unrelated art
  assert.ok(plan(['content/assets/vision/eye-cutaway.webp']).suites.includes('vision'));
  assert.ok(plan(['content/assets/chaoshan/new-photo.webp']).suites.includes('sharing'));
  assert.ok(plan(['tests/compile.mjs']).suites.includes('compile'));
+ for(const file of ['scripts/support.mjs','src/scripts/support.js','src/styles/support.css']){
+  assert.deepEqual(new Set(plan([file]).suites),new Set(['browser','language','reading','support','sharing']));
+ }
 });
 
 test('uncertain changes and shared infrastructure fall back to every configured suite',()=>{

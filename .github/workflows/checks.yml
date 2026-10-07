@@ -60,6 +60,7 @@ jobs:
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
           BING_SITE_VERIFICATION: ${{ vars.BING_SITE_VERIFICATION }}
           CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+          PAYPAL_ME_URL: ${{ vars.PAYPAL_ME_URL }}
       - run: npm test
       # The tar preserves .nojekyll and is reused by every browser job and deployment.
       - name: Pack site

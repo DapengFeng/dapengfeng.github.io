@@ -30,6 +30,7 @@ Use these guides to write articles, maintain the site, and configure publishing.
 | [Search and AI discoverability / 搜索与 AI 可发现性](operations/discoverability.md) | Metadata, citations, SEO/GEO, verification variables, and sitemap submission.<br>元信息、引用、SEO/GEO、验证变量与站点地图提交。 |
 | [Cloudflare Web Analytics / Cloudflare 访问统计](operations/analytics.md) | Hosted analytics, Actions variable, production-only collection, and privacy signals.<br>托管统计、Actions 变量、正式站点采集与隐私信号。 |
 | [GitHub Discussions / GitHub 讨论](operations/discussions.md) | giscus setup, article mapping, message types, login, and draft behavior.<br>giscus 配置、文章关联、发言类型、登录与草稿行为。 |
+| [Reader support / 读者赞赏](operations/support.md) | PayPal support panel and Actions variable configuration.<br>PayPal 赞赏面板及 Actions 变量配置。 |
 | [Article sharing / 文章分享](operations/sharing.md) | Platform sharing, QR codes, image generation, language selection, and compatibility.<br>平台分享、二维码、图片生成、语言选择与兼容性。 |
 
 ## Keep the guides current / 文档维护

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "dev": "node scripts/dev.mjs",
+    "build": "node --env-file-if-exists=.env.local scripts/build.mjs",
+    "dev": "node --env-file-if-exists=.env.local scripts/dev.mjs",
     "preview": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/browser.mjs",
@@ -30,6 +30,7 @@
     "test:vision": "node tests/vision.mjs",
     "test:discussions": "node tests/discussions.mjs",
     "test:sharing": "node tests/sharing.mjs",
+    "test:support": "node tests/support.mjs",
     "test:daily-math": "node tests/daily-math.mjs",
     "test:analytics": "node tests/analytics.mjs",
     "math:check": "node scripts/daily-math-cli.mjs check",

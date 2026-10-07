@@ -11,7 +11,8 @@ async function decoded(file){const {data,info}=await sharp(file).ensureAlpha().r
 test('every article has local sharing assets and a QR code decoding to its canonical URL',async()=>{
  for(const p of posts){
   const $=cheerio.load(await fs.readFile('dist'+p.url,'utf8')),paths=sharePaths(p);
-  assert.equal($('[data-share-open]').length,2,p.slug);
+  assert.equal($('[data-share-open]').length,1,p.slug);
+  assert.equal($('.article-action-dock [data-share-open]').length,1,p.slug);
   assert.equal($('#article-share-dialog').attr('data-share-url'),site.url+p.url);
   assert.equal(await decoded('dist'+paths.qr),site.url+p.url,p.slug);
   for(const mode of ['en','zh','both']){
