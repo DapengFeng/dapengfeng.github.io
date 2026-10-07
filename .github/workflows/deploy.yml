@@ -5,61 +5,23 @@ on:
   pull_request:
     branches: [master, main]
   schedule:
-    - cron: '23 16 * * *' # 00:23 Asia/Shanghai
-  workflow_dispatch:
+    - cron: '23 16 * * *' # 00:23 Asia/Shanghai: publish today's mathematics
+  workflow_dispatch: # Manual publication always runs full regression.
 permissions:
   contents: read
 concurrency:
   group: pages-${{ github.event.pull_request.number || 'publish' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci
-      - name: Check daily mathematics history and inventory
-        run: npm run math:check -- --require-today
-        env:
-          MATH_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
-      - name: Install Chinese fonts for sharing images
-        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
-      - run: npm run build
-        id: site
-        env:
-          GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
-          BING_SITE_VERIFICATION: ${{ vars.BING_SITE_VERIFICATION }}
-          CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
-      - run: npm test
-      - name: Install browser and system dependencies
-        id: browser
-        if: ${{ !cancelled() && steps.site.outcome == 'success' }}
-        run: npx playwright install --with-deps chromium
-      - name: Verify reading, interaction, layout, and accessibility
-        if: ${{ !cancelled() && steps.site.outcome == 'success' && steps.browser.outcome == 'success' }}
-        run: npm run test:browsers
-      - name: Save test reports and logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: browser-test-results
-          path: test-results/
-          if-no-files-found: ignore
-          retention-days: 14
-      - uses: actions/upload-pages-artifact@v3
-        if: ${{ success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
-        with:
-          path: dist
+  checks:
+    uses: ./.github/workflows/checks.yml
+    with:
+      mode: ${{ github.event_name == 'schedule' && 'daily' || github.event_name == 'workflow_dispatch' && 'full' || 'auto' }}
   deploy:
-    if: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+    if: ${{ needs.checks.outputs.site == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+    needs: checks
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
@@ -67,8 +29,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: build
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: checked-site
+      - name: Unpack tested site
+        run: |
+          mkdir -p dist
+          tar -xf site.tar -C dist
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
       - uses: actions/configure-pages@v5
       - name: Deploy
         id: deployment

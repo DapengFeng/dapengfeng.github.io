@@ -86,7 +86,15 @@ try{
  await page.emulateMedia({reducedMotion:'no-preference'});
  await lab.locator('[data-icon=replay]').click();
  await page.waitForFunction(()=>+document.querySelector('#cuda-streams-lab').dataset.time>0.1);
- await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(250);
+ // Wait for an observed offscreen state; a fixed delay can sample during smooth scrolling.
+ await page.evaluate(()=>new Promise(resolve=>{
+  const observer=new IntersectionObserver(([entry])=>{
+   if(entry.isIntersecting)return;
+   observer.disconnect();requestAnimationFrame(()=>requestAnimationFrame(resolve));
+  });
+  observer.observe(document.querySelector('#cuda-streams-lab'));
+  scrollTo({top:0,left:0,behavior:'instant'});
+ }));
  const pausedTime=Number(await lab.getAttribute('data-time'));
  await page.waitForTimeout(250);assert.equal(Number(await lab.getAttribute('data-time')),pausedTime);
  await lab.scrollIntoViewIfNeeded();

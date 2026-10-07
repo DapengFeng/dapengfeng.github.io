@@ -4,7 +4,14 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {runSuites} from '../scripts/check-browsers.mjs';
+import {runSuites,selectSuites} from '../scripts/check-browsers.mjs';
+
+test('suite selection rejects empty, duplicate, unknown, or malformed arguments',()=>{
+ const suites=[{name:'browser',file:'tests/browser.mjs'},{name:'reading',file:'tests/reading.mjs'}];
+ assert.deepEqual(selectSuites(suites,[]),suites);
+ assert.deepEqual(selectSuites(suites,['--suites','reading']),[suites[1]]);
+ for(const args of [['--suites',''],['--suites','browser,'],['--suites','browser,browser'],['--suites','typo'],['--suite','browser']])assert.throws(()=>selectSuites(suites,args));
+});
 
 test('browser runner retains diagnostics and continues after failures and process-group timeouts',{timeout:10000,skip:process.platform==='win32'},async()=>{
  const directory=await fs.mkdtemp(path.join(os.tmpdir(),'feng-runner-'));
@@ -39,6 +46,10 @@ test('browser CLI discovers suites and exits nonzero even when the last suite pa
   assert.match(run.stdout,/last suite passed/);
   const results=JSON.parse(await fs.readFile(path.join(directory,'test-results/browser/results.json'),'utf8'));
   assert.deepEqual(results.map(r=>r.status),['failed','passed']);
+  const selected=spawnSync(process.execPath,[path.resolve('scripts/check-browsers.mjs'),'--suites','pass'],{cwd:directory,encoding:'utf8',timeout:5000,env:{...process.env,GITHUB_STEP_SUMMARY:''}});
+  assert.equal(selected.status,0,selected.stderr);
+  const selectedResults=JSON.parse(await fs.readFile(path.join(directory,'test-results/browser/results.json'),'utf8'));
+  assert.deepEqual(selectedResults.map(r=>r.name),['pass'],'unselected failure is not executed; previous logs are cleared');
  }finally{await fs.rm(directory,{recursive:true,force:true});}
 });
 

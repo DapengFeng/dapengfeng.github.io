@@ -15,6 +15,30 @@ Browser checks use the Chromium version pinned by Playwright, matching CI by def
 
 浏览器检查默认使用 Playwright 锁定版本的 Chromium，与 CI 保持一致。可执行 `npx playwright install chromium` 安装 Chromium，或通过 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 指定已安装的 Chromium。`npm run test:browsers` 检查交互、语言、排序、排版、公式和无障碍。前面的测试失败后仍会继续检查后续项目；每项限时五分钟，逐项日志和结果汇总保存在 `test-results/browser/`，任意一项失败都会使命令返回非零状态。编译器测试使用隔离的接口响应；运行 `node tests/compiler.mjs --live` 可验证 Godbolt 本身。静态产物输出到 `dist/`，无需服务器端程序。
 
+## CI selection and local reproduction / CI 选择与本地复现
+
+```bash
+# Documentation checks need only Node.js / 文档检查只需 Node.js
+node scripts/check-docs.mjs
+
+# Inspect the complete three-group plan / 查看全量检查的三个分组
+CI_CHECK_MODE=full node scripts/ci-plan.mjs
+
+# Inspect daily-publication coverage / 查看每日发布的检查范围
+CI_CHECK_MODE=daily node scripts/ci-plan.mjs
+
+# Reproduce one group's suite list from the Actions summary / 复现 Actions 摘要中的某组测试
+npm run test:browsers -- --suites browser,language,reading,analytics
+```
+
+The default `npm run test:browsers` still runs every browser suite registered in `package.json`. `--suites` takes exact comma-separated names without the `test:` prefix; unknown, empty, or duplicate names fail immediately. The selector uses the complete push range or the pull request's merge base, including both sides of renames. Missing comparison history and unmapped files trigger all suites. Multiple kinds of targeted changes combine their test selections.
+
+默认的 `npm run test:browsers` 仍执行 `package.json` 中登记的全部浏览器测试。`--suites` 使用逗号分隔的精确名称，不带 `test:` 前缀；未知、空白或重复名称会立即报错。CI 比较整次推送的改动范围，PR 则从共同祖先比较，文件改名的前后路径均计入。无法获取比较历史或出现未映射文件时，会触发全量测试。多类改动会合并各自的检查范围。
+
+Each matrix job runs its assigned suites sequentially; the jobs run in parallel and do not cancel siblings on failure. Reports are available as `test-results-browser-1`, `test-results-browser-2`, and `test-results-browser-3` artifacts. All browser jobs use the output of the same build, and deployment waits for the final gate. See [deployment](../operations/deployment.md) for the selection table, schedules, and manual full regression.
+
+每个矩阵任务内部顺序执行分配到的套件，任务之间并行，某一组失败不会取消其他组。报告分别保存在 `test-results-browser-1`、`test-results-browser-2` 和 `test-results-browser-3` 附件中。各组验证同一次构建的产物，部署等待最后的汇总检查通过。选择规则、定时计划及手动完整回归见[部署说明](../operations/deployment.md)。
+
 ## PyTorch series checks / PyTorch 专题检查
 
 `npm run test:pytorch` checks the first installment's C++ model, both animations, language modes, mobile layout, and no-JavaScript reading. Its Python/PyTorch examples require a separate local PyTorch 2.10.0 CPU environment; the website build does not install PyTorch. CPU outputs were checked against that version; CUDA diagrams are source-based illustrations rather than GPU measurements.

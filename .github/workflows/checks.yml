@@ -1,0 +1,138 @@
+name: Site checks
+on:
+  workflow_call:
+    inputs:
+      mode:
+        type: string
+        default: auto
+    outputs:
+      site:
+        description: Whether this run produced a checked site artifact
+        value: ${{ jobs.plan.outputs.site }}
+permissions:
+  contents: read
+jobs:
+  plan:
+    name: Select checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      site: ${{ steps.scope.outputs.site }}
+      matrix: ${{ steps.scope.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check documentation
+        run: node scripts/check-docs.mjs
+      - name: Select browser suites
+        id: scope
+        run: node scripts/ci-plan.mjs
+        env:
+          CI_CHECK_MODE: ${{ inputs.mode }}
+
+  build:
+    name: Build and unit tests
+    needs: plan
+    if: ${{ needs.plan.outputs.site == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Check daily mathematics history and inventory
+        run: npm run math:check -- --require-today
+        env:
+          MATH_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+      - name: Install Chinese fonts for sharing images
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - run: npm run build
+        env:
+          GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+          BING_SITE_VERIFICATION: ${{ vars.BING_SITE_VERIFICATION }}
+          CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+      - run: npm test
+      # The tar preserves .nojekyll and is reused by every browser job and deployment.
+      - name: Pack site
+        run: tar -cf site.tar -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checked-site
+          path: site.tar
+          if-no-files-found: error
+          retention-days: 1
+
+  browsers:
+    name: ${{ matrix.group }}
+    needs: [plan, build]
+    if: ${{ needs.plan.outputs.site == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: checked-site
+      - name: Unpack built site
+        run: |
+          mkdir -p dist
+          tar -xf site.tar -C dist
+      - name: Install browser and system dependencies
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk
+      - name: Run selected browser suites
+        run: npm run test:browsers -- --suites "$BROWSER_SUITES"
+        env:
+          BROWSER_SUITES: ${{ matrix.suites }}
+      - name: Save test reports and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.group }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  gate:
+    name: CI result
+    if: ${{ always() }}
+    needs: [plan, build, browsers]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every selected check to pass
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          SITE: ${{ needs.plan.outputs.site }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          BROWSER_RESULT: ${{ needs.browsers.result }}
+        run: |
+          node <<'JS'
+          const {PLAN_RESULT, SITE, BUILD_RESULT, BROWSER_RESULT} = process.env;
+          const expected = SITE === 'true' ? 'success' : 'skipped';
+          if (PLAN_RESULT !== 'success' || !['true', 'false'].includes(SITE) ||
+              BUILD_RESULT !== expected || BROWSER_RESULT !== expected) {
+            console.error({PLAN_RESULT, SITE, BUILD_RESULT, BROWSER_RESULT});
+            process.exit(1);
+          }
+          console.log(SITE === 'true' ? 'All selected checks passed.' : 'Documentation checks passed.');
+          JS

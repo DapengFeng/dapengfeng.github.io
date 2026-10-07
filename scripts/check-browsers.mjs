@@ -3,6 +3,26 @@ import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
+export function discoverSuites(scripts){
+ return Object.entries(scripts).filter(([name])=>name.startsWith('test:')&&name!=='test:browsers').map(([name,command])=>{
+  const match=/^node (tests\/[\w-]+\.mjs)$/.exec(command);
+  if(!match)throw Error(`Unsupported browser suite command: ${name}`);
+  return {name:name.slice(5),file:match[1]};
+ });
+}
+
+export function selectSuites(suites,args){
+ if(!args.length)return suites;
+ if(args.length!==2||args[0]!=='--suites')throw Error('Usage: npm run test:browsers -- --suites browser,reading');
+ const names=args[1].split(',');
+ if(names.some(name=>!name)||new Set(names).size!==names.length)throw Error('Suite selection must be nonempty and contain no duplicates');
+ return names.map(name=>{
+  const suite=suites.find(suite=>suite.name===name);
+  if(!suite)throw Error(`Unknown browser suite: ${name}`);
+  return suite;
+ });
+}
+
 // Run every suite, keeping failures visible without skipping later checks.
 export async function runSuites(suites,{directory='test-results/browser',timeoutMs=300000,output=chunk=>process.stdout.write(chunk)}={}){
  if(!suites.length)throw Error('No browser suites configured');
@@ -47,11 +67,7 @@ export async function runSuites(suites,{directory='test-results/browser',timeout
 
 if(process.argv[1]===fileURLToPath(import.meta.url)){
  const {scripts}=JSON.parse(await fs.readFile('package.json','utf8'));
- const suites=Object.entries(scripts).filter(([name])=>name.startsWith('test:')&&name!=='test:browsers').map(([name,command])=>{
-  const match=/^node (tests\/[\w-]+\.mjs)$/.exec(command);
-  if(!match)throw Error(`Unsupported browser suite command: ${name}`);
-  return {name:name.slice(5),file:match[1]};
- });
+ const suites=selectSuites(discoverSuites(scripts),process.argv.slice(2));
  const directory='test-results/browser';
  await fs.rm(directory,{recursive:true,force:true});
  const results=await runSuites(suites,{directory});
