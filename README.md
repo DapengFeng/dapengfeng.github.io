@@ -4,15 +4,19 @@
 
 ## Mission / 网站使命
 
-Make technical ideas easier to understand, examine, and apply. This is Dapeng Feng’s personal notebook on mathematics, physics, neuroscience, and computing: a place to connect abstract concepts with their derivations, physical models, source code, and measured behavior.
+Start with a question or an observation. Make complex ideas clear, and keep the details worth noticing. FENG is Dapeng Feng’s personal knowledge lab: a place to share the process of learning, testing an explanation, and looking closely at the world.
 
-让技术知识更容易理解、验证和应用。这是冯大鹏的个人知识实验室，记录数学、物理、神经科学与计算机领域的学习，将抽象概念与推导、物理模型、源代码和实际测量联系起来。
+从具体的问题与观察出发，把复杂的原理讲清楚，把值得留意的细节记录下来。FENG 是冯大鹏的个人知识实验室，分享学习、验证解释与认真观察世界的过程。
 
-An article should explain how something works and why. Diagrams show structure and relationships; animations show how a process unfolds; runnable examples and benchmarks let readers check an explanation against code and data.
+The subjects will grow with new questions and experiences. The aim is for each article to help a reader understand an idea or notice something they might otherwise miss. Explanations make their reasoning available for examination; personal observations preserve the particulars of a place, a person, or a moment.
 
-每篇文章都应讲清楚一件事如何工作，以及为什么如此。用图形表达结构与关系，用动画展示过程，用可运行示例和基准测试让读者结合代码与数据验证解释。
+内容会随着新的问题与经历不断扩展，希望每篇文章都能帮助读者理解一个问题，或注意到曾经忽略的细节。讲解交代推理，让判断可以检验；观察留意具体的人、地方与片刻，让感受有处可寻。
 
-## Topics / 内容方向
+Choose the form that serves the subject. In an explanatory article, diagrams can show relationships, animations can reveal a process, and examples can test a claim. In a personal account, attentive language and photographs can carry the experience. Each form should make something easier to understand or see.
+
+选择适合内容的表达。讲解原理时，可以用图形呈现关系、动画展示过程、例子检验论述；记录见闻时，可以用细致的文字与照片承载感受。每种形式都应帮助读者看得更清楚。
+
+## Current threads / 正在探索
 
 | Field / 领域 | Questions / 关注的问题 |
 | --- | --- |
@@ -21,12 +25,13 @@ An article should explain how something works and why. Diagrams show structure a
 | Systems & Performance<br>系统与性能 | How do data layout, execution, and hardware affect a program?<br>数据布局、执行过程与硬件如何影响程序？ |
 | Benchmarks<br>基准测试 | What was measured, under what conditions, and can the result be reproduced?<br>测量了什么、条件是什么、结果能否复现？ |
 | Life & Neuroscience<br>生命与神经科学 | How do biological structures and cellular processes support signal processing?<br>生物结构与细胞过程如何实现信号处理？ |
+| Travel & Observation<br>旅行与观察 | What do a place, its everyday life and its food reveal when we slow down?<br>慢下来之后，一个地方的景色、日常与滋味会显出什么？ |
 
 ## Reading principles / 阅读原则
 
-- **Explain the mechanism.** State the question, assumptions, reasoning, and limits. Link claims to primary sources and distinguish illustrative models from measurements.
+- **Explain the mechanism.** In explanatory articles, state the question, assumptions, reasoning, and limits. Link claims to primary sources and distinguish illustrative models from measurements.
 
-  **讲清原理**。说明问题、假设、推理过程与适用范围，为论述提供原始来源，区分示意模型与实际测量。
+  **讲清原理**。讲解类文章说明问题、假设、推理过程与适用范围，为论述提供原始来源，区分示意模型与实际测量。
 
 - **Make figures informative.** A reader should learn from a figure before touching its controls. Add interaction when it helps compare conditions or inspect a process.
 
@@ -35,6 +40,10 @@ An article should explain how something works and why. Diagrams show structure a
 - **Keep explanations readable.** Use legible text, clear spacing, and compact figures without hiding important details in small print.
 
   **保证可读性**。文字清晰、块间留白、图示紧凑，重要说明不藏在小字里。
+
+- **Keep observation specific.** Pair photographs with the places and moments they actually show. Preserve the writer’s judgment without inventing experiences or turning travel into a technical report.
+
+  **让观察具体**。照片与文字对应真实的地点和片刻，保留写作者的判断，不虚构经历，也不把游记写成技术报告。
 
 - **Maintain both languages together.** English comes first, immediately followed by Chinese. Readers can choose either language or both; equations, code, and figures are shared.
 

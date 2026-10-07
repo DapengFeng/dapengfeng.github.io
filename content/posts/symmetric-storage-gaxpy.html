@@ -9,6 +9,8 @@
   "titleEn": "Symmetric Storage GAXPY",
   "description": "实对称矩阵只需保存下三角的 n(n+1)/2 个元素。GAXPY 中，每个非对角元素都要贡献到两个输出分量，因此存储量接近减半，运算量仍为 O(n²)。",
   "descriptionEn": "A real symmetric matrix can store its lower triangle in n(n+1)/2 entries. In GAXPY, each off-diagonal entry contributes to two output components, so storage is nearly halved while arithmetic work remains O(n²).",
+  "cardDescription": "对称矩阵只存一半，每个非对角元素却要更新两个输出；省下存储，不等于省下一半计算。",
+  "cardDescriptionEn": "Store one triangle of a symmetric matrix, but use each off-diagonal entry twice: halving storage does not halve the arithmetic.",
   "date": "2021-07-19",
   "dateKind": "published",
   "category": "systems",

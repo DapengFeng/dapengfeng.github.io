@@ -5,6 +5,10 @@ import {fileURLToPath} from 'node:url';
 // Check repository documentation without installing the site's/browser's dependencies.
 export async function checkDocs(root=process.cwd()){
  const files=['README.md'];
+ try{
+  await fs.access(path.join(root,'AGENTS.md'));
+  files.push('AGENTS.md');
+ }catch(error){if(error.code!=='ENOENT')throw error;}
  async function walk(directory){
   for(const item of await fs.readdir(path.join(root,directory),{withFileTypes:true})){
    const file=path.posix.join(directory,item.name);

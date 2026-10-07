@@ -43,7 +43,7 @@ export async function build(){
  }
  for(const post of posts)await renderShareAssets(post,write);
  for(const post of [null,...posts])await write(sharingImage(post).slice(1),await renderSharingImage(post));
- for(const name of ['daily-math','site','legacy','reader','discussions','giscus-theme','sharing','support'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
+ for(const name of ['editorial','daily-math','site','legacy','reader','discussions','giscus-theme','sharing','support'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
  for(const name of ['analytics','daily-math','daily-math-models','daily-math-drawings','math-archive','eye-viewer','eye-renderer','eye-model','sharing','support','discussions','site','surface','article','reading-demos','process-demos','process-models','labs','benchmark-worker','paired','syntax','compiler','code-copy'])await fs.copyFile(`src/scripts/${name}.js`,`dist/assets/${name}.js`);
  for(const name of ['three.module.min.js','three.core.min.js'])await fs.copyFile(`node_modules/three/build/${name}`,`dist/assets/${name}`);
  await fs.copyFile('node_modules/three/LICENSE','dist/assets/three-LICENSE');
@@ -52,7 +52,10 @@ export async function build(){
  await fs.copyFile('node_modules/@mathjax/src/LICENSE','dist/assets/mathjax-LICENSE');
  await write('assets/math-NOTICE','MathJax and MathJax-Newcm font, version 4.1.3.\nCopyright MathJax Consortium. Licensed under Apache-2.0; see mathjax-LICENSE.\nhttps://github.com/mathjax/MathJax-src\nhttps://github.com/mathjax/MathJax-fonts\n');
  await write('assets/favicon.svg','<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#c0f47b"/><text x="19" y="48" font-family="Georgia" font-style="italic" font-size="53" font-weight="bold" fill="#101310">f.</text></svg>');
- const index=posts.map(({html,styles,headings,isHtml,source,...p})=>({...p,categoryEn:categories.find(c=>c.id===p.category).en,categoryZh:categories.find(c=>c.id===p.category).name,tags:[...p.tags,...p.tags.map(t=>dictionary[t]||t)]}));
+ // Search records contain only public discovery fields, not recommendation working data.
+ const index=posts.map(p=>({kind:'article',slug:p.slug,url:p.url,title:p.title,titleEn:p.titleEn,description:p.cardDescription||p.description,descriptionEn:p.cardDescriptionEn||p.descriptionEn,date:p.date,category:p.category,categoryEn:categories.find(c=>c.id===p.category).en,categoryZh:categories.find(c=>c.id===p.category).name,tags:[...p.tags,...p.tags.map(t=>dictionary[t]||t)],searchTextEn:p.searchTextEn,searchTextZh:p.searchTextZh,featured:p.featured,archiveOnly:p.archiveOnly,minutes:p.minutes,cover:p.cover}));
+ index.push(...entries.filter(t=>t.date<=today).map(t=>({kind:'math',url:`/math/${t.date}/`,title:t.zh,titleEn:t.en,description:t.descriptionZh,descriptionEn:t.descriptionEn,date:t.date,category:'math',categoryEn:'DAILY MATHEMATICS',categoryZh:'每日数学',tags:[t.id],searchTextEn:[t.en,t.descriptionEn,t.readingEn].join(' '),searchTextZh:[t.zh,t.descriptionZh,t.readingZh].join(' ')})));
+ index.push(...series.map(g=>{const [titleEn,title,descriptionEn,description]=seriesMetadata(g);return {kind:'series',url:g.url,title,titleEn,description,descriptionEn,category:'systems',categoryEn:'LEARNING SERIES',categoryZh:'学习专题',tags:['PyTorch','系列','series'],searchText:g.posts.map(p=>p.title+' '+p.titleEn).join(' ')};}));
  await write('search-index.json',JSON.stringify(index));
  const items=posts.map(p=>`<item><title>${e(p.titleEn||p.title)} / ${e(p.title)}</title><link>${site.url}${p.url}</link><guid isPermaLink="true">${site.url}${p.url}</guid><pubDate>${new Date(p.date+'T12:00:00+08:00').toUTCString()}</pubDate><description>${e(p.descriptionEn||p.description)}</description><category>${e(p.category)}</category></item>`).join('');
  await write('feed.xml',`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>FENG / Knowledge Lab</title><link>${site.url}</link><description>${e(site.description)}</description><language>en</language>${items}</channel></rss>`);

@@ -34,7 +34,8 @@
     "test:daily-math": "node tests/daily-math.mjs",
     "test:analytics": "node tests/analytics.mjs",
     "math:check": "node scripts/daily-math-cli.mjs check",
-    "math:plan": "node scripts/daily-math-cli.mjs plan"
+    "math:plan": "node scripts/daily-math-cli.mjs plan",
+    "test:cross-browser": "node tests/cross-browser.mjs"
   },
   "devDependencies": {
     "@mathjax/src": "4.1.3",

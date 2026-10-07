@@ -18,6 +18,10 @@ The loader requests Cloudflare's module only on the HTTPS hostname configured in
 
 加载器只在 `scripts/config.mjs` 指定的正式 HTTPS 域名请求 Cloudflare 模块，本地预览和 CI 浏览器检查不会请求统计服务。启用 Global Privacy Control 或 Do Not Track 的浏览器也不会加载。网站仅接入 Cloudflare 标准流量与性能统计，不附加用户身份或自定义事件数据。
 
+Keep reporting aggregate: do not expose individual readers or their IP locations on the site. Do not add IP lookups for recommendations or payment routing. [Language selection](../authoring/language.md) remains local to the browser; service configuration and optional loading stay independent of visitor location.
+
+统计保持汇总形式，不在站点上展示个体读者或其 IP 归属，不为推荐或付款分流添加 IP 查询。[语言选择](../authoring/language.md)仍在浏览器本地完成，服务配置与按需加载不依赖访客位置。
+
 After deployment, visit the production site and check the Cloudflare dashboard after a few minutes. Network failures and blocking extensions can prevent collection; mainland China connectivity must be tested on the reader's actual network. **Visits counts visits, not deduplicated people.** See the [official setup guide](https://developers.cloudflare.com/web-analytics/get-started/), [metric definitions](https://developers.cloudflare.com/web-analytics/data-metrics/high-level-metrics/), and [FAQ](https://developers.cloudflare.com/web-analytics/faq/).
 
 部署后访问正式网站，等待几分钟再查看 Cloudflare 后台。网络故障和拦截扩展可能使统计缺失，大陆连通性需在读者实际网络测试。**Visits 表示访问次数，不是去重人数。** 配置与统计口径见上述官方文档。

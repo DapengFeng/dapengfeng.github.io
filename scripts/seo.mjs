@@ -3,11 +3,11 @@ import sharp from 'sharp';
 import {site, categories, escape as e} from './config.mjs';
 
 const pageInfo = {
-  '/': ['Ideas, made visible', '让知识，变得可见', 'Explore mathematics, physics, programming, and benchmarks through visual explanations and interactive experiments by Dapeng Feng.', '冯大鹏的个人知识实验室：通过图解、交互实验与基准测试，探索数学、物理和编程。'],
+  '/': ['Ideas, made visible', '让知识，变得可见', 'Dapeng Feng’s personal knowledge lab: start with a question or an observation, make complex ideas clear, and keep the details worth noticing.', '冯大鹏的个人知识实验室：从具体的问题与观察出发，把复杂的原理讲清楚，把值得留意的细节记录下来。'],
   '/blog/': ['Knowledge notebook', '知识库', 'Browse bilingual notes on mathematics, physics, systems programming, and reproducible benchmarks.', '浏览数学、物理、系统编程与可复现基准测试的中英双语笔记。'],
   '/categories/': ['Knowledge categories', '知识分类', 'Find visual notes by subject: mathematics and algorithms, physics and models, systems and performance, and benchmarks.', '按主题查找可视化笔记：数学与算法、物理与模型、系统与性能、基准测试。'],
   '/archive/': ['Article timeline', '文章时间线', 'Explore all notes by their first publication date, from earlier algorithm notes to interactive visual essays.', '按首次发布日期浏览全部笔记，从早期算法记录到交互式可视化长文。'],
-  '/about/': ['About Dapeng Feng', '关于冯大鹏', 'Meet Dapeng Feng and learn about this personal knowledge lab for mathematics, physics, programming, and performance experiments.', '了解冯大鹏，以及这个分享数学、物理、编程和性能实验的个人知识实验室。'],
+  '/about/': ['About Dapeng Feng', '关于冯大鹏', 'Why Dapeng Feng writes: to help readers understand a question or notice a detail, through reasoning, evidence, and attentive observation.', '了解冯大鹏为什么写：通过推理、证据与细致观察，帮助读者看清一个问题，或注意到曾经忽略的细节。'],
   '/404.html': ['Page not found', '页面未找到', 'This page could not be found. Browse the knowledge notebook to continue exploring.', '未找到此页面，可前往知识库继续探索。'],
 };
 const bilingual = (en, zh) => en === zh ? en : `${en} / ${zh}`;

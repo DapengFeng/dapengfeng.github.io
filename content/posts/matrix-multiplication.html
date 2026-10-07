@@ -9,6 +9,8 @@
   "titleEn": "Matrix Multiplication",
   "description": "矩阵乘法的循环顺序决定访存步长与数据复用机会。连续访问有利于利用缓存行，分块则反复使用缓存中的子矩阵，在算术量不变的情况下减少数据搬运。",
   "descriptionEn": "Loop order determines memory strides and opportunities for data reuse. Contiguous accesses use cache lines efficiently, while blocking reuses submatrices in cache to reduce data movement without changing the arithmetic work.",
+  "cardDescription": "乘加次数相同，访存顺序仍会改变速度：连续访问利用缓存行，分块让已载入的数据多用几次。",
+  "cardDescriptionEn": "The same multiply-adds can run differently: contiguous access uses cache lines, while blocking reuses data already loaded into cache.",
   "date": "2019-01-07",
   "dateKind": "published",
   "category": "systems",
@@ -24,7 +26,7 @@
 </head><body>
 <div class="lesson">
 <span id="topic-1" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="section-1"><span class="parallel-en" data-lang="en" lang="en">The arithmetic is only half the story</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">算得一样多，为什么速度不同？</span></h2>
-<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Think of a cook who needs ingredients from a pantry. Two recipes may use the same number of cuts and stirs, yet one walks to the pantry for every pinch while the other brings a tray. Matrix performance has the same tension: arithmetic matters, but so does how often data must travel.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">想象厨师从储物间取食材。两份菜谱切、炒的次数一样，一份却每取一撮盐都要走一趟，另一份先把食材装成一盘。矩阵性能也有这样的差别：计算次数重要，数据来回搬运多少次同样重要。</span></p>
+<p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Two loops can compute the same matrix product with the same number of multiply-adds and still take different amounts of time. In one order, adjacent operations read adjacent elements; in another, they jump across rows. Blocking changes how long loaded values can be reused. Follow those addresses first, then use measurements to test whether the change helps.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">两组循环计算同一个矩阵乘积，乘加次数相同，耗时却可能不同。一种顺序让相邻操作读取相邻元素，另一种顺序却跨着整行跳跃；分块则改变已载入数据能够复用多久。先追踪这些地址，再用测量检验改变是否带来收益。</span></p>
 <p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">This note follows one operation: update C by AB. A has m rows and k columns, B has k rows and n columns, and C has m rows and n columns. We use row-major C++ arrays throughout; the final section explains how the conclusion changes for column-major storage.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">本文围绕一个操作：把 AB 加到 C 上。A 是 m 行 k 列，B 是 k 行 n 列，C 是 m 行 n 列。C++ 示例统一采用行优先数组，后面会说明列优先存储会怎样改变结论。</span></p>
 <div class="shared-equation" data-math="\begin{aligned} C &amp;\leftarrow C+AB \\[4pt] C_{ij} &amp;\leftarrow C_{ij}+\sum_{t=0}^{k-1}A_{it}B_{tj} \end{aligned}"></div>
 <span id="topic-2" class="lesson-anchor" aria-hidden="true"></span><span id="section-2" class="lesson-anchor" aria-hidden="true"></span><h2 class="parallel-text" id="blas"><span class="parallel-en" data-lang="en" lang="en">BLAS levels: opportunities to reuse data</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">BLAS 层级：数据复用的机会</span></h2>
@@ -68,7 +70,7 @@ int main() {
     return z==Vec(5,6) &amp;&amp; out==Vec{18,38} &amp;&amp; outer==Vec{5,8,9,13} ? 0 : 1;
 }
 </code></pre>
-<span id="section-7" class="lesson-anchor" aria-hidden="true"></span><h3 class="parallel-text" id="blocking"><span class="parallel-en" data-lang="en" lang="en">4. Blocking: keep a working set nearby</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">4. 分块：把一盘食材留在手边</span></h3>
+<span id="section-7" class="lesson-anchor" aria-hidden="true"></span><h3 class="parallel-text" id="blocking"><span class="parallel-en" data-lang="en" lang="en">4. Blocking: reuse a small working set</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">4. 分块：复用较小的工作集</span></h3>
 <p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Divide A, B, and C into tiles. For one C tile, walk through the matching A and B tiles and accumulate partial products. For three square b × b tiles of doubles, the nominal footprint is 24b² bytes. Choose b with room for other working data; nominal capacity alone does not account for associativity, registers, packing, or multiple threads.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">把 A、B、C 划成小块。固定一块 C，依次取对应的 A、B 小块累加部分乘积。三个 b × b 的 double 方块名义上占 24b² 字节。选择 b 时还要给其他工作数据留空间；只看缓存标称容量，并没有考虑组相联、寄存器、打包和多线程的影响。</span></p>
 <div class="shared-equation" data-math="C_{IJ}\leftarrow C_{IJ}+\sum_T A_{IT}B_{TJ}"></div>
 <p class="parallel-text"><span class="parallel-en" data-lang="en" lang="en">Our blocked example still uses row-major storage; it does not magically change the physical layout into tiles. Every tile-end loop uses min to handle rectangular matrices and dimensions that are not multiples of the tile size. Production matrix multiplication adds microkernels, packing, vector instructions, and often threading.</span><span class="parallel-zh" data-lang="zh" lang="zh-CN">下方分块示例仍然采用行优先存储，并没有自动把物理布局改成块布局。每个块末尾都用 min 裁剪，以支持长方形矩阵和不能整除块长的尺寸。生产级矩阵乘法还会使用微内核、打包、向量指令，并经常配合多线程。</span></p>

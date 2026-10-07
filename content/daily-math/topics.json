@@ -16,7 +16,14 @@
     "descriptionZh": "方波可以分解为奇次正弦谐波，各项振幅为 \\(\\frac{4}{\\pi n}\\)，频率越高，振幅越小。将图中的七项相加，就得到方波的近似。",
     "formula": "f_7(t) = \\frac{4}{\\pi} \\sum_{k=0}^{6} \\frac{\\sin((2k+1)t)}{2k+1}",
     "readingEn": "Vector \\(n\\) rotates at angular speed \\(n\\), with length \\(\\frac{4}{\\pi n}\\). Connecting the vectors adds their vertical projections: the tip traces the wave, and the bars show amplitudes.",
-    "readingZh": "第 \\(n\\) 根向量以角速度 \\(n\\) 旋转，长度为 \\(\\frac{4}{\\pi n}\\)。首尾相接后，末端高度就是各竖直投影之和，描出波形；柱形高度表示振幅。"
+    "readingZh": "第 \\(n\\) 根向量以角速度 \\(n\\) 旋转，长度为 \\(\\frac{4}{\\pi n}\\)。首尾相接后，末端高度就是各竖直投影之和，描出波形；柱形高度表示振幅。",
+    "related": [
+      {
+        "url": "/blog/fast-matrix-vector-products.html",
+        "en": "From Fourier sums to FFTs",
+        "zh": "从傅里叶求和到 FFT"
+      }
+    ]
   },
   {
     "id": "lissajous",
@@ -35,7 +42,14 @@
     "descriptionZh": "光点合成了频率比为 \\(3:2\\) 的两个垂直振动。横向完成三个周期、纵向完成两个周期后，两者同时回到原相位，轨迹因此闭合。",
     "formula": "x = \\sin(3t), \\qquad y = \\cos(2t)",
     "readingEn": "The horizontal coordinate follows \\(\\sin(3t)\\); the vertical coordinate follows \\(\\cos(2t)\\). The bright trail shows recent positions along the same fixed curve.",
-    "readingZh": "横坐标按 \\(\\sin(3t)\\) 变化，纵坐标按 \\(\\cos(2t)\\) 变化。亮色尾迹标出最近经过的位置，整条曲线本身保持不变。"
+    "readingZh": "横坐标按 \\(\\sin(3t)\\) 变化，纵坐标按 \\(\\cos(2t)\\) 变化。亮色尾迹标出最近经过的位置，整条曲线本身保持不变。",
+    "related": [
+      {
+        "url": "/blog/waves-and-phase.html",
+        "en": "Waves and phase",
+        "zh": "波与相位"
+      }
+    ]
   },
   {
     "id": "standing",
@@ -55,7 +69,14 @@
     "formula": "u(x,y,t) = \\sin(2x)\\sin(3y)\\cos(\\sqrt{13}\\,t)",
     "compactFormula": "\\begin{aligned}u(x,y,t) &= \\sin(2x)\\sin(3y)\\\\ &\\quad\\cdot\\cos(\\sqrt{13}\\,t)\\end{aligned}",
     "readingEn": "The gold line marks \\(x=\\pi/2\\); the cyan lines mark \\(y=\\pi/3\\) and \\(2\\pi/3\\). These nodal lines separate six regions that oscillate with alternating signs.",
-    "readingZh": "金线标出 \\(x=\\pi/2\\)，青线标出 \\(y=\\pi/3\\) 和 \\(2\\pi/3\\)。这些节线分出六个区域，相邻区域的位移符号相反。"
+    "readingZh": "金线标出 \\(x=\\pi/2\\)，青线标出 \\(y=\\pi/3\\) 和 \\(2\\pi/3\\)。这些节线分出六个区域，相邻区域的位移符号相反。",
+    "related": [
+      {
+        "url": "/blog/waves-and-phase.html",
+        "en": "Waves and phase",
+        "zh": "波与相位"
+      }
+    ]
   },
   {
     "id": "heat",
@@ -152,7 +173,14 @@
     "descriptionEn": "A complex exponential of unit magnitude traces the unit circle. Its real and imaginary parts are the horizontal and vertical projections, so multiplication by \\(e^{i\\theta}\\) represents a rotation.",
     "descriptionZh": "模长为一的复指数沿单位圆运动。实部和虚部分别是水平、竖直投影，因此乘以 \\(e^{i\\theta}\\) 对应一次旋转。",
     "readingEn": "The rotating radius and its projections share one angle. The curve on the right records the imaginary part, \\(\\sin\\theta\\), as that angle increases.",
-    "readingZh": "旋转半径与两个投影共用同一个角度。右侧曲线记录角度增大时的虚部 \\(\\sin\\theta\\)。"
+    "readingZh": "旋转半径与两个投影共用同一个角度。右侧曲线记录角度增大时的虚部 \\(\\sin\\theta\\)。",
+    "related": [
+      {
+        "url": "/blog/fast-matrix-vector-products.html",
+        "en": "From Fourier sums to FFTs",
+        "zh": "从傅里叶求和到 FFT"
+      }
+    ]
   },
   {
     "id": "taylor",
@@ -191,7 +219,14 @@
     "descriptionZh": "两个相近频率的振动交替相长、相消。叠加结果包含快速振荡的载波和缓慢变化的振幅；相邻响度峰值的时间间隔是两者频率差的倒数。",
     "readingEn": "The green trace adds angular frequencies 10 and 11. The gold boundaries show \\(\\pm2|\\cos(t/2)|\\); the amplitude vanishes where those boundaries meet.",
     "readingZh": "绿色曲线叠加角频率为 10 和 11 的振动。金色边界为 \\(\\pm2|\\cos(t/2)|\\)，边界相遇时振幅降为零。",
-    "compactFormula": "\\begin{aligned}\\sin(10t)+\\sin(11t)\\\\=2\\cos(t/2)\\sin(21t/2)\\end{aligned}"
+    "compactFormula": "\\begin{aligned}\\sin(10t)+\\sin(11t)\\\\=2\\cos(t/2)\\sin(21t/2)\\end{aligned}",
+    "related": [
+      {
+        "url": "/blog/waves-and-phase.html",
+        "en": "Waves and phase",
+        "zh": "波与相位"
+      }
+    ]
   },
   {
     "id": "gibbs",
@@ -269,7 +304,14 @@
     "descriptionEn": "Sampling at 6 Hz cannot distinguish these 1 Hz and 7 Hz sinusoids: they differ by a whole cycle between adjacent samples. Without a suitable band limit before sampling, distinct continuous signals can produce identical sample sequences.",
     "descriptionZh": "以 6 Hz 采样时，图中的 1 Hz 与 7 Hz 正弦波无法区分：它们在相邻采样点之间相差一个完整周期。采样前若没有适当的带限，不同连续信号就可能得到完全相同的样本序列。",
     "readingEn": "The slowly varying green wave and rapidly varying cyan wave meet at every gold sample. The moving marker visits times \\(n/6\\), not the unobserved points between them.",
-    "readingZh": "缓慢变化的绿色波与快速变化的青色波经过每一个金色采样点。移动标记依次经过 \\(n/6\\) 时刻，不经过样本之间未观测的位置。"
+    "readingZh": "缓慢变化的绿色波与快速变化的青色波经过每一个金色采样点。移动标记依次经过 \\(n/6\\) 时刻，不经过样本之间未观测的位置。",
+    "related": [
+      {
+        "url": "/blog/fast-matrix-vector-products.html",
+        "en": "From Fourier sums to FFTs",
+        "zh": "从傅里叶求和到 FFT"
+      }
+    ]
   },
   {
     "id": "bezier",
@@ -385,7 +427,14 @@
     "descriptionZh": "线性映射将单位正方形变为由矩阵列向量张成的平行四边形。行列式度量有向面积：绝对值是面积缩放倍数，符号表示方向是否翻转。",
     "readingEn": "The grid deforms continuously from the identity to \\(A=\\left(\\begin{smallmatrix}1.3&0.6\\\\0.4&1.1\\end{smallmatrix}\\right)\\). At the endpoint, the highlighted square has area 1.19.",
     "readingZh": "网格从恒等变换连续形变到 \\(A=\\left(\\begin{smallmatrix}1.3&0.6\\\\0.4&1.1\\end{smallmatrix}\\right)\\)。在终点，高亮正方形的像面积为 1.19。",
-    "compactFormula": "\\begin{aligned}\\operatorname{area}(A\\Omega)\\\\=|\\det A|\\operatorname{area}(\\Omega)\\end{aligned}"
+    "compactFormula": "\\begin{aligned}\\operatorname{area}(A\\Omega)\\\\=|\\det A|\\operatorname{area}(\\Omega)\\end{aligned}",
+    "related": [
+      {
+        "url": "/blog/matrix-multiplication.html",
+        "en": "Matrix multiplication",
+        "zh": "矩阵乘法"
+      }
+    ]
   },
   {
     "id": "eigenvectors",
@@ -404,7 +453,14 @@
     "descriptionEn": "An eigenvector keeps its line of direction under a linear transformation. For this symmetric matrix, the directions \\((1,1)\\) and \\((1,-1)\\) are perpendicular, with scale factors three and one.",
     "descriptionZh": "特征向量在线性变换后仍处于原来的直线上。对于这个对称矩阵，\\((1,1)\\) 与 \\((1,-1)\\) 两个方向相互垂直，对应伸缩倍数分别为三和一。",
     "readingEn": "Gray spokes show the original unit circle. Green vectors along one diagonal stretch threefold; gold vectors along the other remain unchanged while intermediate directions turn.",
-    "readingZh": "灰色辐条标出原单位圆。一条对角线上的绿色向量伸长为三倍，另一条上的金色向量保持不变，其间的一般方向则发生转动。"
+    "readingZh": "灰色辐条标出原单位圆。一条对角线上的绿色向量伸长为三倍，另一条上的金色向量保持不变，其间的一般方向则发生转动。",
+    "related": [
+      {
+        "url": "/blog/matrix-multiplication.html",
+        "en": "Matrix multiplication",
+        "zh": "矩阵乘法"
+      }
+    ]
   },
   {
     "id": "svd",
@@ -423,7 +479,14 @@
     "descriptionEn": "A real matrix factors into orthogonal transformations and independent axis scalings. A unit circle becomes an ellipse whose semiaxis lengths are the singular values; its principal directions are the left singular vectors.",
     "descriptionZh": "实矩阵可以分解为正交变换与各坐标轴上的独立缩放。单位圆由此变为椭圆，半轴长度是奇异值，主轴方向是左奇异向量。",
     "readingEn": "The marked circle first rotates by \\(V^{\\mathsf T}\\), stretches by factors 2 and 0.6, then rotates by \\(U\\). The moving seam makes the otherwise invisible first rotation visible.",
-    "readingZh": "带标记的圆先经 \\(V^{\\mathsf T}\\) 旋转，再按 2 和 0.6 缩放，最后经 \\(U\\) 旋转。移动的标记线使圆轮廓上不易察觉的第一步旋转可见。"
+    "readingZh": "带标记的圆先经 \\(V^{\\mathsf T}\\) 旋转，再按 2 和 0.6 缩放，最后经 \\(U\\) 旋转。移动的标记线使圆轮廓上不易察觉的第一步旋转可见。",
+    "related": [
+      {
+        "url": "/blog/matrix-multiplication.html",
+        "en": "Matrix multiplication",
+        "zh": "矩阵乘法"
+      }
+    ]
   },
   {
     "id": "gradient",
@@ -442,7 +505,14 @@
     "descriptionEn": "For \\(f(x,y)=(x^2+4y^2)/2\\), the gradient is normal to elliptical level sets. With step size 0.2, each update multiplies the horizontal coordinate by 0.8 and the vertical coordinate by 0.2, approaching the minimum.",
     "descriptionZh": "对于 \\(f(x,y)=(x^2+4y^2)/2\\)，梯度垂直于椭圆形等高线。步长取 0.2 时，每次更新将横坐标乘以 0.8、纵坐标乘以 0.2，逐渐接近最小值点。",
     "readingEn": "The dots are actual iterates from \\((2.6,1.5)\\). Their curved path reflects unequal curvature along the two axes; connecting segments indicate updates, not a continuous physical trajectory.",
-    "readingZh": "光点是从 \\((2.6,1.5)\\) 出发的真实迭代点。路径弯曲源于两个方向的曲率不同；连接线表示离散更新，不是连续的物理运动轨迹。"
+    "readingZh": "光点是从 \\((2.6,1.5)\\) 出发的真实迭代点。路径弯曲源于两个方向的曲率不同；连接线表示离散更新，不是连续的物理运动轨迹。",
+    "related": [
+      {
+        "url": "/blog/frank-wolfe-algorithm.html",
+        "en": "Constrained optimization",
+        "zh": "约束优化"
+      }
+    ]
   },
   {
     "id": "newton",

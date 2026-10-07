@@ -9,6 +9,8 @@
   "titleEn": "Fast Matrix–Vector Products",
   "description": "基 2 FFT 将 DFT 递归分解为偶数位置与奇数位置样本的变换，再通过蝶形运算复用子问题的结果。它计算的仍是同一个离散傅里叶变换，运算量却从 O(n²) 降为 O(n log n)。",
   "descriptionEn": "Radix-2 FFT recursively splits a DFT into transforms over even- and odd-indexed samples. Butterfly operations reuse these results, reducing arithmetic from O(n²) to O(n log n) while computing the same discrete Fourier transform.",
+  "cardDescription": "FFT 把同一个傅里叶变换拆成更小的子问题，复用计算结果，将运算量从平方级降至 n log n。",
+  "cardDescriptionEn": "FFT reuses smaller Fourier transforms to compute the same result with n log n work instead of quadratic work.",
   "date": "2019-01-12",
   "dateKind": "published",
   "category": "math",

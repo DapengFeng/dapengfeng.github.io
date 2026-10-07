@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {discoverSuites} from './check-browsers.mjs';
 
 const core=['browser','language','reading'];
-const article=[...core,'layout','accessibility','math','code-copy','sharing','support'];
+const article=[...core,'layout','accessibility','math','code-copy','sharing','support','cross-browser'];
 // daily-math itself checks formulas, language modes, responsive layouts and static fallback.
 const daily=[...core,'daily-math'];
 const posts={
@@ -40,7 +40,7 @@ const dailyFiles=new Set([
 const costs={accessibility:75,vision:55,layout:40,'daily-math':35,compile:20,lessons:15,
  autograd:15,dispatch:15,'cuda-streams':15,'reading-demos':15,'process-demos':15,
  browser:15,math:15,pytorch:15,compiler:10,language:10,tensor:10,'code-copy':10,
- discussions:10,sharing:10,support:10,cuda:5,reading:5,analytics:5};
+ 'cross-browser':25,discussions:10,sharing:10,support:10,cuda:5,reading:5,analytics:5};
 export function partitionSuites(names){
  const groups=Array.from({length:Math.min(3,names.length)},(_,i)=>({group:`browser-${i+1}`,names:[],cost:0}));
  for(const name of [...names].sort((a,b)=>(costs[b]??20)-(costs[a]??20)||a.localeCompare(b))){
@@ -65,7 +65,7 @@ export function planChecks({files=null,mode='auto',suites}){
  if(!files?.length)return full('No reliable changed-file range; use full regression');
  const selected=new Set();
  for(const file of files){
-  if(file==='README.md'||/^docs\/.+\.md$/.test(file))continue;
+  if(file==='README.md'||file==='AGENTS.md'||/^docs\/.+\.md$/.test(file))continue;
   let related;
   const post=/^content\/posts\/([^/]+)\.html$/.exec(file);
   if(post&&Object.hasOwn(posts,post[1]))related=[...article,...posts[post[1]]];

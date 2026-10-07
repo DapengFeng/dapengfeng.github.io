@@ -13,9 +13,11 @@ const suites=discoverSuites(scripts);
 const plan=(files,mode='auto')=>planChecks({files,mode,suites});
 
 test('documentation-only changes skip site jobs; mixed article edits retain relevant checks',()=>{
- const docs=plan(['README.md','docs/operations/analytics.md']);
- assert.equal(docs.site,false);assert.deepEqual(docs.matrix,{include:[]});
- const vision=plan(['docs/authoring/presentation.md','content/posts/human-visual-system.html']);
+ for(const files of [['README.md','docs/operations/analytics.md'],['AGENTS.md']]){
+  const docs=plan(files);
+  assert.equal(docs.site,false);assert.equal(docs.scope,'docs');assert.deepEqual(docs.matrix,{include:[]});
+ }
+ const vision=plan(['AGENTS.md','docs/authoring/presentation.md','content/posts/human-visual-system.html']);
  assert.equal(vision.site,true);
  for(const name of ['browser','reading','layout','accessibility','sharing','vision'])assert.ok(vision.suites.includes(name),name);
  assert.ok(!vision.suites.includes('autograd'));
@@ -89,6 +91,24 @@ test('documentation validation detects broken local links and unclosed fences wi
   await assert.rejects(checkDocs(root),/missing local link target not-found.md/);
   await fs.writeFile(path.join(root,'docs/guide.md'),'```js\nconst a = 1;\n');
   await assert.rejects(checkDocs(root),/unclosed code fence/);
+ }finally{await fs.rm(root,{recursive:true,force:true});}
+});
+
+test('optional root agent instructions receive link, fence, and UTF-8 validation',async()=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'feng-agent-docs-'));
+ try{
+  await fs.mkdir(path.join(root,'docs'));
+  await fs.writeFile(path.join(root,'README.md'),'# Docs\n');
+  assert.equal(await checkDocs(root),1);
+  const agents=path.join(root,'AGENTS.md');
+  await fs.writeFile(agents,'# Agent guide\n\n[Readme](README.md)\n');
+  assert.equal(await checkDocs(root),2);
+  await fs.appendFile(agents,'[Missing](missing.md)\n');
+  await assert.rejects(checkDocs(root),/AGENTS\.md:4: missing local link target missing\.md/);
+  await fs.writeFile(agents,'```sh\nnpm test\n');
+  await assert.rejects(checkDocs(root),/AGENTS\.md: unclosed code fence/);
+  await fs.writeFile(agents,Buffer.from([0xc3,0x28]));
+  await assert.rejects(checkDocs(root),{code:'ERR_ENCODING_INVALID_ENCODED_DATA'});
  }finally{await fs.rm(root,{recursive:true,force:true});}
 });
 

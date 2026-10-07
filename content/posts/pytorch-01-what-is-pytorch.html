@@ -3,6 +3,8 @@
   "title": "PyTorch 到底是什么？跟踪一次 torch.matmul",
   "descriptionEn": "For dense 2-D inputs in eager mode, torch.matmul calls mm and dispatches to a CPU or CUDA implementation. With gradient recording enabled and inputs requiring gradients, autograd records dependencies for backward to apply the chain rule and accumulate leaf gradients.",
   "description": "在即时执行模式下，稠密二维张量的 torch.matmul 调用 mm，并分派到 CPU 或 CUDA 实现。开启梯度记录且输入需要梯度时，autograd 记录依赖关系，供反向传播应用链式法则并累积叶子张量的梯度。",
+  "cardDescription": "一次矩阵乘法先选择设备上的实现；需要求导时，还会记录依赖关系，供反向传播使用。",
+  "cardDescriptionEn": "A matrix multiplication selects an implementation for its device and, when gradients are needed, records dependencies for the backward pass.",
   "date": "2026-09-23",
   "category": "systems",
   "tags": [
@@ -139,7 +141,7 @@
 }
 </style></head><body><div class="lesson pytorch-lesson">
 <h2 class="parallel-text" id="the-question"><span data-lang="en" lang="en">One line, several jobs</span><span data-lang="zh" lang="zh-CN">一行代码，几种不同的工作</span></h2>
-<p class="parallel-text"><span data-lang="en" lang="en"><strong>PyTorch is a tensor-computing framework with automatic differentiation.</strong> Its eager runtime turns tensor operations into concrete implementations; its optional compiler stack can capture and optimize larger regions of a program. Python is a familiar entrance, ATen supplies tensor operations, and lower-level libraries perform much of the arithmetic. Training also needs a record of how results depend on inputs.</span><span data-lang="zh" lang="zh-CN"><strong>PyTorch 是支持自动求导的张量计算框架。</strong>它的 eager 运行时把张量操作交给具体实现；可选的编译栈则能捕获并优化更大范围的程序。Python 是熟悉的入口，ATen 提供张量运算，底层库完成大量数值计算。训练还需要记录结果怎样依赖输入。</span></p>
+<p class="parallel-text"><span data-lang="en" lang="en"><strong>PyTorch is a tensor-computing framework with automatic differentiation.</strong> When Python requests a matrix product, the framework must choose an implementation for the input tensors. If gradients are needed, it must also keep enough history to differentiate the result. Following one small multiplication makes these two responsibilities visible: computing a value and recording how it depends on its inputs.</span><span data-lang="zh" lang="zh-CN"><strong>PyTorch 是支持自动求导的张量计算框架。</strong>Python 请求一次矩阵乘法时，框架需要为输入张量选择具体实现；如果需要梯度，还要保留求导所需的历史。跟踪一个小矩阵乘法，就能分清这两项工作：算出数值，以及记录数值如何依赖输入。</span></p>
 <pre tabindex="0"><code class="language-python" >y = torch.matmul(a, b)</code></pre>
 <p class="parallel-text"><span data-lang="en" lang="en">Read this line as a request: “multiply these two tensors, using their shapes, storage layouts, devices, and differentiation state.” The tensor values are only part of the request. The framework must interpret the operation, choose implementations, allocate an output, perform the calculation, and—when needed—attach gradient history.</span><span data-lang="zh" lang="zh-CN">可以把这一行理解为一张请求单：“根据这两个张量的形状、存储布局、设备和求导状态，完成乘法。”数值只是请求的一部分。框架还要解释运算、选择实现、分配输出、执行计算，并在需要时关联梯度历史。</span></p>
 <aside class="lesson-note">

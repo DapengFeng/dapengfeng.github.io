@@ -5,11 +5,11 @@ import fs from 'node:fs/promises';
 import {serve} from '../scripts/serve.mjs';
 const server=serve(4175);
 const executablePath=chromiumExecutable();
-const visiblePosts=JSON.parse(await fs.readFile('dist/search-index.json','utf8')).filter(p=>!p.archiveOnly);
+const visiblePosts=JSON.parse(await fs.readFile('dist/search-index.json','utf8')).filter(p=>p.kind==='article'&&!p.archiveOnly);
 const browser=await chromium.launch({...(executablePath?{executablePath}:{}),headless:true,args:['--no-sandbox']});
 const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
 try{
- await page.goto('http://localhost:4175/');assert.equal(await page.locator('.featured-card').count(),visiblePosts.filter(p=>p.featured).length);await page.locator('[data-language-choice="en"]').click();assert.equal(await page.locator('.hero-copy h1 [data-lang="zh"]').isVisible(),false);await page.reload();assert.equal(await page.locator('[data-language-choice="en"]').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('select#site-language').count(),0);
+ await page.goto('http://localhost:4175/');assert.equal(await page.locator('.featured-card').count(),3);await page.locator('[data-language-choice="en"]').click();assert.equal(await page.locator('.hero-copy h1 [data-lang="zh"]').isVisible(),false);await page.reload();assert.equal(await page.locator('[data-language-choice="en"]').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('select#site-language').count(),0);
  await page.waitForSelector('[data-daily-math][data-rendered="true"]');assert.equal(await page.locator('#surface-toggle').count(),0);
  // Navigation follows scroll direction, but never hides during keyboard, menu, or search use.
  await page.emulateMedia({reducedMotion:'reduce'});

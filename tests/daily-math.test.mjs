@@ -1,10 +1,21 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 import {DAY_MS,addDays,dateInfo,dailySceneAt,fourier,lissajous,standing,heatKernel,mobius,phyllotaxis} from '../src/scripts/daily-math.js';
 import {loadDailyMath,validateCatalogue,validateHistory,planPublications,inventory,similarityWarnings} from '../scripts/daily-math.mjs';
 import {bezier,convolution,taylorSine,uniformSumDensity,binomialPMF,poissonPMF,betaPDF,randomWalk} from '../src/scripts/daily-math-models.js';
 const {topics,publications,entries}=await loadDailyMath();
 const near=(a,b,tolerance=1e-10)=>assert.ok(Math.abs(a-b)<tolerance,`${a} ≠ ${b}`);
+
+test('further reading uses existing articles and explicit bilingual labels',async()=>{
+ const linked=topics.filter(topic=>topic.related?.length);
+ assert.ok(linked.length>0);
+ for(const topic of linked)for(const link of topic.related){
+  assert.match(link.url,/^\/blog\/[a-z0-9-]+\.html$/);
+  assert.ok(link.en?.trim()&&link.zh?.trim(),`${topic.id}: reading labels describe the destination in both languages`);
+  await fs.access(new URL('../content/posts/'+link.url.slice('/blog/'.length),import.meta.url));
+ }
+});
 
 test('exact date selection never loops, including at Shanghai midnight and after exhaustion',()=>{
  const midnight=Date.parse('2026-10-06T16:00:00Z');

@@ -8,7 +8,6 @@ if(root)mount(root);
 function mount(root){
  const canvas=root.querySelector('#surface-canvas'),ctx=canvas.getContext('2d');
  if(!ctx)return;
- const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let current,visible=true,time=1.4,last=0,frame=0,dateTimer=0,width=0,height=0;
  const note=root.querySelector('.daily-math-note'),fixed=root.dataset.mathFixedDate;
  const initial=JSON.parse(root.querySelector('[data-math-entry]').textContent),initialHTML=note.innerHTML;
@@ -17,7 +16,7 @@ function mount(root){
  const empty='<div class="daily-math-identity"><h2 id="daily-math-title">'+window.LabI18n.bi('Mathematics archive','数学往期')+'</h2><a class="daily-math-source" href="/math/">'+window.LabI18n.bi('Browse the collection','浏览往期内容')+'</a></div>';
  function show(entry,date){
   current={date,scene:entry};time=1.4;root.dataset.date=date;root.dataset.scene=entry?.id||'';
-  note.innerHTML=entry?.html||empty;draw();
+  note.innerHTML=entry?.html||empty;resume();
  }
  async function selectDate(){
   clearTimeout(dateTimer);const calendar=dateInfo(),date=fixed||calendar.date;
@@ -119,8 +118,8 @@ function mount(root){
   else drawDailyConstruction(ctx,sceneWidth,sceneHeight,current.scene.renderer,time);
   ctx.restore();root.dataset.rendered='true';
  }
- function tick(now){frame=0;if(reduced.matches||!visible||document.hidden)return;if(!last||now-last>=1000/30){if(last)time+=Math.min(now-last,100)*.00045;last=now;draw();}frame=requestAnimationFrame(tick);}
- function resume(){cancelAnimationFrame(frame);frame=0;last=0;draw();if(!reduced.matches&&visible&&!document.hidden)frame=requestAnimationFrame(tick);}
+ function tick(now){frame=0;if(!current?.scene||!visible||document.hidden)return;if(!last||now-last>=1000/30){if(last)time+=Math.min(now-last,100)*.00045;last=now;draw();}frame=requestAnimationFrame(tick);}
+ function resume(){cancelAnimationFrame(frame);frame=0;last=0;draw();if(current?.scene&&visible&&!document.hidden)frame=requestAnimationFrame(tick);}
  const header=document.querySelector('.lab-header');
  const resize=new ResizeObserver(()=>{
   const headerHeight=header?.getBoundingClientRect().height||0;
@@ -131,7 +130,6 @@ function mount(root){
  new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;resume();}).observe(root);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)selectDate();resume();});
  window.addEventListener('languagechange',draw);
- reduced.addEventListener('change',resume);
  window.addEventListener('pagehide',()=>{controller?.abort();pendingDate=null;request++;clearTimeout(dateTimer);cancelAnimationFrame(frame);frame=0;});
  window.addEventListener('pageshow',()=>{selectDate();resume();});
  selectDate();resume();

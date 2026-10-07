@@ -3,6 +3,8 @@
   "title": "CUDA 流、内核与计时：GPU 到底什么时候算完？",
   "descriptionEn": "CUDA streams order submitted work; events connect dependencies across streams. Host return, event completion and tensor storage lifetime are different boundaries. Timing a matrix multiplication requires choosing which boundary to measure and accounting for warm-up, precision and synchronization.",
   "description": "CUDA 流为提交的操作建立顺序，事件连接跨流依赖。主机调用返回、事件完成和张量存储生命周期是不同的边界。测量矩阵乘法前，需要明确计时边界，并控制预热、计算精度与同步方式。",
+  "cardDescription": "CPU 返回时，GPU 可能还没算完；流确定工作顺序，同步边界决定计时究竟测到了什么。",
+  "cardDescriptionEn": "A CPU call can return before the GPU finishes. Streams order work; synchronization boundaries determine what a timing actually measures.",
   "date": "2026-09-26",
   "category": "systems",
   "tags": [

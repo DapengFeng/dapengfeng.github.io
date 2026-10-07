@@ -8,7 +8,7 @@ In the repository, go to Settings → Pages → Build and deployment → Source 
 
 | Change or trigger / 改动或触发方式 | Checks / 检查范围 |
 | --- | --- |
-| `README.md`, `docs/**/*.md` only / 仅文档 | UTF-8, local link targets, code fences, merge conflicts; no dependency installation.<br>检查编码、本地链接目标、代码围栏和冲突标记，无需安装依赖。 |
+| `README.md`, root `AGENTS.md`, `docs/**/*.md` only / 仅文档（含根目录 `AGENTS.md`） | UTF-8, local link targets, code fences, merge conflicts; no dependency installation.<br>检查编码、本地链接目标、代码围栏和冲突标记，无需安装依赖。 |
 | Known articles or their photos / 已知文章或配图 | Full build and unit tests; reading, language, layout, accessibility, formulas, copying, sharing, and relevant article suites.<br>完整构建与单元测试；阅读、语言、排版、无障碍、公式、复制、分享及相关专题检查。 |
 | Analytics script / 统计脚本 | Full build and unit tests; basic browser, language, reading, and analytics suites.<br>完整构建与单元测试；基础浏览、语言、阅读及统计检查。 |
 | Daily mathematics content/code or daily timer / 每日数学内容、代码或每日定时任务 | Full build, unit tests, history/inventory checks; basic browsing/language/reading plus the daily-math suite, which covers formulas and responsive layouts.<br>完整构建与单元测试、历史与库存检查；基础浏览、语言、阅读及每日数学套件，后者包含公式与响应式排版验证。 |

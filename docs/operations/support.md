@@ -2,9 +2,9 @@
 
 ## Entry points / 入口
 
-Every blog article has a fixed bottom-right toolbar for sharing, supporting the author and opening the discussion. The coffee icon opens a compact PayPal panel, without payment-method tabs or unavailable placeholders. The toolbar hides while a panel is open and accommodates narrow screens and device safe areas.
+Every blog article has a fixed bottom-right toolbar for sharing and opening the discussion. When `PAYPAL_ME_URL` is configured, a coffee icon opens a compact PayPal panel, without payment-method tabs or unavailable placeholders. The toolbar hides while a panel is open and accommodates narrow screens and device safe areas.
 
-每篇博客右下角提供固定的浮动工具栏，可分享文章、支持作者或打开讨论。咖啡图标打开紧凑的 PayPal 面板，不显示支付方式切换或未开通提示。面板打开时工具栏隐藏，并适配窄屏和设备安全区域。
+每篇博客右下角提供固定的浮动工具栏，可分享文章或打开讨论。配置 `PAYPAL_ME_URL` 后显示咖啡图标，打开紧凑的 PayPal 面板，不显示支付方式切换或未开通提示。面板打开时工具栏隐藏，并适配窄屏和设备安全区域。
 
 ## Configuration / 配置
 

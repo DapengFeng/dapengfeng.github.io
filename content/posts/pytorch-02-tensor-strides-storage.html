@@ -5,6 +5,8 @@
   "title": "Tensor、步幅与存储：转置为什么可以不搬数据",
   "descriptionEn": "For a dense strided tensor, strides and storage_offset map logical indices to storage locations. Transpose shares the original storage by swapping sizes and strides; making a noncontiguous result contiguous requires copying its data.",
   "description": "对稠密步幅张量，strides 与 storage_offset 决定逻辑索引对应的存储位置。转置通过交换形状和步幅共享原存储；将非连续结果转为连续布局则需要复制数据。",
+  "cardDescription": "转置可以只改变索引到地址的映射，不搬动数据；把结果变为连续布局时，才可能需要复制。",
+  "cardDescriptionEn": "A transpose can change the index-to-address mapping without moving data; requesting a contiguous layout can require a copy.",
   "date": "2026-09-24",
   "category": "systems",
   "tags": [

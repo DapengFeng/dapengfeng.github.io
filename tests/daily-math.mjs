@@ -13,7 +13,16 @@ const require=createRequire(import.meta.url),errors=[];
 try{
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
  page.on('pageerror',e=>errors.push(e.message));
- await page.addInitScript(()=>localStorage.setItem('feng-language','both'));
+ await page.addInitScript(()=>{
+  localStorage.setItem('feng-language','both');
+  localStorage.setItem('feng-math-motion','static'); // Legacy settings must not stop the background.
+  window.dailyMathDraws=0;
+  const clearRect=CanvasRenderingContext2D.prototype.clearRect;
+  CanvasRenderingContext2D.prototype.clearRect=function(...args){
+   if(this.canvas.id==='surface-canvas')window.dailyMathDraws++;
+   return clearRect.apply(this,args);
+  };
+ });
  const start=Date.parse('2026-10-06T08:00:00Z');
  await page.clock.install({time:new Date(start)});
  // Freeze before navigation so a slow CI page load cannot overtake the pause time.
@@ -26,7 +35,9 @@ try{
  assert.equal(await page.locator('.daily-math-background > canvas').count(),1);
  assert.equal(await page.locator('.daily-math-background > .daily-math-note').count(),1,'animation and explanation belong to the same background layer');
  assert.equal(await root.locator('button').count(),0,'the background has no playback control');
+ assert.equal(await page.locator('[data-math-appearance],[data-math-motion]').count(),0,'mathematics has no appearance settings');
  const canvas=async()=>createHash('sha256').update(await page.locator('#surface-canvas').evaluate(c=>c.toDataURL())).digest('hex');
+ const draws=()=>page.evaluate(()=>window.dailyMathDraws);
  async function setReducedMotion(reducedMotion){
   // emulateMedia updates the query before Chromium delivers its change event.
   // Wait on the real browser event before advancing the paused animation clock.
@@ -39,12 +50,40 @@ try{
    timeout:5000,message:`Chromium must deliver the ${reducedMotion} media change before checking animation`,
   }).toBe(true);
  }
- const initial=await canvas();await page.clock.runFor(1000);assert.equal(await canvas(),initial,'paused image must stay still');
- await setReducedMotion('no-preference');await page.clock.runFor(800);
- assert.notEqual(await canvas(),initial,'animation plays automatically when reduced motion is disabled');
- await setReducedMotion('reduce');await page.clock.runFor(32);
- const still=await canvas();await page.clock.runFor(800);
- assert.equal(await canvas(),still,'changing the system preference to reduced motion stops the animation');
+ const initial=await canvas(),initialDraws=await draws();await page.clock.runFor(1000);
+ assert.notEqual(await canvas(),initial,'visible mathematics animates despite reduced motion and a legacy static setting');
+ assert.ok(await draws()-initialDraws<=30,'animation draws at most 30 frames per second');
+ for(const preference of ['no-preference','reduce']){
+  await setReducedMotion(preference);
+  const before=await canvas();await page.clock.runFor(800);
+  assert.notEqual(await canvas(),before,'changing the system motion preference keeps mathematics animated');
+ }
+ // Await native intersection delivery before advancing the paused animation clock.
+ async function scrollSceneIntoView(visible){
+  await page.evaluate(visible=>{
+   window.dailyMathIntersectionObserved=false;
+   const observer=new IntersectionObserver(([entry])=>{
+    if(entry.isIntersecting===visible){observer.disconnect();window.dailyMathIntersectionObserved=true;}
+   });
+   observer.observe(document.querySelector('[data-daily-math]'));
+   scrollTo({top:visible?0:document.documentElement.scrollHeight,behavior:'instant'});
+  },visible);
+  await expect.poll(()=>page.evaluate(()=>window.dailyMathIntersectionObserved)).toBe(true);
+  await page.clock.runFor(32);
+ }
+ await scrollSceneIntoView(false);
+ const offscreen=await canvas(),offscreenDraws=await draws();await page.clock.runFor(800);
+ assert.equal(await canvas(),offscreen,'offscreen mathematics pauses');
+ assert.equal(await draws(),offscreenDraws,'offscreen mathematics does not render frames');
+ await scrollSceneIntoView(true);await page.clock.runFor(800);
+ assert.notEqual(await canvas(),offscreen,'mathematics resumes when it returns to the viewport');
+ // Headless Chromium keeps tabs visible; dispatch the document lifecycle explicitly.
+ await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+ const hidden=await canvas(),hiddenDraws=await draws();await page.clock.runFor(800);
+ assert.equal(await canvas(),hidden,'hidden documents pause mathematics');
+ assert.equal(await draws(),hiddenDraws,'hidden documents do not render frames');
+ await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
+ await page.clock.runFor(800);assert.notEqual(await canvas(),hidden,'mathematics resumes when the document is visible again');
  const renders=new Set();
  await fs.mkdir('test-results/daily-math',{recursive:true});
  for(let i=0;i<scenes.length;i++){
@@ -54,6 +93,7 @@ try{
   await page.clock.runFor(32);
   assert.equal(await root.getAttribute('data-scene'),scene.id);assert.equal(await root.getAttribute('data-date'),date);
   assert.equal(await page.locator('[data-math-source]').getAttribute('href'),scene.source.url);
+  assert.deepEqual(await page.locator('[data-math-related] a').evaluateAll(links=>links.map(link=>link.getAttribute('href'))),(scene.related||[]).map(link=>link.url),'day changes carry the matching internal reading links');
   assert.match(await page.locator('[data-math-title]').innerText(),new RegExp(scene.zh));
   assert.equal(await currentCopy.count(),1,'only one topic explanation is visible');
   assert.equal(await currentCopy.getAttribute('data-math-copy'),scene.id);
@@ -158,12 +198,19 @@ try{
  assert.equal(await root.getAttribute('data-scene'),'');
  await page.unroute('**/assets/daily-math/2026-10-25.json');
  await page.goto('http://localhost:4236/math/2026-10-06/');await page.waitForFunction(()=>document.querySelector('[data-daily-math]').dataset.scene==='fourier');
+ await page.clock.runFor(32);
+ const archived=await canvas();await page.clock.runFor(800);
+ assert.notEqual(await canvas(),archived,'dated entries animate with reduced motion and legacy static settings');
+ assert.equal(await page.locator('[data-math-appearance],[data-math-motion]').count(),0,'dated entries have no appearance settings');
+ assert.equal(await page.locator('[data-math-related] a').first().getAttribute('href'),'/blog/fast-matrix-vector-products.html');
  await page.clock.setSystemTime(new Date('2028-02-29T04:00:00Z'));await page.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
  assert.equal(await page.locator('[data-daily-math]').getAttribute('data-date'),'2026-10-06','an archived entry never follows the current day');
  await page.clock.setSystemTime(new Date('2026-10-08T04:00:00Z'));await page.goto('http://localhost:4236/math/');
  assert.equal(await page.locator('[data-entry-date]:visible').count(),3,'archive reveals only dates already published');
  assert.equal(await page.locator('[data-entry-date="2026-10-09"]').isVisible(),false);
  await page.goto('http://localhost:4236/');await page.waitForFunction(()=>document.querySelector('[data-daily-math]').dataset.scene==='standing');
+ const returned=await canvas();await page.clock.runFor(800);
+ assert.notEqual(await canvas(),returned,'homepage animation continues after visiting the archive');
  assert.equal(await page.locator('[data-math-copy]').count(),1,'homepage loads one topic, independent of library size');
  // JavaScript-disabled readers retain a useful topic and source.
  const staticPage=await browser.newPage({javaScriptEnabled:false});await staticPage.goto('http://localhost:4236/');
@@ -171,5 +218,5 @@ try{
   assert.ok(await staticPage.locator('[data-math-copy] [data-math-description]').textContent());
   assert.equal(await staticPage.locator('[data-math-expression]:visible mjx-container[display="true"]:visible').count(),1,'display typesetting works without JavaScript');
  }else assert.ok(await staticPage.locator('.daily-math-note a[href="/math/"]').isVisible());
- console.log('Daily mathematics passed: all scheduled drawings, midnight rollover, autoplay/reduced motion, bilingual responsive layout, accessibility, and no-JS fallback.');
+ console.log('Daily mathematics passed: continuous visible animation, viewport and document pauses, all scheduled drawings, midnight rollover, dated archives, internal reading links, bilingual responsive layout, accessibility, and no-JS fallback.');
 }finally{await browser.close();server.close();}

@@ -1,0 +1,198 @@
+{
+  "mission": {
+    "title": {
+      "en": "Stay curious. Look closely.",
+      "zh": "保持好奇，认真看世界。"
+    },
+    "summary": {
+      "en": "Start with a question or an observation. Make complex ideas clear, and keep the details worth noticing.",
+      "zh": "从具体的问题与观察出发，把复杂的原理讲清楚，把值得留意的细节记录下来。"
+    }
+  },
+  "about": {
+    "mission": {
+      "en": "I hope each article helps a reader understand a question or notice a detail they might otherwise miss. This notebook records how I work through explanations, test my understanding, and observe everyday life, so an exploration can be followed, revisited, and discussed.",
+      "zh": "我希望每篇文章都能帮助读者看清一个问题，或注意到曾经忽略的细节。这里记录理解事物原理、检验判断与观察生活的过程，让一次探索可以被读懂、回看和继续讨论。"
+    },
+    "approach": {
+      "en": "Begin with a concrete question, phenomenon, or detail. Show the evidence and reasoning, using words, images, or experiments where they help. Record what has become clearer and what remains unresolved, then revise that understanding through new evidence and conversation.",
+      "zh": "从一个具体的问题、现象或细节开始，交代依据与思考过程，选择最能帮助理解的文字、图像或实验。写下已经弄清的部分，也留下尚未解决的问题，在新的证据与交流中继续修正。"
+    }
+  },
+  "series": [
+    {
+      "id": "pytorch-internals",
+      "audience": {
+        "en": "For readers who use tensor operations and want to understand what happens underneath a Python call.",
+        "zh": "适合已经用过张量运算，希望理解一次 Python 调用背后发生了什么的读者。"
+      },
+      "prerequisites": {
+        "en": "Basic Python, matrix multiplication and the chain rule. C++ snippets are explained in context; a GPU is not required to read the series or run its CPU examples.",
+        "zh": "需要基础 Python、矩阵乘法与链式法则。C++ 摘录随正文解释；阅读专题及运行 CPU 示例不要求配备 GPU。"
+      },
+      "outcomes": {
+        "en": "Trace a tensor operation from storage and dispatch through gradients and execution, then distinguish copying, synchronization and recompilation costs.",
+        "zh": "沿着存储、调度、梯度和执行追踪一次张量运算，并分清数据复制、同步与重新编译的开销。"
+      },
+      "paths": [
+        {
+          "id": "runtime",
+          "title": { "en": "Follow one operation", "zh": "跟踪一次运算" },
+          "parts": [1, 2, 3],
+          "description": {
+            "en": "Start with matmul, locate tensor elements in storage, then see how the dispatcher chooses an implementation.",
+            "zh": "从 matmul 出发，找到张量元素的存储位置，再看调度器怎样选择实现。"
+          }
+        },
+        {
+          "id": "training",
+          "title": { "en": "Gradients and GPU execution", "zh": "梯度与 GPU 执行" },
+          "parts": [4, 5],
+          "description": {
+            "en": "After the runtime path, follow gradient accumulation and CUDA dependencies to choose a meaningful timing boundary.",
+            "zh": "了解运行时后，继续看梯度怎样汇合、CUDA 工作怎样建立依赖，以及计时边界如何选择。"
+          }
+        },
+        {
+          "id": "compile",
+          "title": { "en": "Understand compiled execution", "zh": "理解编译执行" },
+          "parts": [6],
+          "description": {
+            "en": "Use the earlier execution model to distinguish graph capture, cached-code reuse and kernel fusion.",
+            "zh": "带着前面的执行模型，区分图捕获、缓存代码复用与内核融合。"
+          }
+        }
+      ]
+    }
+  ],
+  "related": [
+    {
+      "source": "human-visual-system",
+      "target": "spike_notes",
+      "reason": {
+        "en": "The retina sends spikes through ganglion-cell axons. Continue with how a neuron integrates input and fires, and how such events can be differentiated.",
+        "zh": "视网膜神经节细胞以脉冲传递信号；接着看神经元怎样积分、发放，以及如何对事件求导。"
+      }
+    },
+    {
+      "source": "human-visual-system",
+      "target": "waves-and-phase",
+      "reason": {
+        "en": "The optical limits of vision involve waves. Start with phase and superposition before studying interference or diffraction in detail.",
+        "zh": "视觉的光学极限涉及波动；相位与叠加是进一步理解干涉和衍射的基础。"
+      }
+    },
+    {
+      "source": "spike_notes",
+      "target": "human-visual-system",
+      "reason": {
+        "en": "Return from a spiking model to a biological circuit: photoreceptors use graded responses, while ganglion cells provide the main spiking output.",
+        "zh": "从脉冲模型回到真实回路：感光细胞使用渐变电响应，神经节细胞提供主要的脉冲输出。"
+      }
+    },
+    {
+      "source": "spike_notes",
+      "target": "pytorch-04-autograd-engine",
+      "reason": {
+        "en": "After following gradients through time, inspect how an automatic differentiation engine collects gradient contributions across branches.",
+        "zh": "理解沿时间传播梯度后，再看自动微分引擎如何汇总不同分支的梯度贡献。"
+      }
+    },
+    {
+      "source": "waves-and-phase",
+      "target": "fast-matrix-vector-products",
+      "reason": {
+        "en": "Move from adding waves to computing their Fourier representation: the FFT reuses small transforms to reduce arithmetic.",
+        "zh": "从波的叠加走向傅里叶表示的计算：FFT 通过复用小规模变换减少运算。"
+      }
+    },
+    {
+      "source": "fast-matrix-vector-products",
+      "target": "waves-and-phase",
+      "reason": {
+        "en": "Give the Fourier factors a visual meaning by comparing how phase changes the sum of two waves.",
+        "zh": "观察相位怎样改变两列波的叠加，为傅里叶变换中的相位因子建立直观认识。"
+      }
+    },
+    {
+      "source": "matrix-multiplication",
+      "target": "pytorch-02-tensor-strides-storage",
+      "reason": {
+        "en": "The same address arithmetic appears in tensor strides: see why changing a view can avoid copying while changing later access patterns.",
+        "zh": "相同的地址计算也出现在张量步幅中：改变视图可以不复制，却会改变后续访问方式。"
+      }
+    },
+    {
+      "source": "matrix-multiplication",
+      "target": "benchmark-with-evidence",
+      "reason": {
+        "en": "Test a locality argument against repeated measurements, with equal inputs and a clearly defined timed region.",
+        "zh": "用相同输入、明确的计时区间和重复测量，检验局部性分析是否转化为实际加速。"
+      }
+    },
+    {
+      "source": "pytorch-02-tensor-strides-storage",
+      "target": "matrix-multiplication",
+      "reason": {
+        "en": "Once strides locate an element, loop order explains how those addresses affect cache reuse during matrix multiplication.",
+        "zh": "步幅确定元素地址之后，循环顺序继续决定这些地址怎样影响矩阵乘法的缓存复用。"
+      }
+    },
+    {
+      "source": "pytorch-05-cuda-streams-timing",
+      "target": "benchmark-with-evidence",
+      "reason": {
+        "en": "GPU completion defines the timing boundary; warm-up and repeated sampling are the next steps toward a credible comparison.",
+        "zh": "GPU 完成时刻确定计时边界；预热与重复采样则让边界内的性能比较更可信。"
+      }
+    },
+    {
+      "source": "pytorch-06-compile-and-codegen",
+      "target": "cuda-rust-two-tracks-blog",
+      "reason": {
+        "en": "After compiler fusion, inspect the kernel abstraction itself: work assigned to threads versus operations expressed over tiles.",
+        "zh": "理解编译器融合后，再看内核本身的表达：把工作分配给线程，或在数据块上描述运算。"
+      }
+    },
+    {
+      "source": "benchmark-with-evidence",
+      "target": "matrix-multiplication",
+      "reason": {
+        "en": "Apply the measurement method to a concrete claim: changing loop order and blocking can reduce data movement.",
+        "zh": "把测量方法用于一个具体假设：改变循环顺序与分块，能否减少数据搬运并缩短耗时。"
+      }
+    },
+    {
+      "source": "cuda-rust-two-tracks-blog",
+      "target": "matrix-multiplication",
+      "reason": {
+        "en": "Follow the data-reuse argument in a smaller CPU example before comparing thread and tile kernels on the GPU.",
+        "zh": "先在较小的 CPU 例子里追踪数据复用，再比较 GPU 上的线程与 Tile 内核。"
+      }
+    },
+    {
+      "source": "rust-vs-cpp-blog",
+      "target": "cuda-rust-two-tracks-blog",
+      "reason": {
+        "en": "Extend ownership and implementation choices to GPU code, where output partitioning and memory access become explicit design decisions.",
+        "zh": "把所有权与实现选择延伸到 GPU 代码，看输出分区和访存方式如何成为显式设计。"
+      }
+    },
+    {
+      "source": "band-storage-gaxpy",
+      "target": "symmetric-storage-gaxpy",
+      "reason": {
+        "en": "Compare two structural savings: a band omits known zeros, while symmetry stores one value for two mirrored entries.",
+        "zh": "比较两种结构带来的节省：带状存储省略已知为零的元素，对称存储让镜像位置共用一个值。"
+      }
+    },
+    {
+      "source": "symmetric-storage-gaxpy",
+      "target": "band-storage-gaxpy",
+      "reason": {
+        "en": "Symmetry mainly reduces storage; a narrow band can reduce both storage and arithmetic by skipping known zeros.",
+        "zh": "对称性主要节省存储；窄带结构还可跳过已知为零的元素，同时减少存储与计算。"
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 export const site = {
   name: 'FENG / 知识实验室', author: 'Dapeng Feng', authorZh: '冯大鹏', url: 'https://dapengfeng.github.io',
-  description: '用图形理解数学，用实验认识物理，用数据探索代码的性能。冯大鹏的个人知识实验室。',
+  description: '从具体的问题与观察出发，把复杂的原理讲清楚，把值得留意的细节记录下来。冯大鹏的个人知识实验室。',
 };
 export const categories = [
   { id: 'math', name: '数学与算法', en: 'MATHEMATICS', symbol: '∑', description: '从抽象公式，到直觉与图形', color: '#bcf46e' },

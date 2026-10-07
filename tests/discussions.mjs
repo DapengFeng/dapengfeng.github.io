@@ -18,7 +18,7 @@ try{
  });
  await page.goto('http://localhost:4206/blog/pytorch-01-what-is-pytorch.html');
  assert.equal(requests.length,0,'widget does not compete with the initial article load');
- assert.equal(await page.locator('link[rel=preconnect][href="https://giscus.app"]').count(),1);
+ assert.equal(await page.locator('link[rel=preconnect][href="https://giscus.app"]').count(),0);
  const launcher=page.locator('.discussion-launcher'),shell=page.locator('.discussion-shell');
  assert.equal((await launcher.innerText()).trim(),'','launcher has no visible instruction');
  assert.equal(await launcher.getAttribute('aria-label'),'Open discussion');
@@ -87,11 +87,14 @@ try{
   assert.equal(requests.at(-1).searchParams.get('term'),'/blog/matrix-multiplication.html · comment');
   assert.equal(requests.at(-1).searchParams.get('category'),'General');
  }
- // Background warming loads one thread and reuses its editor.
+ // Hover intent preloads one thread; idle reading makes no third-party request.
  await page.goto('http://localhost:4206/blog/pytorch-01-what-is-pytorch.html');
  const beforeWarm=requests.length;
+ await page.clock.install();await page.clock.fastForward(6000);
+ assert.equal(requests.length,beforeWarm,'idle reading does not contact discussion host');
+ await page.locator('.discussion-launcher').hover();
  await page.frameLocator('#discussion-comment iframe').locator('#draft').waitFor();
- assert.equal(requests.length,beforeWarm+1,'one idle preload');
+ assert.equal(requests.length,beforeWarm+1,'one hover-intent preload');
  assert.equal(await page.locator('.discussion-launcher').getAttribute('aria-expanded'),'false');
  const warmed=page.frames().find(f=>f.url().includes('giscus.app'));
  assert.deepEqual(await warmed.evaluate(()=>configs),[],'initial locale needs no config navigation');
@@ -136,5 +139,5 @@ try{
  assert.ok(!await nojs.locator('.discussion-status').first().isVisible());
  await nojs.close();
  assert.deepEqual(errors,[]);
- console.log('Discussions: idle preload, locale deduplication, Save-Data, thread mapping, floating editor, drafts, security, OAuth, offline and responsive checks passed (mock service; no public posts).');
+ console.log('Discussions: intent preload, locale deduplication, Save-Data, thread mapping, floating editor, drafts, security, OAuth, offline and responsive checks passed (mock service; no public posts).');
 }finally{await browser.close();server.close();}

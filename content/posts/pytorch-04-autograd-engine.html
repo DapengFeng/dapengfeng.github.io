@@ -3,6 +3,8 @@
   "title": "Autograd 节点与反向引擎：梯度如何汇合",
   "descriptionEn": "Backward nodes apply vector–Jacobian products. The autograd engine accumulates incoming contributions in input buffers and schedules a node when its dependencies are satisfied. AccumulateGrad then writes or adds the resulting gradient to a leaf tensor’s .grad.",
   "description": "反向节点计算向量–雅可比积。Autograd 引擎用输入缓冲区汇总梯度贡献，在依赖满足后调度节点；AccumulateGrad 随后将结果写入或累加到叶子张量的 .grad。",
+  "cardDescription": "同一个变量沿多条路径影响结果时，反向传播先汇总各路梯度，再向它的上游继续计算。",
+  "cardDescriptionEn": "When several paths depend on one value, backward execution adds their gradient contributions before continuing through the graph.",
   "date": "2026-09-26",
   "category": "systems",
   "tags": [

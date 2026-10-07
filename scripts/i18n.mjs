@@ -4,7 +4,7 @@ export const dictionary = {
  '旅行与见闻':'Travel & Journals','沿途的风景，与日常之外的观察':'Landscapes and observations beyond the everyday','九寨沟':'Jiuzhaigou','游记':'Travel journal','山水':'Landscapes','摄影':'Photography',
  '潮汕':'Chaoshan','汕头':'Shantou','南澳岛':'Nan’ao Island','潮州':'Chaozhou','美食':'Food',
  '生命与神经科学':'Life & Neuroscience','从细胞结构到神经计算':'From cell structure to neural computation','视网膜':'Retina','神经科学':'Neuroscience','视觉':'Vision','信号处理':'Signal processing',
- '让知识，变得可见':'Ideas, made visible','知识分类':'Topics','关于实验室':'About the lab','按首次分享时间，回看每一次探索。后续更新保留首次发布日期。':'Revisit each exploration by its first publication date. Later edits keep the original date.',
+ '让知识，变得可见':'Ideas, made visible','知识分类':'Topics','关于实验室':'About the lab','按首次分享时间，回看每一次探索。':'Revisit each exploration by its first publication date.',
  '知识实验室':'Knowledge Lab','探索':'Explore','知识库':'Notebook','分类':'Topics','时间线':'Timeline','关于':'About',
  '搜索知识':'Search','跳到主要内容':'Skip to content','FENG 知识实验室首页':'FENG Knowledge Lab home','展开导航':'Open navigation','GitHub（新窗口）':'GitHub (new window)',
  '在公式与直觉之间，搭一座桥。':'A bridge between equations and intuition.', '探索数学之美、物理之理，与代码的性能边界。':'Exploring mathematics, physics, and the limits of code.',
@@ -39,7 +39,7 @@ export const dictionary = {
  '原文未标注发布日期；以上为本站收录日期。':'The original did not specify a publication date; the date above records its addition to this site.',
  '未找到页面':'Page not found','这里还没有留下笔记。':'There isn’t a note here yet.','返回首页':'Back to the lab',
 };
-export function pair(en, zh, inline=false) { return `<span class="i18n${inline?' inline':''}"><span data-lang="en">${e(en)}</span><span data-lang="zh">${e(zh)}</span></span>`; }
+export function pair(en, zh, inline=false) { return `<span class="i18n${inline?' inline':''}"><span data-lang="en" lang="en">${e(en)}</span><span data-lang="zh" lang="zh-CN">${e(zh)}</span></span>`; }
 export function localizePage(html, posts) {
  const $=cheerio.load(html), map={...dictionary};
  for(const p of posts){map[p.title]=p.titleEn||p.title;map[p.description]=p.descriptionEn||p.description;}
@@ -71,13 +71,16 @@ export function localizePage(html, posts) {
  };
  visit($('body')[0]);
  // English-only supporting labels are decorative, while paired content carries both meanings.
- $('.overline,.category-en,.hero-bottom>span:first-child,.section-heading h2>span:not(.i18n):not(.small-cross):not(.category-symbol),.visual-label,.axis-caption>span').not('[data-lang],.home-overline').attr('data-decorative-en','true');
+ $('.overline,.category-en,.hero-bottom>span:first-child,.section-heading h2>span:not(.i18n):not(.small-cross):not(.category-symbol),.visual-label,.axis-caption>span').not('[data-lang],.home-overline').filter((_,el)=>!$(el).find('[data-lang="zh"]').length).attr('data-decorative-en','true');
  $('input[placeholder],[aria-label],button[title]').each((_,el)=>{
   if($(el).closest('.article-body').length)return;
   for(const attr of ['placeholder','aria-label','title']){const value=$(el).attr(attr);if(!value)continue;if($(el).attr(`data-${attr}-en`)!==undefined&&$(el).attr(`data-${attr}-zh`)!==undefined)continue;const en=english(value);if(en)$(el).attr(`data-${attr}-en`,en).attr(`data-${attr}-zh`,value).attr(attr,`${en} / ${value}`);}
  });
  $('.header-row .github-link').before('<div id="site-language" class="language-switch" role="group" aria-label="Reading language / 阅读语言"><button type="button" data-language-choice="zh" aria-pressed="false" aria-label="Chinese only / 仅中文">中</button><button type="button" data-language-choice="en" aria-pressed="false" aria-label="English only / 仅英文">EN</button><button type="button" data-language-choice="both" aria-pressed="true" aria-label="Bilingual / 中英双语">中/EN</button></div>');
- $('head').append(`<script>(()=>{const valid=v=>['en','zh','both'].includes(v);let saved,automatic;try{saved=localStorage.getItem('feng-language')}catch{}try{automatic=sessionStorage.getItem('feng-auto-language')}catch{}const browser=(navigator.languages?.[0]||navigator.language||'en').toLowerCase().startsWith('zh')?'zh':'en';const value=valid(saved)?saved:valid(automatic)?automatic:browser;document.documentElement.dataset.language=value;document.documentElement.dataset.languageSource=valid(saved)?'manual':valid(automatic)?'auto':'browser';document.documentElement.lang=value==='zh'?'zh-CN':'en'})()</script>`);
+ // Resolve language before paint, without an IP lookup or a delayed override.
+ $('[data-lang="en"]').attr('lang','en');
+ $('[data-lang="zh"]').attr('lang','zh-CN');
+ $('head').append(`<script>(()=>{const valid=v=>['en','zh','both'].includes(v);let saved;try{saved=localStorage.getItem('feng-language')}catch{}const browser=(navigator.languages?.[0]||navigator.language||'en').toLowerCase().startsWith('zh')?'zh':'en';const value=valid(saved)?saved:browser;document.documentElement.dataset.language=value;document.documentElement.dataset.languageSource=valid(saved)?'manual':'browser';document.documentElement.lang=value==='zh'?'zh-CN':'en'})()</script>`);
  const title=$('title').text(), base=title.replace(' · FENG','');
  const en=english(base); if(en)$('title').text(`${en} / ${base} · FENG`);
  return $.html();

@@ -6,7 +6,7 @@ import jsQR from 'jsqr';
 import * as cheerio from 'cheerio';
 import {articleSharing,sharePaths} from '../scripts/sharing.mjs';
 import {site} from '../scripts/config.mjs';
-const posts=JSON.parse(await fs.readFile('dist/search-index.json','utf8'));
+const posts=JSON.parse(await fs.readFile('dist/search-index.json','utf8')).filter(p=>p.kind==='article');
 async function decoded(file){const {data,info}=await sharp(file).ensureAlpha().raw().toBuffer({resolveWithObject:true});return jsQR(new Uint8ClampedArray(data),info.width,info.height)?.data;}
 test('every article has local sharing assets and a QR code decoding to its canonical URL',async()=>{
  for(const p of posts){

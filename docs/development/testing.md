@@ -7,13 +7,31 @@
 ```bash
 npm run build
 npm test
-npx playwright install chromium
+npx playwright install chromium webkit
 npm run test:browsers
 ```
 
-Browser checks use the Chromium version pinned by Playwright, matching CI by default. Install Chromium with `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing Chromium executable. Run `npm run test:browsers` for interaction, language, sorting, layout, formula, and accessibility checks. Every configured suite runs even if an earlier one fails; each has a five-minute limit. Per-suite logs and the result summary are saved under `test-results/browser/`; any failure makes the command exit nonzero. The compiler tests use isolated API responses; add `--live` to `node tests/compiler.mjs` to verify Godbolt itself. Static output is written to `dist/` and requires no server-side application.
+Browser checks use the browser versions pinned by Playwright, matching CI by default. Install Chromium and WebKit with `npx playwright install chromium webkit`; on Linux, add `--with-deps` when system libraries are missing. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` can select an existing Chromium executable. Run `npm run test:browsers` for interaction, language, sorting, layout, formula, and accessibility checks. Every configured suite runs even if an earlier one fails; each has a five-minute limit. Per-suite logs and the result summary are saved under `test-results/browser/`; any failure makes the command exit nonzero. The compiler tests use isolated API responses; add `--live` to `node tests/compiler.mjs` to verify Godbolt itself. Static output is written to `dist/` and requires no server-side application.
 
-浏览器检查默认使用 Playwright 锁定版本的 Chromium，与 CI 保持一致。可执行 `npx playwright install chromium` 安装 Chromium，或通过 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 指定已安装的 Chromium。`npm run test:browsers` 检查交互、语言、排序、排版、公式和无障碍。前面的测试失败后仍会继续检查后续项目；每项限时五分钟，逐项日志和结果汇总保存在 `test-results/browser/`，任意一项失败都会使命令返回非零状态。编译器测试使用隔离的接口响应；运行 `node tests/compiler.mjs --live` 可验证 Godbolt 本身。静态产物输出到 `dist/`，无需服务器端程序。
+浏览器检查默认使用 Playwright 锁定的浏览器版本，与 CI 保持一致。执行 `npx playwright install chromium webkit` 安装 Chromium 与 WebKit；Linux 缺少系统库时增加 `--with-deps`。可通过 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 指定已安装的 Chromium。`npm run test:browsers` 检查交互、语言、排序、排版、公式和无障碍。前面的测试失败后仍会继续检查后续项目；每项限时五分钟，逐项日志和结果汇总保存在 `test-results/browser/`，任意一项失败都会使命令返回非零状态。编译器测试使用隔离的接口响应；运行 `node tests/compiler.mjs --live` 可验证 Godbolt 本身。静态产物输出到 `dist/`，无需服务器端程序。
+
+`npm run test:cross-browser` runs a small shared-UI smoke suite in Chromium and WebKit: desktop/mobile layouts, navigation, native dialogs, sharing, discussions, and the visual-system figure fallback. It saves fixed-view screenshots of the homepage, technical article and travel essay at 1440px and 390px widths under `test-results/visual/`. These screenshots support visual review; the suite does not compare pixels with a baseline or certify Safari on real devices.
+
+`npm run test:cross-browser` 在 Chromium 与 WebKit 中执行少量共用界面冒烟检查，覆盖桌面／手机排版、导航、原生对话框、分享、讨论以及视觉系统图示的回退显示。首页、技术文章与游记在 1440px 和 390px 宽度下的固定视角截图保存在 `test-results/visual/`。截图用于人工复核，不进行像素基线比对，也不等于真实设备上的 Safari 验证。
+
+## Visual acceptance / 视觉验收
+
+Open and inspect the screenshots for a visual change; a passing overflow assertion is not sufficient. When shared styles or templates change, cover the homepage, a technical article, a travel essay and the about page in desktop and mobile layouts. Check English, Chinese and bilingual modes, and include a short viewport when the first screen is part of the requirement. For a local change, focus this review on the affected component and its shared neighbors.
+
+视觉改动后要实际打开截图查看，通过溢出断言并不足够。共用样式或模板变化时，覆盖首页、技术文章、游记和关于页的桌面与手机布局；检查英文、中文和双语模式，涉及首屏要求时增加矮屏。局部修改则重点复核受影响组件及相邻的共用界面。
+
+Look for orphaned title characters, long English strings, oversized decorative marks, distorted or unrelated photo crops, detached captions, clipped formulas and overlapping floating controls. Inherited CSS can be the cause: for example, a travel table of contents should explicitly reset a shared multi-column rule when changing to horizontal layout. Do not repair one viewport with unscoped selectors or hard-coded line breaks that damage another language.
+
+注意标题孤字、英文长词撑宽、过大的装饰图形、图片变形或裁掉主体、图注与图片脱节、公式裁切、浮动控件遮挡。原因可能来自 CSS 继承：例如游记目录改成横向布局时，要明确重置共用的多栏规则。不使用无作用域的选择器或破坏其他语言的硬换行，只修好一个尺寸。
+
+The cross-browser suite freezes a known published date and advances a controlled clock for stable screenshots. Motion behavior is tested separately by `npm run test:daily-math`, including visible progression, the 30 fps limit, ignored legacy static settings, offscreen/hidden-tab pause and resume, midnight changes and fixed dated entries. Stabilize tests with test tools; never reintroduce a production display setting for screenshots.
+
+跨浏览器套件固定一个已发布日期，以受控时钟推进画面，保证截图稳定。播放行为单独由 `npm run test:daily-math` 验证，包括可见时变化、30 fps 上限、忽略旧静态设置、离屏与隐藏标签页的暂停恢复、跨日切换及固定日期条目。用测试工具稳定画面，不为截图重新引入线上显示设置。
 
 ## CI selection and local reproduction / CI 选择与本地复现
 
@@ -31,13 +49,17 @@ CI_CHECK_MODE=daily node scripts/ci-plan.mjs
 npm run test:browsers -- --suites browser,language,reading,analytics
 ```
 
+Documentation-only changes to README, root `AGENTS.md` or Markdown under `docs/` use the lightweight documentation job. It checks local link targets, UTF-8, conflict markers and fenced blocks, but not the truth of the prose or remote URLs. Compare behavior claims against source and distinguish existing functionality from future suggestions. With only documentation edits, this check and `git diff --check` are sufficient; no site rebuild or browser sweep is needed.
+
+只修改 README、根目录 `AGENTS.md` 或 `docs/` 下的 Markdown 时，使用轻量文档任务。检查覆盖本地链接目标、UTF-8、冲突标记和代码围栏，不判断文案事实或远程链接有效性。功能描述仍需与源码比对，并区分已有实现和未来建议。仅修改文档时，运行此检查与 `git diff --check` 即可，无需重建站点或执行浏览器扫描。
+
 The default `npm run test:browsers` still runs every browser suite registered in `package.json`. `--suites` takes exact comma-separated names without the `test:` prefix; unknown, empty, or duplicate names fail immediately. The selector uses the complete push range or the pull request's merge base, including both sides of renames. Missing comparison history and unmapped files trigger all suites. Multiple kinds of targeted changes combine their test selections.
 
 默认的 `npm run test:browsers` 仍执行 `package.json` 中登记的全部浏览器测试。`--suites` 使用逗号分隔的精确名称，不带 `test:` 前缀；未知、空白或重复名称会立即报错。CI 比较整次推送的改动范围，PR 则从共同祖先比较，文件改名的前后路径均计入。无法获取比较历史或出现未映射文件时，会触发全量测试。多类改动会合并各自的检查范围。
 
-Each matrix job runs its assigned suites sequentially; the jobs run in parallel and do not cancel siblings on failure. Reports are available as `test-results-browser-1`, `test-results-browser-2`, and `test-results-browser-3` artifacts. All browser jobs use the output of the same build, and deployment waits for the final gate. See [deployment](../operations/deployment.md) for the selection table, schedules, and manual full regression.
+Each matrix job runs its assigned suites sequentially; the jobs run in parallel and do not cancel siblings on failure. Reports are available as `test-results-browser-1`, `test-results-browser-2`, and `test-results-browser-3` artifacts, including `visual/` screenshots when the group runs `cross-browser`. WebKit is installed only for those groups; the smaller daily-publication selection remains Chromium-only. All browser jobs use the output of the same build, and deployment waits for the final gate. See [deployment](../operations/deployment.md) for the selection table, schedules, and manual full regression.
 
-每个矩阵任务内部顺序执行分配到的套件，任务之间并行，某一组失败不会取消其他组。报告分别保存在 `test-results-browser-1`、`test-results-browser-2` 和 `test-results-browser-3` 附件中。各组验证同一次构建的产物，部署等待最后的汇总检查通过。选择规则、定时计划及手动完整回归见[部署说明](../operations/deployment.md)。
+每个矩阵任务内部顺序执行分配到的套件，任务之间并行，某一组失败不会取消其他组。报告分别保存在 `test-results-browser-1`、`test-results-browser-2` 和 `test-results-browser-3` 附件中；运行 `cross-browser` 的分组还包含 `visual/` 截图。仅这些分组安装 WebKit，每日发布保留较小的 Chromium 检查范围。各组验证同一次构建的产物，部署等待最后的汇总检查通过。选择规则、定时计划及手动完整回归见[部署说明](../operations/deployment.md)。
 
 ## PyTorch series checks / PyTorch 专题检查
 

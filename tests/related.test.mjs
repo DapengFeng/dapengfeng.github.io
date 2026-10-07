@@ -30,12 +30,25 @@ test('newly added content is considered on the next build',()=>{
  assert.notEqual(createRelatedRecommender([a,old])(a)[0]?.slug,'fresh');
  assert.equal(createRelatedRecommender([a,old,fresh])(a)[0].slug,'fresh');
 });
-test('published recommendation cards match computed relevance, including cross-category links',async()=>{
+test('published recommendation cards prioritize explained editorial connections and retain relevant fallbacks',async()=>{
  const posts=await loadContent(),recommend=createRelatedRecommender(posts);
+ const editorial=JSON.parse(await fs.readFile('content/editorial.json','utf8'));
  for(const p of posts){
   const $=load(await fs.readFile('dist/'+p.url.slice(1),'utf8'));
   const links=$('.related-section .card-link').map((_,el)=>$(el).attr('href')).get();
-  assert.deepEqual(links,recommend(p).map(x=>x.url),p.slug);
+  const curated=editorial.related.filter(link=>link.source===p.slug).slice(0,3);
+  const curatedUrls=curated.map(link=>posts.find(post=>post.slug===link.target)?.url);
+  assert.ok(curatedUrls.every(Boolean),`${p.slug}: editorial targets are published`);
+  assert.deepEqual(links.slice(0,curated.length),curatedUrls,`${p.slug}: editorial connections come first`);
+  assert.equal(new Set(links).size,links.length,`${p.slug}: no duplicate reading suggestions`);
+  assert.ok(!links.includes(p.url)&&links.length<=3,`${p.slug}: no self-link or excessive suggestions`);
+  const remaining=recommend(p).filter(post=>!curatedUrls.includes(post.url)).slice(0,3-curated.length);
+  assert.deepEqual(links.slice(curated.length),remaining.map(post=>post.url),`${p.slug}: automatic relevance fills remaining places`);
+  for(const [i,connection]of curated.entries()){
+   const reason=$('.related-section .card-connection').eq(i);
+   assert.equal(reason.find('[data-lang="en"]').text(),connection.reason.en,`${p.slug}: English connection reason`);
+   assert.equal(reason.find('[data-lang="zh"]').text(),connection.reason.zh,`${p.slug}: Chinese connection reason`);
+  }
  }
  const matrix=posts.find(p=>p.slug==='matrix-multiplication');
  assert.ok(recommend(matrix).some(p=>p.slug==='band-storage-gaxpy'));

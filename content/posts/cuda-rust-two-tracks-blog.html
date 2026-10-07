@@ -3,6 +3,8 @@
   "titleEn": "CUDA Rust: from threads to tiles",
   "description": "SIMT 内核为单个线程分配标量计算，Tile 内核则描述数据块上的运算，由编译器组织线程映射。正确的输出分区与边界处理避免重复写入和遗漏，访存方式与数据复用影响性能表现。",
   "descriptionEn": "SIMT kernels assign scalar work to individual threads; tile kernels express operations over data blocks and leave thread mapping to the compiler. Correct output partitioning and boundary handling prevent duplicate writes and omissions, while memory access and data reuse shape performance.",
+  "cardDescription": "一种内核把工作分给线程，另一种以数据块表达运算；两条路线都要安排好输出归属与数据复用。",
+  "cardDescriptionEn": "Thread kernels assign scalar work explicitly; tile kernels describe blocks of data. Both need sound output ownership and data reuse.",
   "date": "2026-09-23",
   "dateKind": "published",
   "category": "systems",

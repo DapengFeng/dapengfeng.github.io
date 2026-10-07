@@ -114,16 +114,6 @@
  nearby.observe(root);
  launcher.addEventListener('pointerenter',warm);
  launcher.addEventListener('focus',warm);
- function scheduleWarm(){
-  if(frame||!speculativeAllowed())return;
-  setTimeout(()=>{
-   if(frame||!speculativeAllowed())return;
-   if('requestIdleCallback' in window)requestIdleCallback(warm,{timeout:1500});
-   else warm();
-  },2000);
- }
- if(document.readyState==='complete')scheduleWarm();else window.addEventListener('load',scheduleWarm,{once:true});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleWarm();});
  if(returnedSession||legacyLink||location.hash==='#article-discussions')toggle(true);
  else launcher.hidden=false;
 })();

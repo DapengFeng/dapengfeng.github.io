@@ -3,6 +3,8 @@
   "title": "从 torch.compile 到生成内核：图捕获、守卫与融合",
   "descriptionEn": "TorchDynamo captures tensor operations into FX graphs and guards the assumptions used to specialize them. AOTAutograd prepares differentiation graphs; TorchInductor lowers and schedules computation, fusing compatible operations to avoid materialized intermediates. Cached code is reused only when its guards hold.",
   "description": "TorchDynamo 将张量操作捕获为 FX 图，并用守卫检查特化所依赖的条件。AOTAutograd 准备求导图，TorchInductor 将图转换为低层中间表示并调度计算，将兼容操作融合以减少中间张量的物化。只有守卫满足时，缓存代码才能复用。",
+  "cardDescription": "编译把兼容运算融合，减少中间数据；输入仍满足缓存版本的条件时，后续调用才能复用它。",
+  "cardDescriptionEn": "Compilation can fuse compatible operations and avoid intermediate data; later calls reuse the cached code only while its assumptions hold.",
   "date": "2026-09-27",
   "category": "systems",
   "tags": [

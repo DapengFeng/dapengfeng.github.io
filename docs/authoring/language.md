@@ -2,13 +2,17 @@
 
 [Documentation index / 文档索引](../README.md) · [Website mission / 网站使命](../../README.md)
 
-On a first visit, IP countries/regions CN, HK, MO, and TW default to Chinese; other locations default to English. Readers can choose English, Chinese, or both, and their saved choice always takes priority. In bilingual mode, English is followed immediately by Chinese.
+On a first visit, the browser’s preferred language determines the edition: Chinese language tags use Chinese; other languages use English. Readers can choose English, Chinese, or both, and their saved manual choice always takes priority. In bilingual mode, English is followed immediately by Chinese.
 
-首次访问时，IP 所在国家或地区为 CN、HK、MO、TW 时默认中文，其余默认英文。读者可选择英文、中文或双语，已保存的手动选择始终优先。双语模式中英文在前，对应中文紧随其后。
+首次访问时按浏览器的首选语言显示：中文语言标记使用中文，其他语言使用英文。读者可选择英文、中文或双语，已保存的手动选择始终优先。双语模式中英文在前，对应中文紧随其后。
 
-Automatic language detection calls [Country](https://country.is/), which receives the visitor’s network IP. The site stores only the selected language, not the IP or country response. Automatic results are cached for the tab session; a saved manual preference skips the lookup. Browser language is used immediately and remains the fallback if the request fails or exceeds 2.5 seconds. VPNs may affect the country result. Repository documentation always displays English followed by Chinese.
+Language is resolved before the page is painted, using the saved `feng-language` preference or `navigator.languages`. No location service or IP lookup is involved, and no delayed network response changes the chosen edition. Old automatic-language session values are ignored. If storage is blocked, the browser preference still works and a manual switch applies to the current page. Repository documentation always displays English followed by Chinese.
 
-自动语言判断会请求 [Country](https://country.is/)，服务方会收到访客的网络 IP。本站只保存选中的语言，不保存 IP 或地区查询响应。自动结果在标签页会话中缓存；已有手动偏好时跳过查询。页面先按浏览器语言显示，查询失败或超过 2.5 秒则继续使用该语言。VPN 可能影响地区结果。仓库文档始终按英文在前、中文紧随其后的顺序显示。
+语言在页面绘制前确定，使用已保存的 `feng-language` 偏好或 `navigator.languages`。判断过程不访问定位服务，不查询 IP，也不会因稍后返回的网络结果改变语言；旧版本会话中保存的自动语言结果会被忽略。存储被禁用时仍按浏览器语言显示，手动切换对当前页面有效。仓库文档始终按英文在前、中文紧随其后的顺序显示。
+
+Reading time follows the selected edition. The build estimates English at 220 words per minute and Chinese at 400 characters per minute; shared prose and code are counted once in bilingual mode. Page metadata, navigation, controls, scripts, and hidden demo state do not contribute to the estimate. Language fragments carry native `lang` attributes for assistive technology.
+
+阅读时长随所选语言更新。构建按每分钟 220 个英文单词、400 个汉字估算，双语模式中的共用正文与代码只计一次。页面元数据、导航、操作控件、脚本和隐藏的演示状态不计入阅读时长。各语言片段带有原生 `lang` 属性，便于辅助技术正确朗读。
 
 Interface text comes from `scripts/i18n.mjs`; article titles, summaries, and both body languages live in each article HTML. The build preserves the order you write, derives the bilingual contents from headings, and renders formulas. For shared interactive experiments, keep any language dictionary inside the same HTML, as Spike Notes does.
 

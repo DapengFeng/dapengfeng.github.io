@@ -3,6 +3,8 @@
   "title": "算子注册与调度：PyTorch 如何选择内核",
   "descriptionEn": "PyTorch separates operator schemas from implementations. The dispatcher combines tensor dispatch keys with thread-local state, selects an operator-specific table entry, and lets wrappers redispatch to lower layers. Autograd dispatch and gradient recording are separate decisions.",
   "description": "PyTorch 将算子接口与实现分开注册。调度器合并张量的调度键与线程局部状态，从算子专属的调度表中选择入口；包装层再通过 redispatch 进入下层实现。进入 Autograd 调度层与记录反向图是两个不同的判断。",
+  "cardDescription": "相同算子可以对应多种内核；调度器结合张量属性与线程状态，决定本次调用进入哪个实现。",
+  "cardDescriptionEn": "One operator can have many kernels. Tensor properties and thread-local state determine which implementation receives a call.",
   "date": "2026-09-24",
   "category": "systems",
   "tags": [

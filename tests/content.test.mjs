@@ -4,7 +4,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import * as cheerio from 'cheerio';
-import {loadContent,parseContent} from '../scripts/content.mjs';
+import {loadContent,parseContent,readingMinutes} from '../scripts/content.mjs';
+import {pair,localizePage} from '../scripts/i18n.mjs';
 const posts=await loadContent();
 test('all articles contain dated bilingual content and valid category metadata',()=>{
  assert.ok(posts.length>=10);assert.equal(new Set(posts.map(p=>p.url)).size,posts.length);
@@ -35,7 +36,52 @@ test('generated pages have unique IDs, resolvable internal links and heading tar
 });
 test('RSS, sitemap and search index contain every published note',async()=>{
  const search=JSON.parse(await fs.readFile('dist/search-index.json','utf8')),feed=await fs.readFile('dist/feed.xml','utf8'),sitemap=await fs.readFile('dist/sitemap.xml','utf8');
- assert.equal(search.length,posts.length);for(const p of posts){assert.ok(feed.includes(p.url));assert.ok(sitemap.includes(p.url));assert.ok(search.find(x=>x.slug===p.slug));}
+ assert.equal(search.filter(record=>!record.kind||record.kind==='article').length,posts.length);for(const p of posts){assert.ok(feed.includes(p.url));assert.ok(sitemap.includes(p.url));assert.ok(search.find(x=>x.slug===p.slug));}
+ assert.equal(new Set(search.map(record=>record.url)).size,search.length,'search results have unique destinations');
+ const home=cheerio.load(await fs.readFile('dist/index.html','utf8'));
+ const builtDate=JSON.parse(home('[data-math-entry]').text()).date;
+ const publications=JSON.parse(await fs.readFile('content/daily-math/publications.json','utf8'));
+ assert.deepEqual(search.filter(record=>record.kind==='math').map(record=>record.url),publications.filter(entry=>entry.date<=builtDate).map(entry=>`/math/${entry.date}/`),'search includes published mathematics without revealing upcoming dates');
+ assert.ok(search.some(record=>record.kind==='series'&&record.url==='/series/pytorch-internals/'));
+ for(const p of posts){
+  const record=search.find(entry=>entry.slug===p.slug);
+  assert.ok(record.searchTextEn&&record.searchTextZh,'both editions remain searchable');
+  assert.equal(record.relatedText,undefined,'recommendation working text is not downloaded');
+  assert.equal(record.searchText,undefined,'bilingual search text is not sent twice');
+ }
+});
+
+test('reading estimates count only the selected edition and count shared content once',async()=>{
+ const directory=await fs.mkdtemp(path.join(os.tmpdir(),'feng-reading-'));
+ try{
+  const file=path.join(directory,'reading-estimate.html');
+  const ignored='ignored '.repeat(2200);
+  await fs.writeFile(file,`<!doctype html><html><head><title>Reading estimate</title><meta name="article:published_time" content="2026-10-07"><meta name="category" content="math"><script>const hidden='${ignored}'</script></head><body><nav>${ignored}</nav><p data-lang="en">${'word '.repeat(440)}</p><p data-lang="zh">${'中文'.repeat(400)}</p><pre>${'shared '.repeat(220)}</pre><button>${ignored}</button><select><option>${ignored}</option></select><textarea>${ignored}</textarea><svg><text>${ignored}</text></svg><div hidden>${ignored}</div><p aria-hidden="true">${ignored}</p></body></html>`);
+  const article=await parseContent(file);
+  assert.equal(article.minutesEn,3);assert.equal(article.minutesZh,3);assert.equal(article.minutesBoth,5);assert.equal(article.minutes,article.minutesBoth);
+  assert.doesNotMatch(article.searchText,/ignored|Reading estimate/);
+  assert.doesNotMatch(article.searchTextEn,/中文/);assert.doesNotMatch(article.searchTextZh,/word/);
+  assert.ok(article.hasCode);assert.equal(article.hasReadingDemos,false);
+  assert.equal(readingMinutes(''),1);
+ }finally{await fs.rm(directory,{recursive:true,force:true});}
+});
+
+test('bilingual output declares native language and initialization has no location dependency',()=>{
+ const $=cheerio.load(pair('One','一'));
+ assert.equal($('[data-lang="en"]').attr('lang'),'en');assert.equal($('[data-lang="zh"]').attr('lang'),'zh-CN');
+ const page=localizePage('<html><head></head><body><p><span data-lang="zh">中文</span><span data-lang="en">English</span></p></body></html>',[]);
+ assert.doesNotMatch(page,/country\.is|feng-auto-language|sessionStorage/);
+ assert.match(page,/navigator\.languages/);assert.match(page,/localStorage\.getItem\('feng-language'\)/);
+});
+
+test('paired overlines remain visible in Chinese while English-only decoration is marked',()=>{
+ const page=localizePage(`<html><body><p class="overline" id="about-label">${pair('Behind the notes','笔记背后')}</p><p class="overline" id="series-label">${pair('Learning paths','学习专题')}</p><p class="overline" id="decoration">FIELD NOTES</p></body></html>`,[]);
+ const $=cheerio.load(page);
+ for(const id of ['about-label','series-label']){
+  assert.equal($(`#${id}`).attr('data-decorative-en'),undefined);
+  assert.ok($(`#${id} [data-lang="zh"]`).text());
+ }
+ assert.equal($('#decoration').attr('data-decorative-en'),'true');
 });
 test('English precedes its Chinese counterpart without separate full-article editions',()=>{
  const spike=posts.find(p=>p.slug==='spike_notes'),$=cheerio.load(spike.html);

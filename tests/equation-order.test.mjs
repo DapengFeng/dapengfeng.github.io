@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {load} from 'cheerio';
-import {parseContent} from '../scripts/content.mjs';
+import {loadContent,parseContent} from '../scripts/content.mjs';
 import {article} from '../scripts/templates.mjs';
 
 // Validate against the published contents, independently of the renderer's counter.
@@ -53,5 +53,6 @@ test('separate English and Chinese headings count as one chapter',async()=>{
  const post=await parseContent('content/posts/waves-and-phase.html');
  const $=load(post.html);
  assert.deepEqual($('.formula-block[data-equation-number]').map((_,el)=>$(el).attr('data-equation-number')).get(),['1.1','3.1']);
- assert.equal(audit(article(post,[post]),post.slug),2);
+ // The published template also resolves curated reading links from the site catalog.
+ assert.equal(audit(article(post,await loadContent()),post.slug),2);
 });

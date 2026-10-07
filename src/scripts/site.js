@@ -16,37 +16,24 @@
   }
   const language = $('#site-language');
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const bi = (en, zh) => `<span class="i18n"><span data-lang="en">${esc(en)}</span><span data-lang="zh">${esc(zh)}</span></span>`;
+  const bi = (en, zh) => `<span class="i18n"><span data-lang="en" lang="en">${esc(en)}</span><span data-lang="zh" lang="zh-CN">${esc(zh)}</span></span>`;
   window.LabI18n = {bi, esc, get language(){return document.documentElement.dataset.language||'both';}};
   function applyLanguage(value, manual=false) {
     document.documentElement.dataset.language=value;
     document.documentElement.lang=value==='zh'?'zh-CN':'en';
-    language.querySelectorAll('[data-language-choice]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.languageChoice===value)));
+    language?.querySelectorAll('[data-language-choice]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.languageChoice===value)));
     if(manual){document.documentElement.dataset.languageSource='manual';try { localStorage.setItem('feng-language',value); } catch {}}
     $$('[data-en][data-zh]').forEach(el=>el.textContent=value==='both'?`${el.dataset.en} / ${el.dataset.zh}`:el.dataset[value]);
     for(const attr of ['placeholder','aria-label','title']) $$(`[data-${attr}-en]`).forEach(el=>el.setAttribute(attr,value==='both'?`${el.getAttribute(`data-${attr}-en`)} / ${el.getAttribute(`data-${attr}-zh`)}`:el.getAttribute(`data-${attr}-${value}`)));
+    $$('[data-reading-minutes]').forEach(el=>{
+      const minutes=el.dataset[value==='both'?'minutesBoth':value==='zh'?'minutesZh':'minutesEn'];
+      if(!minutes)return;
+      el.innerHTML=bi(`${minutes} min read`,`${minutes} 分钟阅读`);
+    });
     window.dispatchEvent(new CustomEvent('languagechange',{detail:value}));
   }
   applyLanguage(document.documentElement.dataset.language||'both');
-  let stopLocation;
-  language.addEventListener('click',event=>{const button=event.target.closest('[data-language-choice]');if(button){stopLocation?.();applyLanguage(button.dataset.languageChoice,true);}});
-  // A manual choice wins; automatic results last for this tab's session only.
-  if(document.documentElement.dataset.languageSource==='browser'){
-    const fallback=document.documentElement.dataset.language,controller=new AbortController();
-    stopLocation=()=>controller.abort();
-    const timeout=setTimeout(stopLocation,2500);
-    fetch('https://api.country.is/',{signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store'})
-      .then(response=>{if(!response.ok)throw Error('Country lookup unavailable');return response.json();})
-      .then(data=>{if(typeof data.country!=='string'||! /^[A-Z]{2}$/.test(data.country))throw Error('Invalid country');return ['CN','HK','MO','TW'].includes(data.country)?'zh':'en';})
-      .catch(()=>fallback)
-      .then(value=>{
-        if(document.documentElement.dataset.languageSource==='manual')return;
-        // Do not overwrite a preference chosen in another tab during the request.
-        try{const saved=localStorage.getItem('feng-language');if(['en','zh','both'].includes(saved)){applyLanguage(saved);document.documentElement.dataset.languageSource='manual';return;}}catch{}
-        try{sessionStorage.setItem('feng-auto-language',value);}catch{}
-        document.documentElement.dataset.languageSource='auto';applyLanguage(value);
-      }).finally(()=>{clearTimeout(timeout);stopLocation=null;});
-  }
+  language?.addEventListener('click',event=>{const button=event.target.closest('[data-language-choice]');if(button)applyLanguage(button.dataset.languageChoice,true);});
   $('.mobile-menu')?.addEventListener('click',e=>{const open=$('.desktop-nav').classList.toggle('open');e.currentTarget.setAttribute('aria-expanded',String(open));});
   const dialog=$('#knowledge-search'), input=$('#global-search'), results=$('.search-results');
   const header=$('.lab-header'),navigation=$('.desktop-nav'),menu=$('.mobile-menu');
@@ -91,12 +78,43 @@
   }
   let searchData=null,loading=null;
   async function loadSearch(){if(searchData)return searchData;if(!loading)loading=fetch('/search-index.json').then(r=>{if(!r.ok)throw Error('Search unavailable');return r.json();}).then(data=>searchData=data).catch(error=>{loading=null;throw error;});return loading;}
+  function searchScore(record,tokens){
+    const fields=[
+      [[record.title,record.titleEn].join(' '),100],
+      [(record.tags||[]).join(' '),60],
+      [[record.description,record.descriptionEn].join(' '),20],
+      [[record.searchText,record.searchTextEn,record.searchTextZh].join(' '),1],
+    ].map(([text,weight])=>[text.toLowerCase(),weight]);
+    let score=0;
+    for(const token of tokens){
+      const match=fields.find(([text])=>text.includes(token));
+      if(!match)return -1;
+      score+=match[1];
+    }
+    return score;
+  }
+  function excerpt(record,locale,tokens){
+    const fallback=locale==='en'?(record.descriptionEn||record.description):(record.description||record.descriptionEn);
+    // Avoid presenting a concatenation of both editions as a search excerpt.
+    const body=record[locale==='en'?'searchTextEn':'searchTextZh'];
+    if(!body||!tokens.length)return fallback||'';
+    const normalized=body.toLowerCase();
+    const matches=tokens.map(token=>normalized.indexOf(token)).filter(index=>index>=0);
+    if(!matches.length)return fallback||'';
+    const position=Math.min(...matches),length=locale==='zh'?100:180;
+    let start=Math.max(0,position-Math.floor(length/4)),end=Math.min(body.length,start+length);
+    if(locale==='en'){
+      const boundary=body.lastIndexOf(' ',start);if(boundary>=0&&start-boundary<24)start=boundary+1;
+      const tail=body.indexOf(' ',end);if(tail>=0&&tail-end<24)end=tail;
+    }
+    return `${start?'…':''}${body.slice(start,end).trim()}${end<body.length?'…':''}`;
+  }
   async function search(){
     const query=input.value.trim().toLowerCase();
     try { const all=await loadSearch(); if(query!==input.value.trim().toLowerCase())return;
       const tokens=query.split(/\s+/).filter(Boolean);
-      const found=all.filter(p=>tokens.every(q=>[p.title,p.titleEn,p.description,p.descriptionEn,...p.tags,p.searchText].join(' ').toLowerCase().includes(q))).slice(0,12);
-      results.innerHTML=found.length?found.map(p=>`<a class="search-result" href="${esc(p.url)}"><small>${esc(p.date)} · ${bi(p.categoryEn,p.categoryZh)}</small><strong>${bi(p.titleEn||p.title,p.title)}</strong><span>${bi(p.descriptionEn||p.description,p.description)}</span></a>`).join(''):`<div class="empty-state">${bi('No matching notes. Try another keyword.','没有找到匹配的笔记，试试其他关键词。')}</div>`;
+      const found=all.map((record,order)=>({record,order,score:searchScore(record,tokens)})).filter(item=>item.score>=0).sort((a,b)=>b.score-a.score||a.order-b.order).slice(0,12).map(item=>item.record);
+      results.innerHTML=found.length?found.map(p=>`<a class="search-result" href="${esc(p.url)}"><small>${p.date?esc(p.date)+' · ':''}${bi(p.categoryEn||'Note',p.categoryZh||'笔记')}</small><strong>${bi(p.titleEn||p.title,p.title||p.titleEn)}</strong><span>${bi(excerpt(p,'en',tokens),excerpt(p,'zh',tokens))}</span></a>`).join(''):`<div class="empty-state">${bi('No matching notes. Try another keyword.','没有找到匹配的笔记，试试其他关键词。')}</div>`;
     }catch{results.innerHTML=bi('Search could not load. Please try again.','搜索暂时无法加载，请重试。');}
   }
   function openSearch(){revealHeader();if(!dialog.open)dialog.showModal();input.focus();search();}

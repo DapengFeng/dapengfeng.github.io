@@ -2,8 +2,8 @@
 .home-math-stage{position:relative;display:grid;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 72% 35%,#223e2d88,transparent 66%),#101711}
 .daily-math-background{grid-area:1/1;display:grid;min-width:0;pointer-events:none}
 .daily-math-background a{pointer-events:auto}
-.home-math-stage #surface-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none;opacity:.84}
-.home-math-stage:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#101711e8 0%,#101711b8 29%,#10171180 63%,#10171180),linear-gradient(0deg,#101711ed,transparent 62%)}
+.home-math-stage #surface-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none;opacity:.68}
+.home-math-stage:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#101711e8 0%,#101711b8 29%,#10171199 63%,#101711aa),linear-gradient(0deg,#101711ed,transparent 62%)}
 .home-math-stage .home-hero{grid-area:1/1;z-index:1;position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"headline ." "profile .";grid-template-rows:auto auto;align-content:center;align-items:start;gap:24px clamp(28px,4vw,70px);min-height:calc(100svh - var(--home-header-height,88px));padding-top:clamp(28px,3.5vh,48px);padding-bottom:clamp(28px,3.5vh,48px);pointer-events:none}
 .home-math-stage .home-hero>*{pointer-events:auto}
 .home-math-stage .hero-copy{grid-area:headline;position:relative;min-width:0;align-self:end}
@@ -28,11 +28,11 @@ html[data-language="zh"] .home-math-stage .hero-copy h1 [data-lang="zh"]{font-si
 .daily-math-kicker .i18n{display:flex;flex-direction:row;flex-wrap:wrap;gap:2px 10px;align-items:center}
 .daily-math-kicker .i18n>[data-lang="zh"]{margin:0;font-size:16px}
 .daily-math-kicker time{grid-area:date;color:#b7c5ac;white-space:nowrap}
-.daily-math-note h2{font-size:clamp(24px,2vw,28px);font-weight:400;line-height:1.22;letter-spacing:-.025em;margin:18px 0 0;color:#bfccaf}
+.daily-math-note h2{font-size:clamp(24px,2vw,28px);font-weight:400;line-height:1.22;letter-spacing:-.025em;margin:18px 0 0;color:#d1ddc4}
 .daily-math-note h2 .i18n{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
 .daily-math-note h2 [data-lang="zh"]{font-size:22px;color:inherit;margin:0;letter-spacing:0}
 html[data-language="zh"] .daily-math-note h2 [data-lang="zh"]{font-size:inherit;color:inherit}
-.daily-math-note p{color:#bac5af;font-size:17px;line-height:1.7;margin:0}
+.daily-math-note p{color:#d0d8c8;font-size:17px;line-height:1.7;margin:0}
 .daily-math-note p .i18n>[data-lang]{line-height:inherit}
 .daily-math-note p [data-lang="zh"]{margin-top:8px;color:inherit;font-size:inherit}
 .daily-math-explanation mjx-container[jax="SVG"]:not([display]){display:inline;white-space:nowrap;letter-spacing:0}
@@ -51,7 +51,7 @@ html[data-language="zh"] .daily-math-note h2 [data-lang="zh"]{font-size:inherit;
 @media(max-width:960px){
  .home-math-stage{--home-gutter:64px;background:radial-gradient(ellipse at 70% 28%,#24432d99,transparent 65%),#101711}
  .home-math-stage:after{background:linear-gradient(90deg,#101711bb,#10171199),linear-gradient(0deg,#101711f5,transparent 78%)}
- .home-math-stage #surface-canvas{opacity:.75}
+ .home-math-stage #surface-canvas{opacity:.58}
  .home-math-stage .home-hero{display:contents}
  .home-math-stage .hero-copy,.home-math-stage .hero-profile{position:relative;z-index:1;width:calc(100% - var(--home-gutter));margin-inline:auto;min-width:0}
  .home-math-stage .hero-copy{grid-area:1/1;padding-top:24px;padding-bottom:24px}
@@ -73,11 +73,17 @@ html[data-language="zh"] .daily-math-note h2 [data-lang="zh"]{font-size:inherit;
 @media(max-width:380px){.daily-math-kicker{letter-spacing:0}.daily-math-kicker .i18n{flex-direction:column;align-items:flex-start;gap:2px}}
 @media(prefers-reduced-transparency:reduce){.home-math-stage:after{background:#101711e6}}
 
-.daily-math-note .daily-math-reading{margin-top:20px}
+.daily-math-note .daily-math-reading{margin-top:14px;font-size:16px;color:#b8c5ae}
 
 @media(max-width:760px){html[data-language="zh"] .home-math-stage .hero-copy h1 em{display:block}}
 
 .daily-math-links{display:flex;flex-wrap:wrap;gap:0 20px;align-items:baseline}
+.daily-math-related{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-top:14px;font-size:16px;line-height:1.5;pointer-events:auto}
+.daily-math-related>span{color:#aebda3}
+.daily-math-related a{color:#d5e5c6;text-decoration:underline;text-decoration-color:#b6c5a960;text-underline-offset:4px}
+.daily-math-related a:hover{color:#e5ffbe;text-decoration-color:currentColor}
+.daily-math-related .i18n{display:inline-flex;flex-wrap:wrap;gap:0 10px}
+.daily-math-related .i18n>[data-lang="zh"]{font-size:inherit;margin:0}
 .math-page-heading{padding-block:36px 24px}
 .math-page-heading h1{font:400 clamp(30px,4vw,48px)/1.2 var(--serif,Georgia);margin:20px 0}
 .math-page-heading a,.math-years a{color:var(--lime);text-underline-offset:5px}
