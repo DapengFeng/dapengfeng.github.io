@@ -67,6 +67,22 @@
   ],
   "related": [
     {
+      "source": "icecube-neutrinos-nobel-2026",
+      "target": "waves-and-phase",
+      "reason": {
+        "en": "Phase speed and the addition of waves underpin the Cherenkov explanation. Revisit how phase determines whether waves reinforce or cancel.",
+        "zh": "相速度与波的叠加是理解切伦科夫辐射的基础；回看相位怎样决定波的增强与抵消。"
+      }
+    },
+    {
+      "source": "icecube-neutrinos-nobel-2026",
+      "target": "human-visual-system",
+      "reason": {
+        "en": "Compare how absorbed light becomes an electrical signal: IceCube uses photomultipliers, while the retina uses cellular phototransduction and neural circuits.",
+        "zh": "比较吸收的光怎样变成电信号：IceCube 使用光电倍增管，视网膜则依靠细胞中的光转导与神经回路。"
+      }
+    },
+    {
       "source": "human-visual-system",
       "target": "spike_notes",
       "reason": {

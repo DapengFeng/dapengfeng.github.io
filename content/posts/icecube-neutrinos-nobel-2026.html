@@ -1,0 +1,308 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Beneath the ice: how neutrinos become evidence</title><script type="application/json" id="article-metadata">{
+  "titleEn": "Beneath the ice: how neutrinos become evidence",
+  "title": "冰下的宇宙：怎样捕捉中微子的踪迹",
+  "descriptionEn": "The 2026 Nobel Prize in Physics recognises Francis Halzen’s contributions to IceCube and high-energy astrophysical neutrinos. Rare interactions produce charged particles and Cherenkov light; timing and light patterns reconstruct events, while background comparisons establish a cosmic population.",
+  "description": "2026 年诺贝尔物理学奖表彰 Francis Halzen 对 IceCube 与高能天体中微子发现的贡献。罕见的相互作用产生带电粒子与切伦科夫光；光信号的时序与空间分布用于重建事件，再由背景比较判断是否存在宇宙来源的粒子群。",
+  "cardDescriptionEn": "A rare interaction leaves light in Antarctic ice. Sensor timing reconstructs the event; comparisons with atmospheric backgrounds test whether the observed population needs a cosmic origin.",
+  "cardDescription": "中微子偶尔在冰中留下光信号；传感器时序重建事件，与大气背景的比较则检验是否存在宇宙来源。",
+  "date": "2026-10-08",
+  "category": "physics",
+  "tags": [
+    "Neutrinos",
+    "IceCube",
+    "Nobel Prize",
+    "Particle physics"
+  ],
+  "art": "wave"
+}</script><style>
+.ice-article{--ice-blue:#99ddff;--ice-mint:#c0f47b;--ice-gold:#f5c991;--ice-line:#41616c}
+.ice-comparison,.ice-evidence{margin:28px 0;padding:clamp(16px,2.5vw,26px);border:1px solid var(--ice-line);border-radius:14px;background:linear-gradient(140deg,#112a32,#121d24);color:#e9f0ed;min-width:0}
+.ice-comparison figcaption,.ice-evidence figcaption{margin:20px 0 0;padding-top:16px;border-top:1px solid #41616c;color:#c7d7d9}
+.ice-comparison [data-lang],.ice-evidence [data-lang]{display:block}
+.ice-event-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.ice-event-pair>div{min-width:0}.ice-event-pair strong{display:block;color:var(--ice-blue);font-size:18px;line-height:1.6;margin-bottom:10px}.ice-event-pair p{font-size:16px;line-height:1.8;margin:12px 0 0}.ice-event-pair svg{display:block;width:100%;height:auto;border:1px solid #354f5b;border-radius:8px;background:#0d1d29}
+.ice-evidence-head{font-size:16px;line-height:1.7;color:#c7d7d9;padding-bottom:16px;border-bottom:1px solid #41616c}.ice-count-row{margin-top:22px}.ice-count-label{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:10px;font-size:16px;line-height:1.7}.ice-count-label>strong{font:500 28px/1.2 var(--mono);color:var(--ice-mint);flex-shrink:0}.ice-count-label.is-background>strong{color:var(--ice-gold)}.ice-count-label small{display:block;font:16px/1.5 var(--mono);color:#e8c9a4}.ice-count-track{height:25px;position:relative;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(33.333% - 1px),#45616b55 calc(33.333% - 1px),#45616b55 33.333%),#0c1b24;border-left:1px solid #98b5be;border-right:1px solid #98b5be}.ice-observed{height:100%;width:93.333333%;background:linear-gradient(90deg,#438d75,#c0f47b);border-radius:0 3px 3px 0}.ice-background{height:100%;width:35.333333%;background:#bd956455;border-right:2px solid #f5c991}.ice-count-range{position:absolute;top:5px;height:15px;left:23.333333%;width:28.666667%;border-left:2px solid #f5c991;border-right:2px solid #f5c991}.ice-count-range:before{content:'';position:absolute;left:0;right:0;top:6px;border-top:2px solid #f5c991}.ice-count-scale{display:flex;justify-content:space-between;font:16px/1.6 var(--mono);color:#c7d7d9;margin-top:7px}.ice-evidence-result{font-size:16px;line-height:1.8;margin-top:20px;color:#d3dfe2}
+@media(max-width:600px){.ice-event-pair{grid-template-columns:1fr;gap:24px}.ice-event-pair>div+div{padding-top:20px;border-top:1px solid #41616c}.ice-count-label{gap:10px}.ice-count-label>strong{font-size:25px}}
+</style></head><body><div class="lesson ice-article">
+<h2 class="parallel-text" id="a-message-in-the-ice"><span data-lang="en" lang="en">A flash of light, a claim about the universe</span><span data-lang="zh" lang="zh-CN">一阵闪光，能说明什么？</span></h2>
+<p class="parallel-text" ><span data-lang="en" lang="en">Deep beneath the South Pole, a sensor records a pulse. Others respond at different times. The computer receives positions, timestamps and light signals. How can these measurements tell us about a particle from a distant cosmic accelerator? The answer needs two steps: reconstruct an event, then test what population could have produced such events.</span><span data-lang="zh" lang="zh-CN">南极冰层深处，一个传感器记录到脉冲，另一些传感器先后响应。计算机收到的是位置、时间戳与光信号。这些测量，怎样才能告诉我们某个粒子来自遥远的宇宙加速器？中间需要跨过两步：先重建一次事件，再检验什么样的粒子群能够产生这一组事件。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">On <strong>6 October 2026</strong>, the Royal Swedish Academy of Sciences awarded the <strong>Nobel Prize in Physics to Francis Halzen</strong> of the University of Wisconsin–Madison, recognising his decisive role in IceCube and the discovery of high-energy neutrinos of astrophysical origin. The award connects a physical idea—using deep ice as a detector—to the sustained work of an international scientific and engineering collaboration.</span><span data-lang="zh" lang="zh-CN"><strong>2026 年 10 月 6 日</strong>，瑞典皇家科学院宣布将<strong>诺贝尔物理学奖授予威斯康星大学麦迪逊分校的 Francis Halzen（弗朗西斯·哈尔岑）</strong>，表彰他对 IceCube 及高能天体中微子发现的决定性贡献。这个奖连接着一个物理构想——把深层冰体变成探测器——以及国际科学家与工程团队长期完成它的工作。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://www.kva.se/en/news/the-nobel-prize-in-physics-2026/">Royal Swedish Academy: the 2026 award and its scientific motivation</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://www.kva.se/en/news/the-nobel-prize-in-physics-2026/">瑞典皇家科学院：2026 年获奖公告与科学动机</a></span></p>
+<h2 class="parallel-text" id="why-ice"><span data-lang="en" lang="en">Why neutrinos, and why a cubic kilometre of ice?</span><span data-lang="zh" lang="zh-CN">为什么是中微子，为什么是一立方千米的冰？</span></h2>
+<p class="parallel-text" ><span data-lang="en" lang="en">An electrically charged cosmic ray can be deflected by magnetic fields on its journey. A neutrino has no electric charge, so magnetic fields do not scramble its direction in this way. Its weak interaction with matter also lets it escape dense environments. Those advantages make it a useful astronomical messenger—and make it difficult to catch.</span><span data-lang="zh" lang="zh-CN">带电宇宙线在途中会受到磁场偏转；中微子不带电，方向不会以这种方式被磁场打乱。它与物质的相互作用又很弱，能够从致密环境中逃逸。这使它适合传递天体内部的信息，也使它格外难以被捕捉。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">Detection relies on an occasional interaction in a large target. Deep Antarctic ice supplies both that target and a medium through which the resulting light can travel. In the original IceCube array, 5,160 optical modules hung on 86 strings, mainly 1,450–2,450 metres below the surface. The instrumented volume was about one cubic kilometre: a sparse light-sensing array inside a vast natural medium.</span><span data-lang="zh" lang="zh-CN">探测要依靠大体积靶中偶尔发生的相互作用。南极深层冰体既提供靶物质，也让随后产生的光能够传播。IceCube 原始阵列的 5,160 个光学模块分布在 86 根探测串上，主要位于地下 1,450—2,450 米，覆盖约一立方千米冰体：传感器并不密集，周围庞大的天然介质也是仪器的一部分。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://icecube.wisc.edu/science/icecube/">IceCube: original array geometry and the detection principle</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://icecube.wisc.edu/science/icecube/">IceCube：原始阵列的几何布局与探测原理</a></span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">A module contains a photomultiplier and electronics. Light reaching it can produce an electrical signal that is amplified, digitised and timed. Clocks calibrated to a common time reference and a calibrated sensor response are essential: the reconstruction compares different modules, so an instrumental time offset could otherwise look like a difference in photon travel time.</span><span data-lang="zh" lang="zh-CN">每个模块内有光电倍增管与电子学系统。到达的光可以转成电信号，经过放大、数字化与时间记录。把各模块的时钟校准到共同时间基准，并标定传感器响应，至关重要：重建需要比较不同模块；若未校准，仪器本身的时钟偏差就可能被误认成光传播时间的差异。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://arxiv.org/abs/1612.05093">IceCube instrumentation paper: optical modules, timing and calibration</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://arxiv.org/abs/1612.05093">IceCube 仪器论文：光学模块、计时与标定</a></span></p>
+<h2 class="parallel-text" id="light-from-a-secondary"><span data-lang="en" lang="en">The light comes from a charged secondary particle</span><span data-lang="zh" lang="zh-CN">是谁在冰中发光？</span></h2>
+<p class="parallel-text" ><span data-lang="en" lang="en">Consider one muon neutrino undergoing a charged-current interaction in the ice. It can produce a muon, a heavier charged relative of the electron, together with other particles. A sufficiently fast muon emits <strong>Cherenkov light</strong>. The detected light comes from charged secondary particles; the incoming neutrino is inferred from the interaction they leave behind.</span><span data-lang="zh" lang="zh-CN">考虑一个 μ 子中微子在冰中发生带电流相互作用：它可以产生 μ 子——一种比电子更重的带电粒子——以及其他粒子。运动足够快的 μ 子会发出<strong>切伦科夫光</strong>。传感器接收的是带电次级粒子产生的光；入射中微子则通过它留下的相互作用痕迹被推断出来。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">The relevant speed is light’s phase speed <span data-math="c/n" data-display="inline"></span> in the medium. A charged particle can exceed that speed while remaining below the vacuum light speed <span data-math="c" data-display="inline"></span>. Write the particle’s speed as <span data-math="\beta=v/c" data-display="inline"></span>. In a uniform medium at a chosen wavelength, the emission angle satisfies:</span><span data-lang="zh" lang="zh-CN">这里比较的是光在介质中的相速度 <span data-math="c/n" data-display="inline"></span>。带电粒子可以超过这个速度，同时仍低于真空光速 <span data-math="c" data-display="inline"></span>。令 <span data-math="\beta=v/c" data-display="inline"></span> 表示粒子速度与真空光速之比。在均匀介质、选定波长下，发射角满足：</span></p>
+<div data-math="\cos\theta_{\mathrm C}=\frac{1}{n\beta}" data-display="block"></div>
+<p class="parallel-text" ><span data-lang="en" lang="en">Emission requires <span data-math="n\beta&gt;1" data-display="inline"></span>. Here <span data-math="n" data-display="inline"></span> is the phase refractive index, and <span data-math="\theta_{\mathrm C}" data-display="inline"></span> is the angle between the photon direction and the particle’s motion. Successive parts of the charged track contribute coherently at this angle. The light therefore has a directional structure that a reconstruction can use; actual ice also scatters and absorbs photons. The angle uses the phase index; pulse arrival times depend on group velocity and the path travelled.</span><span data-lang="zh" lang="zh-CN">产生这种辐射需要满足 <span data-math="n\beta&gt;1" data-display="inline"></span>。其中 <span data-math="n" data-display="inline"></span> 是相折射率，<span data-math="\theta_{\mathrm C}" data-display="inline"></span> 是光子方向与粒子运动方向的夹角。带电粒子轨迹上不同位置产生的辐射，在这个方向上相干叠加，形成可供重建利用的方向结构；真实冰体还会散射和吸收光子。发射角使用相折射率；光脉冲的到达时刻则取决于群速度和实际走过的路径。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://arxiv.org/pdf/hep-ex/0008001">Neutrino observatories: phase velocity, group velocity and the Cherenkov angle</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://arxiv.org/pdf/hep-ex/0008001">中微子观测站：相速度、群速度与切伦科夫角</a></span></p>
+<style>
+.ic-figure { --ic-ink:#e7f3f5; --ic-muted:#a6bfc9; --ic-ray:#73d5e5; --ic-fit:#c9e791; max-width:760px; margin:2rem auto; color:var(--ic-ink); background:#102a39; border:1px solid #38505b; border-radius:12px; overflow:hidden; }
+.ic-figure * { box-sizing:border-box; }
+.ic-figure .ic-heading { padding:18px 20px 0; font-size:18px; font-weight:600; line-height:1.4; }
+.ic-figure [data-lang] { display:block; }
+.ic-figure .ic-scene { position:relative; margin-top:10px; background:linear-gradient(180deg,#102a39 0%,#143f52 22%,#102b3d 100%); }
+.ic-figure .ic-cutaway { position:relative; }
+.ic-figure .ic-cutaway > svg { display:block; width:calc(100% - 64px); height:auto; margin-left:64px; }
+.ic-figure .ic-location { padding:4px 20px 0; color:#d2e2e6; font-size:16px; line-height:1.35; }
+.ic-figure .ic-depth { position:absolute; left:10px; transform:translateY(-50%); color:#bbd1da; font:16px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:nowrap; }
+.ic-figure .ic-depth > span { display:block; }
+.ic-figure .ic-scale { position:absolute; left:57px; top:27.8%; bottom:11.1%; border-left:1px solid #688897; }
+.ic-figure .ic-scale::before,.ic-figure .ic-scale::after { content:""; position:absolute; left:-3px; width:5px; border-top:1px solid #688897; }
+.ic-figure .ic-scale::before { top:0; }
+.ic-figure .ic-scale::after { bottom:0; }
+.ic-figure .ic-depth.top { top:27.8%; }
+.ic-figure .ic-depth.bottom { top:88.9%; }
+.ic-figure .ic-surface { fill:none; stroke:#c8e5ea; stroke-width:1.5; }
+.ic-figure .ic-layer { fill:none; stroke:#77a6bc; stroke-width:1; opacity:.13; }
+.ic-figure .ic-shaft { stroke:#729aad; stroke-width:1; stroke-dasharray:3 5; opacity:.32; }
+.ic-figure .ic-string { stroke:#80adbd; stroke-width:1.3; opacity:.46; }
+.ic-figure .ic-sensor { fill:#829eaa; stroke:#d0e1e5; stroke-width:1; opacity:.8; }
+.ic-figure .ic-incoming { fill:none; stroke:#b9c6cf; stroke-width:2; stroke-dasharray:5 7; }
+.ic-figure .ic-track-base { stroke:#aadce7; stroke-width:3; opacity:.35; }
+.ic-figure .ic-track { fill:none; stroke:#b0e4ec; stroke-width:3; }
+.ic-figure .ic-photon { fill:none; stroke:var(--ic-ray); stroke-width:1.7; opacity:.75; }
+.ic-figure .ic-photon-base { fill:none; stroke:var(--ic-ray); stroke-width:1; stroke-dasharray:2 5; opacity:.2; }
+.ic-figure .ic-vertex { fill:#edf9fa; stroke:#92deea; stroke-width:5; }
+.ic-figure .ic-fit { fill:none; stroke:var(--ic-fit); stroke-width:2; stroke-dasharray:7 6; }
+.ic-figure .ic-halo { fill:var(--ic-ray); opacity:.13; }
+.ic-figure .ic-hit-core { fill:#c9f6fa; stroke:#7bdfed; stroke-width:2; }
+.ic-figure .ic-hit text { fill:#e5f1f5; font:500 29px ui-sans-serif,system-ui,sans-serif; }
+.ic-figure .ic-symbol { fill:#e2eef2; font:italic 29px Georgia,serif; }
+.ic-figure .ic-legend { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; padding:12px 20px 15px; margin:0; list-style:none; font-size:16px; line-height:1.35; }
+.ic-figure .ic-legend li { margin:0; padding:0; }
+.ic-figure .ic-key { display:block; width:30px; margin-bottom:7px; border-top:2px solid var(--ic-ray); }
+.ic-figure .ic-key.neutrino { border-top-style:dashed; border-color:#b9c6cf; }
+.ic-figure .ic-key.muon { border-color:#b0e4ec; border-top-width:3px; }
+.ic-figure .ic-timing { margin:0 20px; padding:15px 0 13px; border-top:1px solid #365360; }
+.ic-figure .ic-timing-head { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:16px; line-height:1.35; }
+.ic-figure .ic-replay { flex:none; display:grid; place-items:center; width:38px; height:38px; padding:8px; border:1px solid #547581; border-radius:50%; color:#e7f3f5; background:transparent; cursor:pointer; }
+.ic-figure .ic-replay[hidden] { display:none; }
+.ic-figure .ic-replay:hover { background:#254554; border-color:#a5d4df; }
+.ic-figure .ic-replay:focus-visible { outline:2px solid #c9e791; outline-offset:4px; }
+.ic-figure .ic-replay svg { width:20px; height:20px; }
+.ic-figure .ic-timing > svg { display:block; width:100%; height:auto; margin:25px 0 0; overflow:visible; }
+.ic-figure .ic-time-baseline { stroke:#55717d; stroke-width:1; }
+.ic-figure .ic-pulse { fill:none; stroke:var(--ic-ray); stroke-width:2; }
+.ic-figure .ic-time-label { fill:#d7e8ed; font:500 23px ui-sans-serif,system-ui,sans-serif; }
+.ic-figure .ic-fit-note { display:flex; gap:10px; align-items:flex-start; margin-top:10px; color:#d4e7bb; font-size:16px; line-height:1.4; }
+.ic-figure .ic-fit-key { flex:none; width:26px; margin-top:9px; border-top:2px dashed var(--ic-fit); }
+.ic-figure figcaption { margin:0; padding:14px 20px 18px; color:#b7ced7; background:#102632; font-size:16px; line-height:1.55; }
+@media(max-width:480px) {
+ .ic-figure .ic-heading { padding:15px 14px 0; font-size:17px; }
+ .ic-figure .ic-hit text,.ic-figure .ic-symbol { font-size:34px; }
+ .ic-figure .ic-time-label { font-size:32px; }
+ .ic-figure .ic-location { padding:4px 14px 0; }
+ .ic-figure .ic-legend { padding:12px 14px 14px; gap:10px; font-size:16px; }
+ .ic-figure .ic-timing { margin:0 14px; }
+ .ic-figure figcaption { padding:13px 14px 16px; }
+}
+@media(max-width:360px) {
+ .ice-article .formula-scroll mjx-container[display="true"] { font-size:1em!important; }
+ .ic-figure .ic-legend { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .ic-figure .ic-legend li:last-child { grid-column:1/-1; }
+ .ic-figure .ic-hit text,.ic-figure .ic-symbol { font-size:44px; }
+ .ic-figure .ic-time-label { font-size:40px; }
+}
+</style>
+<figure class="ic-figure" id="icecube-event" aria-labelledby="ic-figure-title">
+ <div class="ic-heading" id="ic-figure-title"><span lang="en" data-lang="en">One interaction. A timed pattern of light.</span><span lang="zh-CN" data-lang="zh">一次相互作用，一串有先后的光信号。</span></div>
+ <div class="ic-scene">
+  <div class="ic-location"><span lang="en" data-lang="en">South Pole ice</span><span lang="zh-CN" data-lang="zh">南极冰层</span></div>
+  <div class="ic-cutaway">
+  <span class="ic-depth top"><span>1.45</span><span>km</span></span><span class="ic-depth bottom"><span>2.45</span><span>km</span></span><span class="ic-scale" aria-hidden="true"></span>
+  <svg viewBox="100 45 560 360" role="img" aria-labelledby="ic-figure-title" aria-describedby="ic-figure-caption">
+   <defs>
+    <linearGradient id="ic-ice-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6babbf" stop-opacity=".16"/><stop offset="1" stop-color="#102b3d" stop-opacity="0"/></linearGradient>
+    <marker id="ic-track-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="#b0e4ec" stroke-width="1.5"/></marker>
+    <marker id="ic-fit-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="#c9e791" stroke-width="1.5"/></marker>
+   </defs>
+   <path d="M0 81Q170 70 330 78T660 75V405H0Z" fill="url(#ic-ice-fill)"/>
+   <path class="ic-surface" d="M0 81Q170 70 330 78T660 75"/>
+   <g class="ic-layer"><path d="M0 121Q230 105 660 116"/><path d="M0 185Q310 174 660 179"/><path d="M0 254Q270 242 660 247"/><path d="M0 322Q250 310 660 317"/><path d="M0 386Q360 374 660 380"/></g>
+   <g fill="#c4dce4" opacity=".75" transform="translate(0 22)"><path d="M480 53V36H516V51M485 36V30H503V36"/><path d="M524 52V44H544V52"/></g>
+   <g class="ic-shaft"><path d="M145 77V119M265 76V119M400 80V119M545 80V119"/></g>
+   <g fill="none" stroke="#789cad" opacity=".6"><path d="m140 124 10-5m-10 13 10-5m110-3 10-5m-10 13 10-5m125-3 10-5m-10 13 10-5m135-3 10-5m-10 13 10-5"/></g>
+   <path class="ic-string" d="M145 141V372M265 141V372M400 141V372M545 141V372"/>
+   <g class="ic-sensor"><circle cx="145" cy="145" r="4.5"/>
+<circle cx="145" cy="200" r="4.5"/>
+<circle cx="145" cy="255" r="4.5"/>
+<circle cx="145" cy="310" r="4.5"/>
+<circle cx="145" cy="365" r="4.5"/>
+<circle cx="265" cy="145" r="4.5"/>
+<circle cx="265" cy="260" r="4.5"/>
+<circle cx="265" cy="312.5" r="4.5"/>
+<circle cx="265" cy="365" r="4.5"/>
+<circle cx="400" cy="207.5" r="4.5"/>
+<circle cx="400" cy="260" r="4.5"/>
+<circle cx="400" cy="365" r="4.5"/>
+<circle cx="545" cy="145" r="4.5"/>
+<circle cx="545" cy="200" r="4.5"/>
+<circle cx="545" cy="312.5" r="4.5"/>
+<circle cx="545" cy="365" r="4.5"/></g>
+   <path class="ic-incoming" d="M113 342L195 310"/>
+   <text class="ic-symbol" x="111" y="327">ν</text>
+   <path class="ic-track-base" d="M195 310L576 157.6"/>
+   <path class="ic-track" data-ic-track pathLength="1" d="M195 310L576 157.6" marker-end="url(#ic-track-arrow)"/>
+   <text class="ic-symbol" x="581" y="184">μ</text>
+   <g class="ic-photon-base"><path d="M218 300.8L265 207.5M284.5 274.2L400 312.5M353.5 246.6L400 155M422 219.2L545 260"/></g>
+   <g class="ic-photons">
+    <path class="ic-photon" data-ic-ray="0" pathLength="1" d="M218 300.8L265 207.5"/>
+    <path class="ic-photon" data-ic-ray="1" pathLength="1" d="M284.5 274.2L400 312.5"/>
+    <path class="ic-photon" data-ic-ray="2" pathLength="1" d="M353.5 246.6L400 155"/>
+    <path class="ic-photon" data-ic-ray="3" pathLength="1" d="M422 219.2L545 260"/>
+   </g>
+   <path class="ic-fit" data-ic-fit d="M204 306.4L576 157.6" marker-end="url(#ic-fit-arrow)"/>
+   <circle class="ic-vertex" data-ic-vertex cx="195" cy="310" r="5"/>
+   <g class="ic-hit" data-ic-hit="0" transform="translate(265 207.5)"><circle class="ic-halo" r="15"/><circle class="ic-hit-core" r="6"/><text x="13" y="-11">1</text></g>
+<g class="ic-hit" data-ic-hit="1" transform="translate(400 312.5)"><circle class="ic-halo" r="15"/><circle class="ic-hit-core" r="6"/><text x="13" y="-11">2</text></g>
+<g class="ic-hit" data-ic-hit="2" transform="translate(400 155)"><circle class="ic-halo" r="15"/><circle class="ic-hit-core" r="6"/><text x="13" y="-11">3</text></g>
+<g class="ic-hit" data-ic-hit="3" transform="translate(545 260)"><circle class="ic-halo" r="15"/><circle class="ic-hit-core" r="6"/><text x="13" y="-11">4</text></g>
+  </svg>
+  </div>
+ </div>
+ <ul class="ic-legend" aria-label="Legend" data-aria-label-en="Legend" data-aria-label-zh="图例">
+  <li><i class="ic-key neutrino" aria-hidden="true"></i><span lang="en" data-lang="en">Neutrino ν</span><span lang="zh-CN" data-lang="zh">中微子 ν</span></li>
+  <li><i class="ic-key muon" aria-hidden="true"></i><span lang="en" data-lang="en">Charged muon μ</span><span lang="zh-CN" data-lang="zh">带电 μ 子</span></li>
+  <li><i class="ic-key" aria-hidden="true"></i><span lang="en" data-lang="en">Cherenkov light</span><span lang="zh-CN" data-lang="zh">切伦科夫光</span></li>
+ </ul>
+ <div class="ic-timing">
+  <div class="ic-timing-head"><div><span lang="en" data-lang="en">Sensor hits · arrival order</span><span lang="zh-CN" data-lang="zh">探测器响应 · 抵达顺序</span></div>
+   <button class="ic-replay" type="button" hidden aria-label="Replay the detection sequence" title="Replay the detection sequence" data-aria-label-en="Replay the detection sequence" data-aria-label-zh="重播探测过程" data-title-en="Replay the detection sequence" data-title-zh="重播探测过程"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></svg></button>
+  </div>
+  <svg viewBox="0 0 600 65" aria-hidden="true">
+   <path class="ic-time-baseline" d="M0 37H600"/>
+   <g data-ic-pulse="0"><path class="ic-pulse" d="M64 37h12l3-5 3 5 4-27 4 42 4-15h13"/><text class="ic-time-label" x="85" y="-1" text-anchor="middle">1</text></g>
+   <g data-ic-pulse="1"><path class="ic-pulse" d="M218 37h12l3-5 3 5 4-27 4 42 4-15h13"/><text class="ic-time-label" x="239" y="-1" text-anchor="middle">2</text></g>
+   <g data-ic-pulse="2"><path class="ic-pulse" d="M296 37h12l3-5 3 5 4-27 4 42 4-15h13"/><text class="ic-time-label" x="317" y="-1" text-anchor="middle">3</text></g>
+   <g data-ic-pulse="3"><path class="ic-pulse" d="M474 37h12l3-5 3 5 4-27 4 42 4-15h13"/><text class="ic-time-label" x="495" y="-1" text-anchor="middle">4</text></g>
+  </svg>
+  <div class="ic-fit-note"><i class="ic-fit-key" aria-hidden="true"></i><div><span lang="en" data-lang="en">Positions + arrival times constrain a track.</span><span lang="zh-CN" data-lang="zh">位置与到达时刻共同约束粒子轨迹。</span></div></div>
+ </div>
+ <figcaption id="ic-figure-caption"><span lang="en" data-lang="en">Illustrative event, not measured data. Original IceCube depths; surface gap compressed. The white point is the interaction. Four photon paths are shown; geometry and timing are simplified.</span><span lang="zh-CN" data-lang="zh">示意事件，并非实测数据。深度对应原始 IceCube 阵列，冰面间隔已压缩。白点为相互作用位置；仅画出四条光路，几何与时序均已简化。</span></figcaption>
+</figure>
+<script>
+(() => {
+ const root = document.getElementById('icecube-event');
+ if (!root || root.dataset.icMounted) return;
+ root.dataset.icMounted = 'true';
+ const button = root.querySelector('.ic-replay');
+ const track = root.querySelector('[data-ic-track]');
+ const rays = [...root.querySelectorAll('[data-ic-ray]')];
+ const hits = [...root.querySelectorAll('[data-ic-hit]')];
+ const pulses = [...root.querySelectorAll('[data-ic-pulse]')];
+ const fit = root.querySelector('[data-ic-fit]');
+ const vertex = root.querySelector('[data-ic-vertex]');
+ const motion = matchMedia('(prefers-reduced-motion: reduce)');
+ // Schematic timing only: an ideal nondispersive medium with n = 1.33,
+ // so phase and group speeds coincide. Drawing-unit muon speed = 1, light = 1/1.33.
+ // Real photon-pulse timing uses the group index; this is not a detector simulation.
+ // No spherical wavefront is used to represent the Cherenkov cone.
+ const emission = [24.77, 96.40, 170.71, 244.49];
+ const travel = [138.96, 161.85, 136.66, 172.38];
+ const duration = 6100;
+ let raf = 0, elapsed = duration, previous = null, playing = false, visible = false, used = false;
+ const clamp = x => Math.max(0, Math.min(1, x));
+ function draw(time) {
+  const distance = Math.max(0, (time - 650) / 9);
+  const progress = clamp(distance / 410.36);
+  track.style.strokeDasharray = '1';
+  track.style.strokeDashoffset = String(1 - progress);
+  vertex.style.opacity = String(time >= 650 ? 1 : .35);
+  rays.forEach((ray, index) => {
+   const p = clamp((distance - emission[index]) / travel[index]);
+   ray.style.strokeDasharray = '1';
+   ray.style.strokeDashoffset = String(1 - p);
+   const active = p >= 1;
+   hits[index].querySelector('.ic-halo').style.opacity = active ? '.22' : '0';
+   hits[index].querySelector('.ic-hit-core').style.opacity = active ? '1' : '.3';
+   pulses[index].style.opacity = active ? '1' : '.2';
+   hits[index].dataset.active = String(active);
+  });
+  fit.style.opacity = String(clamp((time - 4900) / 800));
+  root.dataset.icState = time >= duration ? 'complete' : 'playing';
+  root.dataset.icElapsed = String(Math.round(time));
+ }
+ function cancel() { cancelAnimationFrame(raf); raf = 0; previous = null; }
+ function finish() { cancel(); playing = false; elapsed = duration; draw(duration); }
+ function tick(now) {
+  raf = 0;
+  if (!playing || !visible || document.hidden || motion.matches) return;
+  if (previous !== null) elapsed = Math.min(duration, elapsed + now - previous);
+  previous = now;
+  draw(elapsed);
+  if (elapsed >= duration) { finish(); return; }
+  raf = requestAnimationFrame(tick);
+ }
+ function schedule() {
+  if (!raf && playing && visible && !document.hidden && !motion.matches) raf = requestAnimationFrame(tick);
+ }
+ function start() {
+  used = true;
+  if (motion.matches) { finish(); return; }
+  cancel(); elapsed = 0; playing = true; draw(0); schedule();
+ }
+ function localize() {
+  const language = document.documentElement.dataset.language;
+  for (const attribute of ['aria-label', 'title']) {
+   const en = button.getAttribute(`data-${attribute}-en`), zh = button.getAttribute(`data-${attribute}-zh`);
+   button.setAttribute(attribute, language === 'en' ? en : language === 'zh' ? zh : `${en} / ${zh}`);
+  }
+ }
+ button.hidden = false;
+ button.addEventListener('click', () => {
+  if (!visible) root.querySelector('.ic-scene').scrollIntoView({block:'center', behavior:motion.matches ? 'instant' : 'smooth'});
+  start();
+ });
+ window.addEventListener('languagechange', localize);
+ localize();
+ if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => {
+   const entry = entries[0];
+   visible = entry.isIntersecting && entry.intersectionRect.height >= Math.min(110, entry.boundingClientRect.height * .3);
+   if (!visible) { cancel(); return; }
+   if (!used && !motion.matches && !document.hidden) start(); else schedule();
+  }, {threshold:[0,.1,.3,.6,1]});
+  observer.observe(root.querySelector('.ic-scene'));
+ } else visible = true;
+ document.addEventListener('visibilitychange', () => {
+  if (document.hidden) cancel();
+  else if (!used && visible && !motion.matches) start();
+  else schedule();
+ });
+ motion.addEventListener('change', () => { if (motion.matches) { used = true; finish(); } });
+ window.addEventListener('pagehide', finish);
+ window.addEventListener('beforeprint', finish);
+ finish();
+})();
+</script>
+
+<h2 class="parallel-text" id="reconstruct-an-event"><span data-lang="en" lang="en">From hit times to a particle track</span><span data-lang="zh" lang="zh-CN">从响应时序，重建粒子轨迹</span></h2>
+<p class="parallel-text" ><span data-lang="en" lang="en">The animation ends with a pattern of hits, not a photograph of the incoming neutrino. A candidate track predicts where light is emitted, how it propagates, and which sensors should respond when. Reconstruction compares those predictions with the measurements and searches for a compatible direction, position and time. Joining the bright sensors with a straight line would skip the photon propagation between the track and each sensor.</span><span data-lang="zh" lang="zh-CN">动画留下的是一组响应，不是入射中微子的照片。给定一条候选轨迹，就可以预测光在哪里产生、如何传播、哪些传感器何时响应。重建把这些预测与测量比较，寻找相容的方向、位置和时间。如果只是把亮起的传感器连成直线，就漏掉了光从粒子轨迹传播到各个传感器的过程。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">Early, less-scattered photons help constrain geometry; later light also carries information but requires a model of its propagation. Ice properties, detector response and stochastic energy losses all affect the fit. The result is an estimate with uncertainty, not an exact line back to a unique object in the sky.</span><span data-lang="zh" lang="zh-CN">较早到达、散射较少的光子有助于约束几何；较晚到达的光也有信息，但需要光传播模型来解释。冰体性质、探测器响应与粒子随机的能量损失都会影响拟合。最终得到的是带有不确定性的估计，而非一条精确指回某个天体的线。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://arxiv.org/abs/1908.07961">IceCube: muon-track reconstruction and its uncertainties</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://arxiv.org/abs/1908.07961">IceCube：μ 子轨迹重建及其不确定性</a></span></p>
+<figure class="ice-comparison" aria-labelledby="ice-event-caption"><div class="ice-event-pair"><div><strong class="parallel-text" ><span data-lang="en" lang="en">Track</span><span data-lang="zh" lang="zh-CN">径迹</span></strong><svg viewBox="0 0 390 180" role="img" aria-label="Extended pattern from a muon track / μ 子径迹的延展响应"><circle cx="30" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="30" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="30" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="30" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="30" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="150" r="2.5" fill="#567582" opacity=".65"/><path d="M25 149 L365 33" stroke="#b0e4ec" stroke-width="2"/><circle cx="60" cy="135" r="12" fill="#99ddff" opacity=".10"/><circle cx="60" cy="135" r="7" fill="#99ddff" opacity=".7"/><circle cx="90" cy="120" r="15" fill="#99ddff" opacity=".10"/><circle cx="90" cy="120" r="10" fill="#99ddff" opacity=".7"/><circle cx="150" cy="105" r="14" fill="#99ddff" opacity=".10"/><circle cx="150" cy="105" r="9" fill="#99ddff" opacity=".7"/><circle cx="180" cy="90" r="18" fill="#99ddff" opacity=".10"/><circle cx="180" cy="90" r="13" fill="#99ddff" opacity=".7"/><circle cx="240" cy="75" r="15" fill="#99ddff" opacity=".10"/><circle cx="240" cy="75" r="10" fill="#99ddff" opacity=".7"/><circle cx="270" cy="60" r="13" fill="#99ddff" opacity=".10"/><circle cx="270" cy="60" r="8" fill="#99ddff" opacity=".7"/><circle cx="330" cy="45" r="12" fill="#99ddff" opacity=".10"/><circle cx="330" cy="45" r="7" fill="#99ddff" opacity=".7"/></svg><p class="parallel-text" ><span data-lang="en" lang="en">A muon can leave an extended pattern. Its length helps constrain direction.</span><span data-lang="zh" lang="zh-CN">μ 子可以留下延展的响应，其长度有助于约束方向。</span></p></div><div><strong class="parallel-text" ><span data-lang="en" lang="en">Cascade</span><span data-lang="zh" lang="zh-CN">级联</span></strong><svg viewBox="0 0 390 180" role="img" aria-label="Compact pattern from a particle shower / 粒子簇射的紧凑响应"><defs><radialGradient id="ice-cascade-glow"><stop stop-color="#99ddff" stop-opacity=".45"/><stop offset="1" stop-color="#99ddff" stop-opacity="0"/></radialGradient></defs><circle cx="30" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="30" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="30" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="30" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="30" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="60" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="90" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="120" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="150" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="180" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="210" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="240" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="270" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="300" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="330" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="30" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="60" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="90" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="120" r="2.5" fill="#567582" opacity=".65"/><circle cx="360" cy="150" r="2.5" fill="#567582" opacity=".65"/><circle cx="195" cy="90" r="60" fill="url(#ice-cascade-glow)"/><circle cx="150" cy="90" r="6" fill="#99ddff" opacity=".75"/><circle cx="180" cy="60" r="9" fill="#99ddff" opacity=".75"/><circle cx="180" cy="90" r="14" fill="#99ddff" opacity=".75"/><circle cx="180" cy="120" r="8" fill="#99ddff" opacity=".75"/><circle cx="210" cy="60" r="8" fill="#99ddff" opacity=".75"/><circle cx="210" cy="90" r="15" fill="#99ddff" opacity=".75"/><circle cx="210" cy="120" r="7" fill="#99ddff" opacity=".75"/><circle cx="240" cy="90" r="6" fill="#99ddff" opacity=".75"/></svg><p class="parallel-text" ><span data-lang="en" lang="en">A particle shower deposits light more locally. Multiple interaction types can produce this shape.</span><span data-lang="zh" lang="zh-CN">粒子簇射使光源更集中，多种相互作用都能形成这种形态。</span></p></div></div><figcaption class="parallel-text" id="ice-event-caption"><span data-lang="en" lang="en">Schematic sensor patterns at one drawing scale; circle size suggests light amount, not particle size. A cascade alone does not identify a neutrino flavour.</span><span data-lang="zh" lang="zh-CN">相同绘图尺度下的传感器响应示意；圆点大小表示光量的差别，不表示粒子尺寸。仅凭级联形态不能确定中微子种类。</span></figcaption></figure>
+<p class="parallel-text" ><span data-lang="en" lang="en">Light also constrains energy, but the energy deposited inside the observed volume need not equal the incoming neutrino’s total energy. A muon can leave the array carrying energy away; a neutral-current interaction leaves an outgoing neutrino unobserved. Event shape and containment therefore change how confidently energy can be inferred.</span><span data-lang="zh" lang="zh-CN">光量还约束能量，但观测体积内的沉积能量并不必然等于入射中微子的总能量：μ 子可能携带能量离开阵列，中性流相互作用还会留下未被观测到的出射中微子。因此，事件形态与能量是否留在阵列内部，决定了能量推断的条件。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://arxiv.org/abs/1304.5356">IceCube: the first two PeV events and the interpretation of cascades</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://arxiv.org/abs/1304.5356">IceCube：最初两个 PeV 事件与级联形态的解释</a></span></p>
+<h2 class="parallel-text" id="atmospheric-background"><span data-lang="en" lang="en">The atmosphere makes neutrinos too</span><span data-lang="zh" lang="zh-CN">大气也会制造中微子</span></h2>
+<p class="parallel-text" ><span data-lang="en" lang="en">Cosmic rays striking the atmosphere create particle showers. Some muons penetrate to the detector; decays in the showers also produce atmospheric neutrinos. These neutrinos are genuine neutrinos. Recognising a neutrino-like interaction is consequently only the first step toward establishing a distant astronomical origin.</span><span data-lang="zh" lang="zh-CN">宇宙线撞击大气，会产生粒子簇射。其中一部分 μ 子能够到达探测器，簇射中的衰变还会产生大气中微子。这些中微子同样真实。因此，认出一个符合中微子相互作用的事件，只是判断它是否来自遥远天体的第一步。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://icecube.wisc.edu/news/research/2014/09/an-improved-measurement-of-atmospheric-neutrino-flux-in-icecube/">IceCube: the atmospheric neutrino population</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://icecube.wisc.edu/news/research/2014/09/an-improved-measurement-of-atmospheric-neutrino-flux-in-icecube/">IceCube：大气中微子的来源与测量</a></span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">One strategy selects events that start inside the detector. Light at the outer boundary before the event can reveal an entering muon and veto it. An accompanying muon can also reject some downward atmospheric-neutrino events from the same air shower. This reduces background without eliminating it; the remaining background must be estimated under the same selection as the data.</span><span data-lang="zh" lang="zh-CN">一种策略是筛选在探测器内部开始的事件。如果事件之前外层边界已有光信号，就可能暴露了一个从外部进入的 μ 子，从而否决该事件。同一次大气簇射伴随产生的 μ 子，也能帮助剔除部分向下行进的大气中微子事件。这会降低背景，却不能将其清零；剩余背景必须在与数据相同的筛选条件下估计。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://arxiv.org/html/1405.5303">IceCube three-year analysis: starting-event selection and atmospheric veto</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://arxiv.org/html/1405.5303">IceCube 三年数据分析：内部起始事件与大气背景否决</a></span></p>
+<h2 class="parallel-text" id="twenty-eight-events"><span data-lang="en" lang="en">What made 28 events persuasive?</span><span data-lang="zh" lang="zh-CN">28 个事件，怎样成为证据？</span></h2>
+<p class="parallel-text" ><span data-lang="en" lang="en">The 2013 analysis used 662 live days between May 2010 and May 2012. It selected <strong>28 candidate events</strong> with deposited energies of roughly 30–1,200 TeV, against an expected atmospheric background of <strong>10.6 events</strong>, with an uncertainty of −3.6 and +5.0. TeV is an energy unit: one teraelectronvolt is 10¹² electronvolts. These are counts after selection. They are not the number of all neutrinos that crossed the ice.</span><span data-lang="zh" lang="zh-CN">2013 年的分析使用了 2010 年 5 月至 2012 年 5 月之间的 662 天有效观测，筛选出<strong>28 个候选事件</strong>，沉积能量约为 30—1,200 TeV；预期大气背景为<strong>10.6 个事件</strong>，不确定度为 −3.6、+5.0。TeV 是能量单位，1 TeV 为 10¹² 电子伏特。这里统计的是通过筛选的事件，并非穿过冰体的全部中微子。</span></p>
+<figure class="ice-evidence" aria-labelledby="ice-evidence-caption"><div class="parallel-text ice-evidence-head" ><span data-lang="en" lang="en">2013 analysis · 662 live days · selected events</span><span data-lang="zh" lang="zh-CN">2013 年分析 · 662 天有效观测 · 通过筛选的事件</span></div><div class="ice-count-row"><div class="ice-count-label"><div><span data-lang="en" lang="en">Observed candidates</span><span data-lang="zh" lang="zh-CN">观测到的候选事件</span></div><strong>28</strong></div><div class="ice-count-track" aria-hidden="true"><div class="ice-observed"></div></div></div><div class="ice-count-row"><div class="ice-count-label is-background"><div><span data-lang="en" lang="en">Atmospheric background</span><span data-lang="zh" lang="zh-CN">预期大气背景</span></div><strong>10.6<small>−3.6 / +5.0</small></strong></div><div class="ice-count-track" aria-hidden="true"><div class="ice-background"></div><div class="ice-count-range"></div></div></div><div class="ice-count-scale" aria-hidden="true"><span>0</span><span>10</span><span>20</span><span>30</span></div><div class="parallel-text ice-evidence-result" ><span data-lang="en" lang="en">The amber interval runs from 7.0 to 15.6, the quoted background uncertainty. It is not a classification of particular events.</span><span data-lang="zh" lang="zh-CN">橙色区间为 7.0—15.6，表示论文给出的背景不确定度，并不是给某些具体事件标上“背景”身份。</span></div><figcaption class="parallel-text" id="ice-evidence-caption"><span data-lang="en" lang="en">Counts redrawn from the 2013 paper. A shared zero and scale show the excess; the discovery claim also uses energy, direction and background modelling.</span><span data-lang="zh" lang="zh-CN">按 2013 年论文计数重绘。共同零点与刻度显示事件超出预期；发现的论证还需要能量、方向与背景模型。</span></figcaption></figure>
+<p class="parallel-text" ><span data-lang="en" lang="en">Under its benchmark atmospheric-background model, the paper’s conservative combined analysis reported <strong>4.1σ</strong> against a purely atmospheric explanation. This result uses more than the difference between the two bars: the significance also uses event properties and depends on the assumed atmospheric-background model. It supports an astrophysical contribution to the sample, without assigning every candidate an extraterrestrial origin or naming its source.</span><span data-lang="zh" lang="zh-CN">在论文采用的基准大气背景模型下，保守组合分析给出了排斥纯大气解释的 <strong>4.1σ</strong> 结果。这个结果不只是两根柱子的差：显著性同时使用事件属性，并依赖所采用的大气背景模型。它支持样本中存在天体来源的贡献，却不等于每一个候选事件都已被确认为天外来客，更不等于已经找到了各自的源。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://arxiv.org/html/1311.5238">2013 Science paper: the selected sample, background and statistical evidence</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://arxiv.org/html/1311.5238">2013 年 Science 论文：筛选样本、背景与统计证据</a></span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">A sigma value describes tension with a specified background hypothesis under an analysis; it is not the probability that the discovery is true. Nor can it be recovered by simply subtracting 10.6 from 28. IceCube’s public release includes event summaries and displays, allowing readers to inspect the sample behind the headline.</span><span data-lang="zh" lang="zh-CN">σ 值表达的是在特定分析下，数据与给定背景假设之间的张力，不是“发现为真的概率”。它也不能靠 28 减去 10.6 得到。IceCube 公开了事件摘要与显示图，读者可以继续检查新闻数字背后的样本。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://icecube.wisc.edu/data-releases/2013/11/search-for-contained-neutrino-events-at-energies-above-30-tev-in-2-years-of-data/">IceCube public data: event summaries and all 28 event displays</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://icecube.wisc.edu/data-releases/2013/11/search-for-contained-neutrino-events-at-energies-above-30-tev-in-2-years-of-data/">IceCube 公开数据：事件摘要与全部 28 个事件显示图</a></span></p>
+<h2 class="parallel-text" id="from-population-to-sources"><span data-lang="en" lang="en">A population is the beginning of astronomy</span><span data-lang="zh" lang="zh-CN">从一群粒子，继续寻找它们的来处</span></h2>
+<p class="parallel-text" ><span data-lang="en" lang="en">Establishing a cosmic population and identifying an individual source are different achievements. For a source search, directions must cluster beyond chance, or a neutrino must have a statistically meaningful association with other observations. IceCube’s 2018 work on the blazar TXS 0506+056 combined a September 2017 high-energy neutrino alert with electromagnetic observations; its conclusions depend on coincidence statistics, not merely drawing a line on a sky map.</span><span data-lang="zh" lang="zh-CN">确认宇宙来源的粒子群，与识别某个具体源，是不同层次的成果。寻找源需要方向上的聚集超出偶然预期，或中微子与其他观测具有统计上有意义的关联。2018 年关于耀变体 TXS 0506+056 的工作，把 2017 年 9 月的高能中微子警报与电磁观测结合起来；结论依赖对巧合的统计判断，而非只在星图上画一条线。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://arxiv.org/abs/1807.08816">2018 Science paper: multimessenger observations of TXS 0506+056</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://arxiv.org/abs/1807.08816">2018 年 Science 论文：TXS 0506+056 的多信使观测</a></span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">The instrument itself keeps changing. The collaboration reported the installation of the IceCube Upgrade in 2025–2026, with first science data expected later in 2026. That is why the original array dimensions in this article describe the foundation of the discovery, rather than a complete inventory of every sensor now in the ice.</span><span data-lang="zh" lang="zh-CN">仪器本身也在演进。合作组报告，IceCube Upgrade 已于 2025—2026 年安装完成，首批科学数据预计于 2026 年稍后取得。因此，本文给出的原始阵列规模描述的是发现所依赖的基础，而不是此刻冰中每个传感器的完整清单。</span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en"><a data-citation href="https://icecube.wisc.edu/news/awards/2026/10/francis-halzen-icecube-principal-investigator-wins-2026-physics-nobel-prize/">IceCube’s award announcement: collaboration, discoveries and the Upgrade</a></span><span data-lang="zh" lang="zh-CN"><a data-citation href="https://icecube.wisc.edu/news/awards/2026/10/francis-halzen-icecube-principal-investigator-wins-2026-physics-nobel-prize/">IceCube 获奖公告：合作、发现与升级进展</a></span></p>
+<p class="parallel-text" ><span data-lang="en" lang="en">Return to the first sensor pulse. Its meaning comes from a chain that can be examined: a particle interaction, light propagation, calibrated measurements, an uncertain reconstruction and a comparison with backgrounds. Each link makes a different claim. Together, they let a few traces in Antarctic ice become evidence about the universe.</span><span data-lang="zh" lang="zh-CN">回到最初那次传感器脉冲。它的意义来自一条可以逐步检查的链条：粒子相互作用、光的传播、经过标定的测量、带有不确定性的重建，以及同背景的比较。每一环承担不同的判断，连在一起，才让南极冰中的几处痕迹成为关于宇宙的证据。</span></p>
+</div></body></html>
