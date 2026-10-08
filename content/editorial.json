@@ -31,8 +31,8 @@
         "zh": "需要基础 Python、矩阵乘法与链式法则。C++ 摘录随正文解释；阅读专题及运行 CPU 示例不要求配备 GPU。"
       },
       "outcomes": {
-        "en": "Trace a tensor operation from storage and dispatch through gradients and execution, then distinguish copying, synchronization and recompilation costs.",
-        "zh": "沿着存储、调度、梯度和执行追踪一次张量运算，并分清数据复制、同步与重新编译的开销。"
+        "en": "Trace a tensor operation from storage and dispatch through gradients and execution, distinguish copying, synchronization and recompilation costs, and read the schema that defines an operator's contract.",
+        "zh": "沿着存储、调度、梯度和执行追踪一次张量运算，分清数据复制、同步与重新编译的开销，并读懂定义算子接口契约的 Schema。"
       },
       "paths": [
         {
@@ -55,11 +55,11 @@
         },
         {
           "id": "compile",
-          "title": { "en": "Understand compiled execution", "zh": "理解编译执行" },
-          "parts": [6],
+          "title": { "en": "Distinguish two kinds of code generation", "zh": "分清两种代码生成" },
+          "parts": [6, 7],
           "description": {
-            "en": "Use the earlier execution model to distinguish graph capture, cached-code reuse and kernel fusion.",
-            "zh": "带着前面的执行模型，区分图捕获、缓存代码复用与内核融合。"
+            "en": "Follow graph capture, cached-code reuse and kernel fusion in torch.compile, then compare them with torchgen's build-time generation of operator interfaces and registrations from schemas.",
+            "zh": "先理解 torch.compile 的图捕获、缓存代码复用与内核融合，再与 torchgen 在构建时根据 Schema 生成算子接口及注册代码的过程对照。"
           }
         }
       ]
@@ -139,11 +139,43 @@
       }
     },
     {
+      "source": "pytorch-03-operator-dispatch",
+      "target": "pytorch-07-operator-schema-and-codegen",
+      "reason": {
+        "en": "The dispatcher chooses an implementation for an operator. Follow how its schema defines the call and how build-time generation supplies the interface and registration code.",
+        "zh": "调度器为算子选择实现；继续看 Schema 怎样定义调用契约，以及构建时的代码生成怎样提供接口与注册代码。"
+      }
+    },
+    {
       "source": "pytorch-05-cuda-streams-timing",
       "target": "benchmark-with-evidence",
       "reason": {
         "en": "GPU completion defines the timing boundary; warm-up and repeated sampling are the next steps toward a credible comparison.",
         "zh": "GPU 完成时刻确定计时边界；预热与重复采样则让边界内的性能比较更可信。"
+      }
+    },
+    {
+      "source": "pytorch-06-compile-and-codegen",
+      "target": "pytorch-07-operator-schema-and-codegen",
+      "reason": {
+        "en": "Compare code generated for a captured computation with the operator interfaces and registrations generated when PyTorch itself is built.",
+        "zh": "把针对捕获计算生成的代码，与构建 PyTorch 本身时生成的算子接口和注册代码放在一起比较。"
+      }
+    },
+    {
+      "source": "pytorch-07-operator-schema-and-codegen",
+      "target": "pytorch-03-operator-dispatch",
+      "reason": {
+        "en": "A schema and its generated registration establish an operator's contract; return to the dispatcher to see how a call selects a registered implementation.",
+        "zh": "Schema 及其生成的注册代码确立算子契约；回到调度器，看一次调用怎样选中已注册的实现。"
+      }
+    },
+    {
+      "source": "pytorch-07-operator-schema-and-codegen",
+      "target": "pytorch-06-compile-and-codegen",
+      "reason": {
+        "en": "Keep the two generation stages separate: torchgen builds operator interfaces, while torch.compile captures computations and can generate code for their execution.",
+        "zh": "区分两个生成阶段：torchgen 生成算子接口，torch.compile 则捕获计算，并可为其执行生成代码。"
       }
     },
     {

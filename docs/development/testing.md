@@ -88,6 +88,10 @@ Each matrix job runs its assigned suites sequentially; the jobs run in parallel 
 
 `npm run test:compile` 检查第六期的 C++ 融合／访问模型、编译与缓存命中路径、版本复用、有限播放、语言模式、手机排版及静态图。五个完整 Python 示例已在独立的 PyTorch 2.10.0 CPU 环境验证，覆盖实际 Inductor 前向／反向编译、图捕获、生成的 CPU 代码、图中断和 CPU 基准测试。网站 CI 检查其语法，不安装 PyTorch。
 
+Part 7 uses static contract and generation diagrams. Its three Python programs were executed separately with PyTorch 2.10.0 CPU, checking add-family storage behavior, schema inspection, a broadcasting failure and a custom CPU/fake operator. The custom operator's four `opcheck` checks passed for inputs without gradients; this does not establish derivative support or CUDA execution. General article checks cover its layout, language modes and discovery; series tests cover its date and neighboring links. Website CI does not install PyTorch.
+
+第七期使用静态契约与生成流程图。三个 Python 程序已在独立的 PyTorch 2.10.0 CPU 环境执行，核对 add 家族的存储行为、schema 内省、广播失败以及自定义 CPU／fake 算子。自定义算子的四项 `opcheck` 在无梯度输入下通过，不代表已支持求导或 CUDA 执行。通用文章检查覆盖排版、语言模式和内容发现，专题测试覆盖日期与前后期链接。网站 CI 不安装 PyTorch。
+
 ## Discussion integration / 讨论功能
 
 `npm run test:discussions` checks article mapping, floating and inline views, draft preservation, language changes, OAuth callback handling, logout, message-source validation, offline behavior, and mobile layout with a mock widget. It does not post to GitHub or verify a real account's login and submission. See [Discussions setup](../operations/discussions.md) for the live integration.
