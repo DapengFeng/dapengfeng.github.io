@@ -19,6 +19,10 @@ Browser checks use the browser versions pinned by Playwright, matching CI by def
 
 `npm run test:cross-browser` 在 Chromium 与 WebKit 中执行少量共用界面冒烟检查，覆盖桌面／手机排版、导航、原生对话框、分享、讨论以及视觉系统图示的回退显示。首页、技术文章与游记在 1440px 和 390px 宽度下的固定视角截图保存在 `test-results/visual/`。截图用于人工复核，不进行像素基线比对，也不等于真实设备上的 Safari 验证。
 
+Catalog checks derive category membership from the published search index and compare article URLs, so new posts do not require changing fixed totals. Search checks target known relevant and unrelated articles rather than assuming there is exactly one result. Keep fixed counts only for deliberate UI limits or article-specific fixtures.
+
+文章清单检查从已构建的搜索索引获取分类成员，并核对文章链接，新增文章无需修改写死的总数。搜索检查针对已知相关与无关文章，不假定结果恰好只有一条。仅对明确的界面数量限制或特定文章的固定结构保留数量断言。
+
 ## Visual acceptance / 视觉验收
 
 Open and inspect the screenshots for a visual change; a passing overflow assertion is not sufficient. When shared styles or templates change, cover the homepage, a technical article, a travel essay and the about page in desktop and mobile layouts. Check English, Chinese and bilingual modes, and include a short viewport when the first screen is part of the requirement. For a local change, focus this review on the affected component and its shared neighbors.

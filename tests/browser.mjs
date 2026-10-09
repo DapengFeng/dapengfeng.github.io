@@ -39,7 +39,26 @@ try{
  }
  await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
  await page.locator('.search-trigger').click();await page.locator('#global-search').fill('EventProp');await page.waitForSelector('.search-result');assert.equal(await page.locator('.search-results a[href="/blog/spike_notes.html"]').count(),1);await page.keyboard.press('Escape');assert.equal(await page.locator('dialog').isVisible(),false);
- await page.goto('http://localhost:4175/blog/?category=physics');assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),1);await page.locator('[data-category-filter="all"]').click();await page.locator('#library-search').fill('CUDA Rust');assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),1);await page.locator('#library-search').fill('no-such-result-1234');assert.equal(await page.locator('.empty-state').isVisible(),true);await page.locator('[data-reset-filters]').click();assert.equal(await page.locator('[data-library] .knowledge-card:visible').count(),visiblePosts.length);
+ // Catalog membership grows with publication; compare article identities, not fixed totals.
+ const visibleLibraryUrls=()=>page.locator('[data-library] .knowledge-card:visible .card-link').evaluateAll(links=>links.map(link=>link.getAttribute('href')).sort());
+ const categoryUrls=category=>visiblePosts.filter(post=>category==='all'||post.category===category).map(post=>post.url).sort();
+ await page.goto('http://localhost:4175/blog/?category=physics');
+ assert.deepEqual(await visibleLibraryUrls(),categoryUrls('physics'),'category deep link shows every physics article and no unrelated articles');
+ const categories=await page.locator('[data-category-filter]').evaluateAll(buttons=>buttons.map(button=>button.dataset.categoryFilter));
+ for(const category of categories){
+  await page.locator(`[data-category-filter="${category}"]`).click();
+  assert.deepEqual(await visibleLibraryUrls(),categoryUrls(category),`${category}: visible articles match the published catalog`);
+ }
+ await page.locator('[data-category-filter="all"]').click();
+ await page.locator('#library-search').fill('CUDA Rust');
+ const searchUrls=await visibleLibraryUrls();
+ assert.ok(searchUrls.includes('/blog/cuda-rust-two-tracks-blog.html'),'multi-word search finds the CUDA/Rust article');
+ assert.ok(!searchUrls.includes('/blog/waves-and-phase.html'),'multi-word search hides an unrelated article');
+ await page.locator('#library-search').fill('no-such-result-1234');
+ assert.deepEqual(await visibleLibraryUrls(),[]);
+ assert.equal(await page.locator('.empty-state').isVisible(),true);
+ await page.locator('[data-reset-filters]').click();
+ assert.deepEqual(await visibleLibraryUrls(),categoryUrls('all'),'reset restores the complete published catalog');
  await page.goto('http://localhost:4175/blog/spike_notes.html');assert.equal(await page.locator('.paired-article').count(),1);assert.equal(await page.locator('.article-toc nav a').count(),8);assert.ok(await page.locator('.parallel-text').count()>=170,'full bilingual article remains present');
  const first=page.locator('.chapter-lead.parallel-text').first();assert.equal(await first.locator('[data-lang="en"]').isVisible(),true);assert.equal(await first.locator('[data-lang="zh"]').isVisible(),false);
  await page.locator('[data-language-choice="both"]').click();assert.equal(await first.locator('[data-lang="zh"]').isVisible(),true);const englishBox=await first.locator('.parallel-en').boundingBox(),chineseBox=await first.locator('.parallel-zh').boundingBox();assert.ok(chineseBox.y>=englishBox.y+englishBox.height);

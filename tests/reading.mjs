@@ -28,10 +28,11 @@ try{
   if(mode==='both')assert.ok(headings.every(t=>/[A-Za-z]/.test(t)&&/[\u4e00-\u9fff]/.test(t)));
  }
  await page.locator('.search-trigger').click();await page.locator('#global-search').fill('cuTile');
- await page.waitForFunction(()=>document.querySelectorAll('.search-result').length===1);
+ const searchResult=page.locator('.search-result[href="/blog/cuda-rust-two-tracks-blog.html"]');
+ await searchResult.waitFor({state:'visible'});
  for(const mode of ['en','zh','both']){
   await page.evaluate(mode=>document.querySelector(`[data-language-choice=${mode}]`).click(),mode);
-  const text=await page.locator('.search-result small').innerText();
+  const text=await searchResult.locator('small').innerText();
   assert.equal(text.includes('SYSTEMS'),mode!=='zh');assert.equal(text.includes('系统与性能'),mode!=='en');
  }
  console.log('Reading regressions passed: language-aware sorting, filter persistence, category headings, and search metadata.');
