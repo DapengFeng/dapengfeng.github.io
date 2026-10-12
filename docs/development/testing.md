@@ -23,6 +23,12 @@ Catalog checks derive category membership from the published search index and co
 
 文章清单检查从已构建的搜索索引获取分类成员，并核对文章链接，新增文章无需修改写死的总数。搜索检查针对已知相关与无关文章，不假定结果恰好只有一条。仅对明确的界面数量限制或特定文章的固定结构保留数量断言。
 
+## Recorded performance experiments / 已记录的性能实验
+
+The dense/sparse parallel-library experiment has its own [reproduction and measurement guide](../../benchmarks/parallel-libraries/README.md). Its C++, Rust and Python workloads are run manually, with independent correctness checks, separate timing and process-tree PSS passes, and a bounded sustained-load profile. Website builds publish the recorded artifacts; they do not run stress tests or enforce performance rankings on CI hardware.
+
+稠密／稀疏并行库实验的命令与测量边界见[复现说明](../../benchmarks/parallel-libraries/README.md)。C++、Rust 与 Python 负载手动运行，包含独立正确性校验、分开的计时与进程树 PSS 测量，以及有边界的持续压测。网站构建只发布记录好的资源，不在 CI 机器上运行压测或按性能排名设置门槛。
+
 ## Visual acceptance / 视觉验收
 
 Open and inspect the screenshots for a visual change; a passing overflow assertion is not sufficient. When shared styles or templates change, cover the homepage, a technical article, a travel essay and the about page in desktop and mobile layouts. Check English, Chinese and bilingual modes, and include a short viewport when the first screen is part of the requirement. For a local change, focus this review on the affected component and its shared neighbors.

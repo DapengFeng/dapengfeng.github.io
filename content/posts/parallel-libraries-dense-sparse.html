@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parallel matrix–vector benchmark: C++, Rust and Python</title>
+<script type="application/json" id="article-metadata">
+{
+  "titleEn": "Parallel matrix–vector benchmark: C++, Rust and Python",
+  "title": "并行矩阵向量乘法基准测试：C++、Rust 与 Python",
+  "descriptionEn": "Sixteen CPU implementations of dense GEMV and CSR SpMV, including OpenMP, oneTBB, Rayon, Python executors, NumPy/SciPy and Numba. Measurements cover warm calls, startup, sustained throughput and process-tree PSS, with workload-specific selection guidance.",
+  "description": "对比 OpenMP、oneTBB、Rayon、Python 执行器、NumPy/SciPy、Numba 等十六种 CPU 实现，测量稠密 GEMV 与 CSR SpMV 的热调用、启动成本、持续吞吐和进程树 PSS，给出按负载划分的选型建议。",
+  "cardDescriptionEn": "Compare sixteen CPU implementations on dense and sparse matvec using call latency, sustained throughput and process-tree memory; select libraries by workload and integration cost.",
+  "cardDescription": "以调用耗时、持续吞吐和进程树内存对比十六种稠密与稀疏实现，结合负载分布和接入成本给出选型建议。",
+  "date": "2026-10-12",
+  "category": "benchmark",
+  "tags": ["C++", "Rust", "Python", "OpenMP", "oneTBB", "Rayon", "Numba", "Parallelism", "Sparse matrices"],
+  "art": "benchmark"
+}
+</script>
+</head>
+<body>
+<div class="lesson parallel-benchmark">
+<style>
+.parallel-benchmark .pb-structure { margin:24px 0; padding:20px; border:1px solid var(--line,#d5dcdf); border-radius:14px; }
+.parallel-benchmark .pb-row-comparison { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.parallel-benchmark .pb-row-label { display:block; margin-bottom:12px; font-size:16px; line-height:1.5; }
+.parallel-benchmark .pb-rows { display:grid; gap:5px; }
+.parallel-benchmark .pb-rows i { display:block; width:8.163265%; height:6px; background:#688e85; border-radius:2px; }
+.parallel-benchmark .pb-rows.skew i { width:2.040816%; }
+.parallel-benchmark .pb-rows.skew i:first-child { width:100%; background:#be7847; }
+.parallel-benchmark .pb-structure figcaption { margin:16px 0 0; font-size:16px; line-height:1.65; }
+.parallel-benchmark .pb-downloads { display:flex; flex-wrap:wrap; gap:10px 22px; padding:0; list-style:none; }
+.parallel-benchmark .pb-plot { margin:26px 0; }
+.parallel-benchmark .pb-plot-frame { border-radius:12px; background:#11202a; }
+.parallel-benchmark .pb-plot-frame:focus-visible { outline:2px solid #688e85; outline-offset:4px; }
+.parallel-benchmark .pb-plot img { display:block; width:100%; min-width:0; height:auto; }
+.parallel-benchmark .pb-mobile-table { display:none; width:100%; max-width:100%; margin:0; table-layout:fixed; border-collapse:collapse; background:#11202a; color:#e8edef; border:1px solid #38505e; font-size:14px; line-height:1.35; }
+.parallel-benchmark .pb-mobile-table col:first-child { width:48%; }
+.parallel-benchmark .pb-mobile-table col:not(:first-child) { width:26%; }
+.parallel-benchmark .pb-mobile-table th,.parallel-benchmark .pb-mobile-table td { padding:9px 8px; border:0; border-bottom:1px solid #29404d; vertical-align:middle; }
+.parallel-benchmark .pb-mobile-table thead th { color:#bac9d1; background:#182c37; font-size:12px; font-weight:500; text-align:right; overflow-wrap:anywhere; }
+.parallel-benchmark .pb-mobile-table thead th:first-child { text-align:left; }
+.parallel-benchmark .pb-mobile-table thead small { display:block; margin-top:3px; font-size:11px; color:#a9bbc5; }
+.parallel-benchmark .pb-mobile-table tbody th { text-align:left; font-size:14px; font-weight:500; white-space:normal; overflow-wrap:anywhere; color:var(--pb-language); }
+.parallel-benchmark .pb-mobile-table tbody td { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; font-size:14px; }
+.parallel-benchmark .pb-mobile-table .pb-mobile-language { display:block; margin-bottom:2px; font-size:11px; line-height:1.15; font-weight:700; letter-spacing:.035em; }
+.parallel-benchmark .pb-mobile-table .pb-mobile-method { display:block; }
+.parallel-benchmark .pb-mobile-table .pb-language-cpp { --pb-language:#9bd8f0; }
+.parallel-benchmark .pb-mobile-table .pb-language-rust { --pb-language:#e9b47a; }
+.parallel-benchmark .pb-mobile-table .pb-language-python { --pb-language:#c0e49b; }
+.parallel-benchmark .pb-mobile-table .pb-language-start > * { border-top:2px solid #456071; }
+@media(max-width:800px) {
+ .parallel-benchmark .pb-plot-frame { display:none; }
+ .parallel-benchmark .pb-mobile-table { display:table; overflow:visible; }
+}
+.parallel-benchmark .pb-plot figcaption { margin:12px 0 0; font-size:16px; line-height:1.65; }
+.parallel-benchmark .pb-findings { border-left:3px solid #688e85; padding:4px 0 4px 20px; margin:24px 0; }
+.parallel-benchmark .pb-results td { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.parallel-benchmark .pb-results th { text-align:left; }
+.parallel-benchmark .pb-choice-table { table-layout:fixed; }
+.parallel-benchmark .pb-choice-table th,.parallel-benchmark .pb-choice-table td { padding:14px 12px; text-align:left; vertical-align:top; overflow-wrap:anywhere; }
+.parallel-benchmark .pb-choice-table th:first-child { width:30%; }
+.parallel-benchmark .pb-choice-table tbody th { font-weight:500; }
+.parallel-benchmark .pb-choice-table strong { color:var(--lime,#c0f47b); }
+.parallel-benchmark .pb-plot [data-lang],.parallel-benchmark table [data-lang],.parallel-benchmark .pb-structure [data-lang] { display:block; }
+.parallel-benchmark details { margin:20px 0; }
+.parallel-benchmark details > summary { cursor:pointer; font-size:17px; line-height:1.6; }
+@media(max-width:540px) {
+ .parallel-benchmark .pb-structure { padding:16px; }
+ .parallel-benchmark .pb-row-comparison { grid-template-columns:1fr; gap:20px; }
+ .parallel-benchmark .pb-rows { gap:4px; }
+}
+</style>
+
+<h2 class="parallel-text" id="parallel-question">
+ <span lang="en" data-lang="en">Test summary and scope</span>
+ <span lang="zh-CN" data-lang="zh">测试摘要与范围</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">This benchmark compares sixteen C++, Rust and Python implementations, including serial references, on float64 matrix–vector multiplication. The workloads are dense GEMV, uniform CSR SpMV and skewed CSR SpMV. Measurements separate warm-call latency, startup costs, sustained throughput and process-tree memory. The objective is to select an execution and scheduling strategy for each workload.</span>
+ <span lang="zh-CN" data-lang="zh">本次测试对比 C++、Rust 与 Python 的十六种矩阵向量乘法实现，包含串行参考。数据类型统一为 float64，负载分为稠密 GEMV、均匀 CSR SpMV 和不均匀 CSR SpMV。分别测量热调用耗时、启动成本、持续吞吐与进程树内存，用于评估不同负载下的执行方式与调度方案。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en"><strong>Selection summary.</strong> For standard matrix operations in Python, use NumPy/SciPy as the initial implementation. For a new native implementation covering this study's three large workloads, prioritize oneTBB: it records the lowest warm-call median in all three 16-worker stress cases. For regular loops in an existing C++ project, start with OpenMP; for Rust, use Rayon. The <a href="#practical-lessons">selection criteria</a> distinguish measured performance from integration-cost recommendations.</span>
+ <span lang="zh-CN" data-lang="zh"><strong>选型摘要。</strong>Python 标准矩阵运算优先采用 NumPy/SciPy。针对本文三种大矩阵负载新增原生实现时，优先评估 oneTBB：本轮三项 16 路压测中，它的热调用中位数均最低。已有 C++ 项目的规则循环先采用 OpenMP，Rust 项目采用 Rayon。具体<a href="#practical-lessons">选型依据</a>区分实测性能与接入成本。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">A worker is a participating thread or process. The configured p specifies requested parallelism or a runtime limit; active concurrency is not sampled. The comparison concerns concrete implementations, not languages in isolation: Python scalar loops, BLAS calls and Numba-compiled loops use different execution paths.</span>
+ <span lang="zh-CN" data-lang="zh">worker 指参与计算的线程或进程。配置中的 p 表示请求的并行度或运行时上限，本实验未采样瞬时活跃线程数。比较对象是具体实现，而非孤立的语言特性：Python 标量循环、BLAS 调用与 Numba 编译循环采用不同的执行路径。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The scope is CPU matrix–vector multiplication. Matrix–matrix multiplication, GPU execution, distributed systems and I/O concurrency are excluded. Dense storage does not imply a compute-bound workload; GEMV's arithmetic intensity is analyzed below.</span>
+ <span lang="zh-CN" data-lang="zh">测试范围限定为 CPU 矩阵向量乘法，不包含矩阵矩阵乘法、GPU、分布式系统或 I/O 并发。稠密存储不等于计算密集型负载；后文会分析 GEMV 的算术强度。</span>
+</p>
+
+<aside class="lesson-note pb-findings"><p class="parallel-text"><span lang="en" data-lang="en"><strong>Measurement condition: CPU contention.</strong> During this run, another job occupied the same four P-cores and several additional CPU-heavy tasks were active. The baseline host load average was about 9.5 at the start and 10.8 at the end. CPU affinity sets where a program may run; it does not reserve those cores. This experiment records behavior on a busy workstation, not clean-machine peak performance. Close rankings and scaling ratios need a repeat on an idle host.</span><span lang="zh-CN" data-lang="zh"><strong>测量条件：存在 CPU 竞争。</strong>运行期间，另一个任务占用了相同的四个 P 核，同时还有多个高 CPU 负载任务。基础测试开始与结束时，主机一分钟平均负载约为 9.5 和 10.8。CPU 亲和性只限定程序可以在哪里执行，不会独占这些核心。本轮记录的是繁忙工作站上的表现，不能当作空闲机器的峰值性能；接近的名次与扩展比需要在空闲环境复测。</span></p></aside>
+
+<h2 class="parallel-text" id="same-contract">
+ <span lang="en" data-lang="en">Operation contract and input construction</span>
+ <span lang="zh-CN" data-lang="zh">运算约定与输入构造</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Every call reads an already constructed matrix and vector, computes in float64, and writes every element of the output. Rows are independent, so workers may own different output ranges without a shared accumulator. The call ends only after all workers finish. This is the <a data-citation href="https://www.netlib.org/lapack/explore-html/d7/dda/group__gemv_ga4ac1b675072d18f902db8a310784d802.html">GEMV operation</a> with a unit multiplier and no previous-output contribution.</span>
+ <span lang="zh-CN" data-lang="zh">每次调用读取已经构造好的矩阵与向量，以 float64 计算，并写完输出的每一个元素。各行互相独立，可以把不同输出区间交给不同 worker，无需共同更新一个累加器。所有 worker 完成后，这次调用才算结束。对应 <a data-citation href="https://www.netlib.org/lapack/explore-html/d7/dda/group__gemv_ga4ac1b675072d18f902db8a310784d802.html">GEMV 的定义</a>，这里乘法系数为一，不累加原来的输出。</span>
+</p>
+<div class="shared-equation" data-math="y_i=\sum_{j=0}^{n-1} A_{ij}x_j,\qquad 0\le i&lt;m"></div>
+<div class="lesson-scroll" tabindex="0" role="region" aria-labelledby="same-contract">
+ <table>
+  <thead><tr>
+   <th scope="col"><span lang="en" data-lang="en">Input</span><span lang="zh-CN" data-lang="zh">输入</span></th>
+   <th scope="col"><span lang="en" data-lang="en">Baseline dimensions</span><span lang="zh-CN" data-lang="zh">基线尺寸</span></th>
+   <th scope="col"><span lang="en" data-lang="en">Stored entries per row</span><span lang="zh-CN" data-lang="zh">每行存储项</span></th>
+  </tr></thead>
+  <tbody>
+   <tr><th scope="row"><span lang="en" data-lang="en">Dense</span><span lang="zh-CN" data-lang="zh">稠密</span></th><td>2,048 × 2,048</td><td>2,048</td></tr>
+   <tr><th scope="row"><span lang="en" data-lang="en">Uniform CSR</span><span lang="zh-CN" data-lang="zh">均匀 CSR</span></th><td>32,768 × 32,768</td><td>64</td></tr>
+   <tr><th scope="row"><span lang="en" data-lang="en">Skewed CSR</span><span lang="zh-CN" data-lang="zh">不均匀 CSR</span></th><td>32,768 × 32,768</td><td><span lang="en" data-lang="en">784 in the first 1/16 of rows; 16 elsewhere</span><span lang="zh-CN" data-lang="zh">前 1/16 的行各 784 项，其余各 16 项</span></td></tr>
+  </tbody>
+ </table>
+</div>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Both sparse inputs average 64 stored entries per row. Values and vector elements come from deterministic formulas; the sparse inputs select columns from that formula and leave all other positions absent. Thus implementations of one workload share the same mathematical input, while dense and sparse workloads are different matrices. About one percent of stored values are explicit zeros, retained in every implementation. As in <a data-citation href="https://docs.scipy.org/doc/scipy-1.15.3/reference/generated/scipy.sparse.csr_matrix.html">SciPy’s CSR definition</a>, the reported <code>nnz</code> counts stored entries, including those zeros.</span>
+ <span lang="zh-CN" data-lang="zh">两种稀疏输入都平均每行存储 64 项。数值和向量元素由确定的公式生成；稀疏输入从这个公式中选择一部分列，其余位置不存储。因此，同一工作负载的各个实现使用相同的数学输入，稠密与稀疏负载之间则是不同的矩阵。约百分之一的存储值恰好为零，各实现都保留它们。与 <a data-citation href="https://docs.scipy.org/doc/scipy-1.15.3/reference/generated/scipy.sparse.csr_matrix.html">SciPy 的 CSR 定义</a>一致，结果中的 <code>nnz</code> 统计存储项，也包含这些显式零。</span>
+</p>
+<details>
+ <summary><span lang="en" data-lang="en">Input formulas and exact validation</span><span lang="zh-CN" data-lang="zh">输入公式与精确校验</span></summary>
+ <div class="shared-equation" data-math="\begin{aligned} A_{ij}&amp;=\frac{((17i+13j)\bmod101)-50}{64}\\ x_j&amp;=\frac{(j\bmod31)-15}{16}\\ j_{i,k}&amp;=(13i+17k)\bmod n \end{aligned}"></div>
+ <p class="parallel-text">
+  <span lang="en" data-lang="en">The third expression gives the column of sparse entry k in row i. The chosen column counts keep these columns distinct within a row. Power-of-two denominators make every product, and every row sum at these sizes, exactly representable. An independent Python oracle uses only integer numerators to derive each scaled output <code>q = 1024*y[i]</code>, its signed sum, and an order-sensitive 64-bit value hash. A correct checksum alone could hide swapped or cancelling errors; the hash adds a second check, though it is not a proof against every possible collision.</span>
+  <span lang="zh-CN" data-lang="zh">第三式给出稀疏矩阵第 i 行第 k 个存储项的列下标；选定的列数保证同一行内没有重复列。分母都是二的幂，因此在本次尺寸下，乘积和每行累加结果都能被精确表示。独立的 Python 参考程序只计算整数分子，得到各行放大后的 <code>q = 1024*y[i]</code>、它们的有符号总和，以及对顺序敏感的 64 位逐值哈希。只核对总和，可能漏掉交换行或相互抵消的错误；哈希提供第二层核对，但不等于排除了所有可能的碰撞。</span>
+ </p>
+ <p class="parallel-text">
+  <span lang="en" data-lang="en">The baseline checks the whole output after each call, outside the kernel timer. The sustained-load experiment checks the first and last outputs, avoiding a full validation scan between iterations. Both are compared with the independent oracle before a record is accepted.</span>
+  <span lang="zh-CN" data-lang="zh">基线实验在每次调用后核对完整输出，校验不计入内核时间。持续负载实验核对首次和最终输出，避免每两次迭代之间插入完整扫描。两种实验都要与独立参考值一致，记录才会被接受。</span>
+ </p>
+</details>
+<details>
+ <summary><span lang="en" data-lang="en">Implementation matrix</span><span lang="zh-CN" data-lang="zh">十六种实现的分工与生命周期</span></summary>
+ <div class="lesson-scroll" tabindex="0" role="region" aria-labelledby="same-contract">
+  <table>
+   <thead><tr><th scope="col"><span lang="en" data-lang="en">Implementation</span><span lang="zh-CN" data-lang="zh">实现</span></th><th scope="col"><span lang="en" data-lang="en">Work and lifecycle</span><span lang="zh-CN" data-lang="zh">分工与生命周期</span></th></tr></thead>
+   <tbody>
+    <tr><th scope="row">C++ serial</th><td><span lang="en" data-lang="en">Compiled row loops in the calling thread</span><span lang="zh-CN" data-lang="zh">调用线程执行编译后的逐行循环</span></td></tr>
+    <tr><th scope="row">C++ std::thread</th><td><span lang="en" data-lang="en">Equal contiguous row slabs; create and join threads on every call</span><span lang="zh-CN" data-lang="zh">连续行均分；每次调用创建线程并等待回收</span></td></tr>
+    <tr><th scope="row">C++ OpenMP static</th><td><code>schedule(static)</code><span lang="en" data-lang="en">; reusable runtime</span><span lang="zh-CN" data-lang="zh">；复用运行时</span></td></tr>
+    <tr><th scope="row">C++ OpenMP dynamic</th><td><code>schedule(dynamic, 32)</code><span lang="en" data-lang="en">; workers request chunks of 32 rows</span><span lang="zh-CN" data-lang="zh">；worker 动态领取 32 行一组的任务</span></td></tr>
+    <tr><th scope="row">C++ oneTBB</th><td><code>parallel_for</code><span lang="en" data-lang="en">; blocked_range grain size 32 with auto_partitioner</span><span lang="zh-CN" data-lang="zh">；blocked_range 的 grain size 为 32，使用 auto_partitioner</span></td></tr>
+    <tr><th scope="row">Rust serial</th><td><span lang="en" data-lang="en">Compiled row loops in the calling thread</span><span lang="zh-CN" data-lang="zh">调用线程执行编译后的逐行循环</span></td></tr>
+    <tr><th scope="row">Rust scoped threads</th><td><span lang="en" data-lang="en">Equal contiguous row slabs; create and join on every call</span><span lang="zh-CN" data-lang="zh">连续行均分；每次调用创建并回收 scoped 线程</span></td></tr>
+    <tr><th scope="row">Rust Rayon</th><td><span lang="en" data-lang="en">Persistent custom pool; parallel output chunks of 32 rows</span><span lang="zh-CN" data-lang="zh">持久的专用线程池；输出按 32 行分块并行</span></td></tr>
+    <tr><th scope="row">Python serial</th><td><span lang="en" data-lang="en">CPython scalar loops over typed buffers</span><span lang="zh-CN" data-lang="zh">CPython 在定类型缓冲区上执行标量循环</span></td></tr>
+    <tr><th scope="row">Python ThreadPoolExecutor</th><td><span lang="en" data-lang="en">The same Python loops, equal row slabs and a reused thread pool</span><span lang="zh-CN" data-lang="zh">同样的 Python 循环，按行均分，复用线程池</span></td></tr>
+    <tr><th scope="row">Python process-copy</th><td><span lang="en" data-lang="en">A reused spawn pool; copy each matrix slab and x to workers, return output bytes each call</span><span lang="zh-CN" data-lang="zh">复用 spawn 进程池；每次复制矩阵行块和 x 给 worker，传回输出字节</span></td></tr>
+    <tr><th scope="row">Python process-shared</th><td><span lang="en" data-lang="en">A reused spawn pool; attach shared buffers once, then send row ranges</span><span lang="zh-CN" data-lang="zh">复用 spawn 进程池；一次挂接共享缓冲区，随后传递行范围</span></td></tr>
+    <tr><th scope="row">NumPy / SciPy serial</th><td><span lang="en" data-lang="en">NumPy dot for dense; SciPy CSR matvec for sparse; BLAS limited to one thread</span><span lang="zh-CN" data-lang="zh">稠密使用 NumPy dot，稀疏使用 SciPy CSR matvec；BLAS 限为单线程</span></td></tr>
+    <tr><th scope="row">NumPy / SciPy + threads</th><td><span lang="en" data-lang="en">The same native kernels on equal row slabs, submitted to ThreadPoolExecutor</span><span lang="zh-CN" data-lang="zh">相同本地内核处理均分行块，由 ThreadPoolExecutor 提交</span></td></tr>
+    <tr><th scope="row">Numba serial</th><td><span lang="en" data-lang="en">JIT-compiled fused row loops; fastmath disabled</span><span lang="zh-CN" data-lang="zh">JIT 编译的融合逐行循环；关闭 fastmath</span></td></tr>
+    <tr><th scope="row">Numba prange</th><td><span lang="en" data-lang="en">Compiled row loops; static partitioning with the OpenMP threading layer</span><span lang="zh-CN" data-lang="zh">编译后的逐行循环；OpenMP 线程层，静态分配</span></td></tr>
+   </tbody>
+  </table>
+ </div>
+</details>
+
+<h2 class="parallel-text" id="measurement-boundaries">
+ <span lang="en" data-lang="en">Environment and measurement protocol</span>
+ <span lang="zh-CN" data-lang="zh">测试环境与测量协议</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The baseline uses one, two and four workers on four physical P-cores of an Intel Core i7-1270P, with logical CPU IDs 0, 2, 4 and 6. The monitor runs on E-cores; those cores are not reserved. The processor itself has <a data-citation href="https://www.intel.com/content/www/us/en/products/sku/226255/intel-core-i71270p-processor-18m-cache-up-to-4-80-ghz/specifications.html">four P-cores, eight E-cores and sixteen hardware threads</a>; the baseline deliberately does not treat all sixteen as identical cores. Each worker count may use the same four-core CPU set, rather than being restricted to its own smaller set.</span>
+ <span lang="zh-CN" data-lang="zh">基线使用 Intel Core i7-1270P 的四个物理 P 核，逻辑 CPU 编号为 0、2、4、6，分别运行一、二、四个 worker；监测进程放在 E 核上，但不独占这些核心。这颗处理器实际包含<a data-citation href="https://www.intel.com/content/www/us/en/products/sku/226255/intel-core-i71270p-processor-18m-cache-up-to-4-80-ghz/specifications.html">四个 P 核、八个 E 核，共十六个硬件线程</a>，基线不把它们视为十六个相同性能的核心。不同 worker 数量都可使用同一个四核 CPU 集合，而不是各自再绑定到更小的集合。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Each configuration runs in three fresh processes. A process performs its first call, then five repeated calls; the figures summarize those fifteen warm samples with a median and interquartile range. Calls within one process share runtime state and are correlated. The interval describes observed variation, not a confidence interval from fifteen independent experiments. Configurations are shuffled with a fixed seed and run one at a time.</span>
+ <span lang="zh-CN" data-lang="zh">每个配置启动三个新进程，每个进程先运行首次调用，再重复五次。图中用这十五个预热后样本的中位数与四分位区间呈现表现。同一进程内的调用共享运行时状态，样本之间有关联；这个区间描述观察到的波动，不是十五次独立实验推导出的置信区间。配置顺序按固定随机种子打乱，逐个运行。</span>
+</p>
+<div class="lesson-scroll" tabindex="0" role="region" aria-labelledby="measurement-boundaries">
+ <table>
+  <thead><tr><th scope="col"><span lang="en" data-lang="en">Metric</span><span lang="zh-CN" data-lang="zh">指标</span></th><th scope="col"><span lang="en" data-lang="en">What the boundary includes</span><span lang="zh-CN" data-lang="zh">计时边界包含什么</span></th></tr></thead>
+  <tbody>
+   <tr><th scope="row"><span lang="en" data-lang="en">Warm call</span><span lang="zh-CN" data-lang="zh">预热后单次调用</span></th><td><span lang="en" data-lang="en">Submission, computation, completion and required copies; per-call thread creation for the standard-thread implementations</span><span lang="zh-CN" data-lang="zh">提交、计算、等待完成及必要的复制；标准线程实现还包含每次创建线程的成本</span></td></tr>
+   <tr><th scope="row"><span lang="en" data-lang="en">First call</span><span lang="zh-CN" data-lang="zh">首次调用</span></th><td><span lang="en" data-lang="en">The first operation after setup, including lazy worker startup or Numba compilation when they occur there</span><span lang="zh-CN" data-lang="zh">setup 后第一次执行；此时发生的 worker 延迟启动或 Numba 编译也计入</span></td></tr>
+   <tr><th scope="row"><span lang="en" data-lang="en">Whole process</span><span lang="zh-CN" data-lang="zh">整个进程</span></th><td><span lang="en" data-lang="en">Launch, imports, input construction, first call, all repeats, validation and exit; a batch total, not one-job latency</span><span lang="zh-CN" data-lang="zh">启动、导入、构造输入、首次调用、全部重复、校验和退出；这是整批总时间，不是一个任务的延迟</span></td></tr>
+  </tbody>
+ </table>
+</div>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Startup is not identical across APIs. Rayon’s pool is explicitly built during setup; other runtimes may start workers during the first call. <a data-citation href="https://numba.readthedocs.io/en/stable/user/5minguide.html#how-to-measure-the-performance-of-numba">Numba’s initial specialization and compilation</a> also belong outside a claim about repeated execution. First-call time therefore accompanies, rather than replaces, setup and whole-process records. “Fresh process” does not mean the operating system’s file cache was emptied.</span>
+ <span lang="zh-CN" data-lang="zh">各 API 的启动位置并不一致。Rayon 的池在 setup 中显式创建，另一些运行时可能到首次调用才启动 worker。<a data-citation href="https://numba.readthedocs.io/en/stable/user/5minguide.html#how-to-measure-the-performance-of-numba">Numba 首次特化与编译</a>的成本也不能混入“重复执行速度”的结论。因此，首次调用要结合 setup 和整个进程的记录来看。“新进程”也不意味着操作系统的文件缓存已经清空。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Memory uses another process launch: the first call, two warm calls and a 100 ms final hold, with process-tree PSS sampled about every 10 ms. A separate memory pass prevents PSS sampling from adding overhead to the timed kernel calls. The machine is not fully isolated from other applications, and CPU frequency, power limits and temperature are not fixed. Small timing differences need to be read against those limits.</span>
+ <span lang="zh-CN" data-lang="zh">内存测量另启进程，执行首次调用、两次预热后调用，并在末尾保留 100 ms，以约 10 ms 的间隔采样进程树 PSS。内存采样独立执行，避免 PSS 读取开销干扰内核计时。机器没有与其他应用完全隔离，CPU 频率、功耗限制与温度也未锁定；这些条件限制了对微小耗时差异的解释。</span>
+</p>
+
+<details>
+ <summary><span lang="en" data-lang="en">Measured environment · 12 October 2026</span><span lang="zh-CN" data-lang="zh">实测环境 · 2026 年 10 月 12 日</span></summary>
+ <div class="lesson-scroll" tabindex="0" role="region" aria-label="Environment / 实测环境"><table>
+ <tbody>
+ <tr><th scope="row">CPU / RAM</th><td>Intel Core i7-1270P · 4 P + 8 E · 16 threads · 30.9 GiB</td></tr>
+ <tr><th scope="row">C++</th><td>GCC 13.3.0 · OpenMP (libgomp) · oneTBB 2021.11.0</td></tr>
+ <tr><th scope="row">Rust</th><td>rustc 1.91.1 · LLVM 21.1.2 · Rayon 1.12.0</td></tr>
+ <tr><th scope="row">Python</th><td>CPython 3.12.3 · GIL enabled</td></tr>
+ <tr><th scope="row">Numerics</th><td>NumPy 2.2.6 · SciPy 1.15.3 · Numba 0.61.2 · llvmlite 0.44.0</td></tr>
+ <tr><th scope="row">Runtime</th><td>OpenBLAS 0.3.29 (1 thread) · Numba: omp</td></tr>
+ </tbody></table></div>
+ <p class="parallel-text"><span lang="en" data-lang="en">These are local workstation measurements. The Linux governor remains powersave; turbo, frequency and background applications are not controlled. Python setup includes library imports, while native setup starts after argument parsing. The full process duration records both lifecycles. Raw manifests include the kernel, CPU topology, affinity, load averages and source hashes.</span><span lang="zh-CN" data-lang="zh">这是本地工作站实测。Linux governor 保持 powersave，睿频、频率与后台应用未受控制。Python 的 setup 包含库导入，原生 setup 从参数解析后开始；整个进程的计时覆盖各自生命周期。原始清单保留内核、CPU 拓扑、亲和性、平均负载与源码哈希。</span></p>
+</details>
+
+<h2 class="parallel-text" id="dense-results">
+ <span lang="en" data-lang="en">Dense GEMV: execution paths and scaling</span>
+ <span lang="zh-CN" data-lang="zh">稠密 GEMV：执行路径与扩展性</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Each dense matrix element is read for one multiply and one accumulation. If the vector stays reusable in cache and the matrix is read once, a large float64 GEMV performs roughly two floating-point operations for every eight matrix bytes. This gives a best-case traffic estimate near 0.25 FLOP per byte, before extra transfers or cache misses. GEMM can reuse matrix tiles across many output columns; this experiment cannot. The distinction follows the usual <a data-citation href="https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html#math-and-memory-bounds">arithmetic-intensity analysis</a>, but it does not by itself prove that any particular measured implementation reached the CPU’s memory-bandwidth limit.</span>
+ <span lang="zh-CN" data-lang="zh">每读取一个稠密矩阵元素，执行一次乘法和一次累加。假定向量可以在缓存中复用、矩阵只读取一次，较大的 float64 GEMV 每读取八字节矩阵数据，大约只做两次浮点运算。理想的数据搬运口径下，算术强度接近每字节 0.25 FLOP，该估计未计入额外传输与缓存未命中。GEMM 可以让矩阵分块在多列输出之间复用，本次 GEMV 不具备这种跨输出列的复用。这与常见的<a data-citation href="https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html#math-and-memory-bounds">算术强度分析</a>一致，但仅凭这个推导，还不能证明某个实测实现已经达到 CPU 的内存带宽上限。</span>
+</p>
+<div class="shared-equation" data-math="I_{\mathrm{dense}}\approx\frac{2mn}{8mn+8n+8m}\;\mathrm{FLOP/B}\;\longrightarrow\;\frac14\;\mathrm{FLOP/B}"></div>
+<figure class="pb-plot"><div class="pb-plot-frame" role="region" aria-labelledby="dense-time-memory-caption"><img src="/assets/content/parallel-libraries/dense-time-memory.svg" loading="lazy" alt="Dense matvec on the contended workstation. Dots and whiskers: warm median and interquartile range in ms (log scale). Bars: sampled lifecycle peak PSS in MiB. Parallel implementations use four workers; serial implementations use one." width="1464" height="888"></div>
+<table class="pb-mobile-table pb-mobile-results" aria-labelledby="dense-time-memory-caption" data-measurement-profile="baseline" data-measurement-workload="dense">
+<colgroup><col><col><col></colgroup><thead><tr><th scope="col"><span lang="en" data-lang="en">Implementation</span><span lang="zh-CN" data-lang="zh">实现</span></th><th scope="col"><span lang="en" data-lang="en">Median</span><span lang="zh-CN" data-lang="zh">中位数</span><small>ms</small></th><th scope="col"><span lang="en" data-lang="en">Peak PSS</span><span lang="zh-CN" data-lang="zh">峰值 PSS</span><small>MiB</small></th></tr></thead>
+<tbody>
+<tr class="pb-language-cpp" data-case-id="cpp:serial/dense/1"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">Serial</span></th><td><data value="4.173696">4.174</data></td><td><data value="32.87890625">32.9</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:std-thread/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">std::thread</span></th><td><data value="4.116798">4.117</data></td><td><data value="32.8642578125">32.9</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:omp-static/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">OpenMP static</span></th><td><data value="4.018938">4.019</data></td><td><data value="32.9072265625">32.9</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:omp-dynamic/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">OpenMP dynamic</span></th><td><data value="3.786141">3.786</data></td><td><data value="32.8603515625">32.9</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:tbb/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">oneTBB</span></th><td><data value="4.069478">4.069</data></td><td><data value="33.3681640625">33.4</data></td></tr>
+<tr class="pb-language-rust pb-language-start" data-case-id="rust:serial/dense/1"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Serial</span></th><td><data value="3.387059">3.387</data></td><td><data value="32.595703125">32.6</data></td></tr>
+<tr class="pb-language-rust" data-case-id="rust:std-scoped/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Scoped threads</span></th><td><data value="4.269141">4.269</data></td><td><data value="32.6630859375">32.7</data></td></tr>
+<tr class="pb-language-rust" data-case-id="rust:rayon/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Rayon</span></th><td><data value="4.70269">4.703</data></td><td><data value="32.677734375">32.7</data></td></tr>
+<tr class="pb-language-python pb-language-start" data-case-id="python:serial/dense/1"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Scalar serial</span></th><td><data value="384.1947439359501">384.2</data></td><td><data value="43.248046875">43.2</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:thread/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Thread pool</span></th><td><data value="377.76770896743983">377.8</data></td><td><data value="43.3408203125">43.3</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:process-copy/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Processes / copy</span></th><td><data value="329.15910496376455">329.2</data></td><td><data value="236.0244140625">236.0</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:process-shared/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Processes / shared</span></th><td><data value="192.3178219003603">192.3</data></td><td><data value="89.625">89.6</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numpy-serial/dense/1"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">NumPy serial</span></th><td><data value="2.0523270359262824">2.052</data></td><td><data value="56.0283203125">56.0</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numpy-thread/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">NumPy + threads</span></th><td><data value="3.3779629739001393">3.378</data></td><td><data value="56.103515625">56.1</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numba-serial/dense/1"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Numba serial</span></th><td><data value="4.37041197437793">4.370</data></td><td><data value="171.81640625">171.8</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numba-parallel/dense/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Numba prange</span></th><td><data value="4.799041897058487">4.799</data></td><td><data value="172.634765625">172.6</data></td></tr>
+</tbody></table>
+<figcaption id="dense-time-memory-caption"><span lang="en" data-lang="en">Dense matvec on the contended workstation: warm-call time and sampled lifecycle peak PSS. Parallel implementations use four workers; serial implementations use one.</span><span lang="zh-CN" data-lang="zh">繁忙工作站上的稠密 matvec：热调用耗时与生命周期 PSS 采样峰值。并行实现使用四个 worker，串行实现使用一个。</span></figcaption></figure>
+<p class="parallel-text"><span lang="en" data-lang="en">The largest observed separation is between scalar Python and native numerical kernels: scalar Python takes 384.19 ms, its four-thread version 377.77 ms, and one-thread NumPy 2.05 ms. The two Python-loop distributions overlap; these data show no clear thread-pool gain for that loop. NumPy moves the numerical work into a compiled BLAS kernel, so its much shorter time cannot be attributed to a better Python loop scheduler.</span><span lang="zh-CN" data-lang="zh">最大的实测组间差距出现在 Python 标量循环与本地数值内核之间：Python 标量循环为 384.19 ms，四线程版本为 377.77 ms，而单线程 NumPy 为 2.05 ms。前两者的分布重叠，数据没有显示这个循环在线程池中获得明确提升。NumPy 把数值工作交给编译后的 BLAS 内核，较短耗时不能解释成“更好的 Python 循环调度器”。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">A small scaling sample makes the machine constraint visible. These are the same backend at each worker count, with the input unchanged. Several native paths fail to improve as workers increase on the occupied P-cores. This is an observation about this run; an idle-machine test is needed before blaming the library or claiming a bandwidth ceiling.</span><span lang="zh-CN" data-lang="zh">下面从完整数据中选取几种后端，保持输入不变，比较同一后端的 worker 数量。在已经被占用的 P 核上，多个本地执行路径没有随 worker 增多而改善。这描述的是本轮现象；归因到某个库，或断言达到带宽上限，都需要空闲环境的进一步测量。</span></p>
+<div class="lesson-scroll" tabindex="0" role="region" aria-label="Measured results / 实测结果"><table class="pb-results"><thead><tr><th scope="col"><span lang="en" data-lang="en">Dense backend</span><span lang="zh-CN" data-lang="zh">稠密后端</span></th><th scope="col">p=1 · ms</th><th scope="col">p=2 · ms</th><th scope="col">p=4 · ms</th><th scope="col">T₁ / T₄</th></tr></thead><tbody><tr><th scope="row">C++ OpenMP static</th><td>3.83</td><td>3.81</td><td>4.02</td><td>0.95×</td></tr><tr><th scope="row">C++ OpenMP dynamic</th><td>3.90</td><td>4.32</td><td>3.79</td><td>1.03×</td></tr><tr><th scope="row">Rust Rayon</th><td>4.24</td><td>7.09</td><td>4.70</td><td>0.90×</td></tr><tr><th scope="row">Python shared processes</th><td>460.59</td><td>259.38</td><td>192.32</td><td>2.39×</td></tr><tr><th scope="row">NumPy + threads</th><td>3.09</td><td>3.14</td><td>3.38</td><td>0.91×</td></tr><tr><th scope="row">Numba prange</th><td>5.17</td><td>4.16</td><td>4.80</td><td>1.08×</td></tr></tbody></table></div>
+<p class="parallel-text"><span lang="en" data-lang="en">Numba illustrates why first-call time also belongs in a result. Its four-worker dense median is 4.80 ms warm, but 694.37 ms for the first call, including compilation. The useful choice depends on how many times the compiled function will run.</span><span lang="zh-CN" data-lang="zh">Numba 的首次调用与热调用存在明显差异：四 worker 稠密版本的热调用中位数为 4.80 ms，而包含编译的首次调用中位数为 694.37 ms。选型时需按实际调用次数分摊编译成本。</span></p>
+
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Use absolute latency and memory for selection, and speedup for within-backend scaling. A slow single-worker implementation can show a large relative improvement while still finishing later than another implementation on one worker. For scaling, compare a backend with its own one-worker result; for a practical choice, compare the actual completion times and memory together.</span>
+ <span lang="zh-CN" data-lang="zh">选型同时比较绝对耗时与内存，扩展性则使用同一后端的加速比。单 worker 很慢的实现，即使相对提升很大，也可能仍然慢于另一个实现的单 worker。研究扩展性时，与同一后端的一 worker 结果相比；跨实现对比不能只依据各自的加速比。</span>
+</p>
+<div class="shared-equation" data-math="S_p=\frac{T_1}{T_p}"></div>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The NumPy row is an ecosystem comparison: it calls an optimized BLAS kernel, while the C++, Rust and Numba paths use explicit row loops. Its difference includes kernel engineering, compiler decisions and SIMD, not just a thread scheduler. BLAS is limited to one thread even inside the Python thread pool, to control nested parallelism.</span>
+ <span lang="zh-CN" data-lang="zh">NumPy 这一行属于生态方案的比较：它调用优化过的 BLAS 内核，而 C++、Rust 和 Numba 使用显式逐行循环。差异包含内核实现、编译器决策与 SIMD，不能全部归因于线程调度器。即使放进 Python 线程池，BLAS 仍限制为单线程，以控制嵌套并行度。</span>
+</p>
+
+<h2 class="parallel-text" id="sparse-results">
+ <span lang="en" data-lang="en">CSR SpMV: row distribution and scheduling</span>
+ <span lang="zh-CN" data-lang="zh">CSR SpMV：行分布与调度开销</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">CSR stores values, column indices and row boundaries. A worker visits only stored entries, but must use each column index to find the corresponding vector element. Equal-row partitioning distributes stored entries evenly when row lengths are uniform. In the skewed input, however, the first 6.25% of rows contain 76.56% of all stored entries.</span>
+ <span lang="zh-CN" data-lang="zh">CSR 保存数值、列下标和每行的边界。worker 只遍历存储项，但还要通过列下标找到对应的向量元素。行长一致时，均分行数可以均分存储项；本次长行集中分布时，均分行数会造成存储项分配不均。本次不均匀输入中，前 6.25% 的行包含全部存储项的 76.56%。</span>
+</p>
+<figure class="pb-structure" aria-labelledby="pb-structure-caption">
+ <div class="pb-row-comparison">
+  <div>
+   <strong class="pb-row-label"><span lang="en" data-lang="en">Uniform · 64 entries per row</span><span lang="zh-CN" data-lang="zh">均匀 · 每行 64 项</span></strong>
+   <div class="pb-rows" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div>
+   <strong class="pb-row-label"><span lang="en" data-lang="en">Skewed · 784 or 16 entries</span><span lang="zh-CN" data-lang="zh">不均匀 · 每行 784 或 16 项</span></strong>
+   <div class="pb-rows skew" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+ </div>
+ <figcaption id="pb-structure-caption"><span lang="en" data-lang="en">Input structure, not measured execution time. Each stripe represents one sixteenth of the rows; its length shows entries per row on a shared scale. Both sides store the same total number of entries.</span><span lang="zh-CN" data-lang="zh">这是输入结构，不是测得的执行时间。每条横线代表十六分之一的行，长度按同一比例表示每行存储项数；两侧的存储项总数相同。</span></figcaption>
+</figure>
+<figure class="pb-plot"><div class="pb-plot-frame" role="region" aria-labelledby="sparse-uniform-skew-caption"><img src="/assets/content/parallel-libraries/sparse-uniform-skew.svg" loading="lazy" alt="Baseline CSR medians: filled circles are uniform rows, hollow diamonds are skewed rows. Both matrices have 2,097,152 stored entries. Time is logarithmic; parallel p=4 and serial p=1." width="1464" height="888"></div>
+<table class="pb-mobile-table pb-mobile-results" aria-labelledby="sparse-uniform-skew-caption" data-measurement-profile="baseline" data-measurement-workload="sparse-uniform">
+<colgroup><col><col><col></colgroup><thead><tr><th scope="col"><span lang="en" data-lang="en">Implementation</span><span lang="zh-CN" data-lang="zh">实现</span></th><th scope="col"><span lang="en" data-lang="en">Uniform</span><span lang="zh-CN" data-lang="zh">均匀</span><small>ms</small></th><th scope="col"><span lang="en" data-lang="en">Skewed</span><span lang="zh-CN" data-lang="zh">不均匀</span><small>ms</small></th></tr></thead>
+<tbody>
+<tr class="pb-language-cpp" data-case-id="cpp:serial/sparse-uniform/1"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">Serial</span></th><td><data value="2.601784">2.602</data></td><td><data value="2.614178">2.614</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:std-thread/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">std::thread</span></th><td><data value="3.010935">3.011</data></td><td><data value="5.901932">5.902</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:omp-static/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">OpenMP static</span></th><td><data value="2.595633">2.596</data></td><td><data value="2.442144">2.442</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:omp-dynamic/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">OpenMP dynamic</span></th><td><data value="2.192214">2.192</data></td><td><data value="3.788435">3.788</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:tbb/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">oneTBB</span></th><td><data value="2.946701">2.947</data></td><td><data value="3.066464">3.066</data></td></tr>
+<tr class="pb-language-rust pb-language-start" data-case-id="rust:serial/sparse-uniform/1"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Serial</span></th><td><data value="3.490188">3.490</data></td><td><data value="2.627838">2.628</data></td></tr>
+<tr class="pb-language-rust" data-case-id="rust:std-scoped/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Scoped threads</span></th><td><data value="2.595851">2.596</data></td><td><data value="3.803371">3.803</data></td></tr>
+<tr class="pb-language-rust" data-case-id="rust:rayon/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Rayon</span></th><td><data value="3.438846">3.439</data></td><td><data value="3.875604">3.876</data></td></tr>
+<tr class="pb-language-python pb-language-start" data-case-id="python:serial/sparse-uniform/1"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Scalar serial</span></th><td><data value="209.25709698349237">209.3</data></td><td><data value="208.2193500827998">208.2</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:thread/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Thread pool</span></th><td><data value="212.9160879412666">212.9</data></td><td><data value="222.56641602143645">222.6</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:process-copy/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Processes / copy</span></th><td><data value="212.3701290693134">212.4</data></td><td><data value="292.1418610494584">292.1</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:process-shared/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Processes / shared</span></th><td><data value="126.84042495675385">126.8</data></td><td><data value="249.90877893287688">249.9</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numpy-serial/sparse-uniform/1"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">SciPy CSR serial</span></th><td><data value="2.879404928535223">2.879</data></td><td><data value="2.3122639395296574">2.312</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numpy-thread/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">SciPy CSR + threads</span></th><td><data value="3.1160860089585185">3.116</data></td><td><data value="2.984542050398886">2.985</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numba-serial/sparse-uniform/1"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Numba serial</span></th><td><data value="2.707791980355978">2.708</data></td><td><data value="2.833493985235691">2.833</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numba-parallel/sparse-uniform/4"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Numba prange</span></th><td><data value="2.5311369681730866">2.531</data></td><td><data value="2.8166320407763124">2.817</data></td></tr>
+</tbody></table>
+<figcaption id="sparse-uniform-skew-caption"><span lang="en" data-lang="en">Baseline CSR warm-call medians. Both matrices have 2,097,152 stored entries; parallel p=4 and serial p=1.</span><span lang="zh-CN" data-lang="zh">基础 CSR 的热调用中位数。两种矩阵都存储 2,097,152 项；并行 p=4，串行 p=1。</span></figcaption></figure>
+<p class="parallel-text"><span lang="en" data-lang="en">The four-process shared-memory path takes 126.84 ms for uniform rows and 249.91 ms for skewed rows, a 1.97× ratio. With equal contiguous quarters, the first worker receives 81.25% of stored entries in the skewed case. Three more workers cannot divide that worker’s already assigned slab. The changed column access and host contention also affect the measured ratio.</span><span lang="zh-CN" data-lang="zh">四进程共享内存路径在均匀行上为 126.84 ms，在不均匀行上为 249.91 ms，后者约为前者的 1.97 倍。连续四等分时，不均匀输入中的第一个 worker 分到了 81.25% 的存储项；其他三个 worker 无法再拆分它已领取的行块。列访问变化与主机竞争也会影响这个实测比值。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">The result does not establish that dynamic scheduling always has lower latency: on the skewed matrix, OpenMP static measures 2.44 ms and dynamic measures 3.79 ms here. The controlled input gives a reason to investigate load balance; this busy-host measurement does not isolate its contribution from scheduling cost and memory access.</span><span lang="zh-CN" data-lang="zh">结果也没有证明动态调度总是更快：本轮不均匀矩阵上，OpenMP static 为 2.44 ms，dynamic 为 3.79 ms。这个输入提供了研究负载均衡的理由，但繁忙主机上的测量并未把它与调度成本、访存等因素分离。</span></p>
+
+<p class="parallel-text">
+ <span lang="en" data-lang="en">OpenMP’s dynamic variant hands out chunks of 32 rows as workers become available. <a data-citation href="https://uxlfoundation.github.io/oneTBB/main/tbb_userguide/How_Task_Scheduler_Works.html">oneTBB’s task scheduler</a> and <a data-citation href="https://docs.rs/rayon/latest/rayon/fn.join.html">Rayon’s work stealing</a> also let idle workers take remaining tasks. These mechanisms can reduce a long tail, but scheduling more chunks costs something. One fixed chunk size is a tested choice, not the optimum for every matrix.</span>
+ <span lang="zh-CN" data-lang="zh">OpenMP 的 dynamic 版本让空闲 worker 按 32 行一组领取任务。<a data-citation href="https://uxlfoundation.github.io/oneTBB/main/tbb_userguide/How_Task_Scheduler_Works.html">oneTBB 的任务调度器</a>和 <a data-citation href="https://docs.rs/rayon/latest/rayon/fn.join.html">Rayon 的工作窃取</a>也让空闲 worker 有机会接手剩余任务。这些机制可以缩短拖尾，但调度更多分块本身也有成本。这里的固定分块大小是一个被测选择，不是所有矩阵的最优值。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The standard-thread and executor paths deliberately use equal contiguous row slabs. Numba’s <a data-citation href="https://numba.readthedocs.io/en/stable/user/parallel.html#scheduling">default prange schedule</a> also divides iterations approximately evenly. They could be redesigned to partition by cumulative stored entries instead. The comparison therefore evaluates the supplied implementations, not an inherent inability of those APIs to balance sparse work. Uniform and skewed matrices also change column-access patterns, so their difference is not a pure measurement of scheduling alone.</span>
+ <span lang="zh-CN" data-lang="zh">标准线程与 executor 路径在本次实现中采用连续行均分；Numba 的 <a data-citation href="https://numba.readthedocs.io/en/stable/user/parallel.html#scheduling">prange 默认调度</a>同样近似均分迭代。它们都可以改成按累计存储项数划分工作。因此，这里比较的是给出的实现，不代表这些 API 天生无法均衡稀疏工作。均匀与不均匀矩阵的列访问模式也发生了变化，两者之差不能视为纯粹的调度成本。</span>
+</p>
+
+<h2 class="parallel-text" id="sustained-pressure">
+ <span lang="en" data-lang="en">Sustained-load test: throughput and latency distribution</span>
+ <span lang="zh-CN" data-lang="zh">持续负载测试：吞吐与延迟分布</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The sustained-load profile measures throughput and the per-call latency distribution on larger inputs. It increases dense dimensions to 4,096 × 4,096 and sparse input to 131,072 × 131,072, still averaging 64 entries per row. It runs the eleven parallel implementations with sixteen workers on all sixteen logical CPUs. Each timed process repeats work for at least ten seconds after its first call; a separate ten-second pass measures memory.</span>
+ <span lang="zh-CN" data-lang="zh">持续负载配置用于测量更大输入下的吞吐量与逐次调用延迟分布。稠密输入扩大到 4,096 × 4,096，稀疏输入扩大到 131,072 × 131,072，仍平均每行 64 项。十一种并行实现均使用十六个 worker，可运行在全部十六个逻辑 CPU 上。每个计时进程在首次调用后连续重复至少十秒，内存再用另一轮十秒实验测量。</span>
+</p>
+<p class="parallel-text"><span lang="en" data-lang="en">All 33 pressure configurations completed their timing and separate memory passes without a validation mismatch or a budget stop. Each has one timed window; the P95 and P99 below are empirical per-call quantiles inside that window, not estimates from many independent stress sessions. Calls per second use completed calls divided by the entire warm-loop wall time.</span><span lang="zh-CN" data-lang="zh">33 种压力配置均完成计时与独立内存轮次，没有校验失败或触发预算停止条件。每项只有一个计时窗口；P95、P99 是这个窗口内逐次调用的经验分位数，不是多轮独立压测得到的估计。每秒调用数按完成次数除以整个热循环墙钟时间计算。</span></p>
+<figure class="pb-plot"><div class="pb-plot-frame" role="region" aria-labelledby="stress-throughput-memory-caption"><img src="/assets/content/parallel-libraries/stress-throughput-memory.svg" loading="lazy" alt="Larger dense input, 16 requested workers. Throughput is measured across a continuous window of at least 10 seconds; memory is sampled in a separate pass. CPU contention remains present." width="1464" height="756"></div>
+<table class="pb-mobile-table pb-mobile-results" aria-labelledby="stress-throughput-memory-caption" data-measurement-profile="stress" data-measurement-workload="dense">
+<colgroup><col><col><col></colgroup><thead><tr><th scope="col"><span lang="en" data-lang="en">Implementation</span><span lang="zh-CN" data-lang="zh">实现</span></th><th scope="col"><span lang="en" data-lang="en">Throughput</span><span lang="zh-CN" data-lang="zh">吞吐量</span><small><span lang="en" data-lang="en">calls/s</span><span lang="zh-CN" data-lang="zh">次/s</span></small></th><th scope="col"><span lang="en" data-lang="en">Peak PSS</span><span lang="zh-CN" data-lang="zh">峰值 PSS</span><small>MiB</small></th></tr></thead>
+<tbody>
+<tr class="pb-language-cpp" data-case-id="cpp:std-thread/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">std::thread</span></th><td><data value="68.14199589087559">68.14</data></td><td><data value="129.0712890625">129.1</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:omp-static/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">OpenMP static</span></th><td><data value="76.16062083112466">76.16</data></td><td><data value="129.0009765625">129.0</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:omp-dynamic/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">OpenMP dynamic</span></th><td><data value="81.88332789937307">81.88</data></td><td><data value="129.0009765625">129.0</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:tbb/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">oneTBB</span></th><td><data value="82.38122415743925">82.38</data></td><td><data value="129.9375">129.9</data></td></tr>
+<tr class="pb-language-rust pb-language-start" data-case-id="rust:std-scoped/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Scoped threads</span></th><td><data value="53.658135343297296">53.66</data></td><td><data value="129.0380859375">129.0</data></td></tr>
+<tr class="pb-language-rust" data-case-id="rust:rayon/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Rayon</span></th><td><data value="75.99014780894544">75.99</data></td><td><data value="129.103515625">129.1</data></td></tr>
+<tr class="pb-language-python pb-language-start" data-case-id="python:thread/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Thread pool</span></th><td><data value="0.5672524439233716">0.567</data></td><td><data value="139.62890625">139.6</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:process-copy/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Processes / copy</span></th><td><data value="1.3008504512249692">1.301</data></td><td><data value="687.51171875">687.5</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:process-shared/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Processes / shared</span></th><td><data value="3.2922466281759237">3.292</data></td><td><data value="300.9287109375">300.9</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numpy-thread/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">NumPy + threads</span></th><td><data value="74.84746585843794">74.85</data></td><td><data value="152.5458984375">152.5</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numba-parallel/dense/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Numba prange</span></th><td><data value="74.7974788834507">74.80</data></td><td><data value="268.87109375">268.9</data></td></tr>
+</tbody></table>
+<figcaption id="stress-throughput-memory-caption"><span lang="en" data-lang="en">Larger dense input, 16 requested workers. Throughput is measured across a continuous window of at least 10 seconds; memory is sampled in a separate pass. CPU contention remains present.</span><span lang="zh-CN" data-lang="zh">更大的稠密输入，请求 16 路并行。吞吐量来自至少连续十秒的窗口；内存来自独立轮次，CPU 竞争仍然存在。</span></figcaption></figure>
+<div class="lesson-scroll" tabindex="0" role="region" aria-label="Sustained results / 持续压测结果"><table class="pb-results"><thead><tr><th scope="col"><span lang="en" data-lang="en">Dense backend</span><span lang="zh-CN" data-lang="zh">稠密后端</span></th><th scope="col"><span lang="en" data-lang="en">Calls</span><span lang="zh-CN" data-lang="zh">调用数</span></th><th scope="col">P50 · ms</th><th scope="col">P95 · ms</th><th scope="col">P99 · ms</th></tr></thead><tbody><tr><th scope="row">C++ std::thread</th><td>682</td><td>14.34</td><td>17.76</td><td>19.97</td></tr><tr><th scope="row">OpenMP static</th><td>762</td><td>12.80</td><td>16.13</td><td>21.94</td></tr><tr><th scope="row">OpenMP dynamic</th><td>819</td><td>11.97</td><td>14.76</td><td>18.04</td></tr><tr><th scope="row">oneTBB</th><td>824</td><td>11.82</td><td>15.09</td><td>16.78</td></tr><tr><th scope="row">Rust scoped</th><td>537</td><td>18.57</td><td>23.09</td><td>28.25</td></tr><tr><th scope="row">Rayon</th><td>760</td><td>12.88</td><td>17.37</td><td>19.53</td></tr><tr><th scope="row">Python threads</th><td>6</td><td>1755.94</td><td>—</td><td>—</td></tr><tr><th scope="row">Python copy</th><td>14</td><td>759.89</td><td>—</td><td>—</td></tr><tr><th scope="row">Python shared</th><td>33</td><td>310.40</td><td>354.00</td><td>—</td></tr><tr><th scope="row">NumPy threads</th><td>749</td><td>13.17</td><td>16.35</td><td>18.32</td></tr><tr><th scope="row">Numba prange</th><td>748</td><td>13.02</td><td>16.93</td><td>20.49</td></tr></tbody></table></div>
+<p class="parallel-text"><span lang="en" data-lang="en">A dash means the window did not contain enough calls: fewer than 20 for P95, or fewer than 100 for P99. The slower Python paths need longer runs to characterize their tails. These are individual matvec times in a closed loop, not request latency under an independently arriving service load. Raw JSON retains every sample in its original order.</span><span lang="zh-CN" data-lang="zh">横线表示窗口内调用数不足：少于 20 次不报告 P95，少于 100 次不报告 P99。较慢的 Python 路径需要更长时间，才能刻画尾部。这些数值是闭环连续调用中的单次 matvec 耗时，不是外部请求独立到达时的服务延迟。原始 JSON 保留每次采样及其顺序。</span></p>
+<figure class="pb-plot"><div class="pb-plot-frame" role="region" aria-labelledby="stress-sparse-uniform-skew-caption"><img src="/assets/content/parallel-libraries/stress-sparse-uniform-skew.svg" loading="lazy" alt="Larger CSR inputs under continuous load. Both use 8,388,608 stored entries and 16 requested workers. The hollow diamond is the skewed matrix; the filled circle is uniform." width="1464" height="756"></div>
+<table class="pb-mobile-table pb-mobile-results" aria-labelledby="stress-sparse-uniform-skew-caption" data-measurement-profile="stress" data-measurement-workload="sparse-uniform">
+<colgroup><col><col><col></colgroup><thead><tr><th scope="col"><span lang="en" data-lang="en">Implementation</span><span lang="zh-CN" data-lang="zh">实现</span></th><th scope="col"><span lang="en" data-lang="en">Uniform</span><span lang="zh-CN" data-lang="zh">均匀</span><small>ms</small></th><th scope="col"><span lang="en" data-lang="en">Skewed</span><span lang="zh-CN" data-lang="zh">不均匀</span><small>ms</small></th></tr></thead>
+<tbody>
+<tr class="pb-language-cpp" data-case-id="cpp:std-thread/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">std::thread</span></th><td><data value="11.849503">11.85</data></td><td><data value="22.007163">22.01</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:omp-static/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">OpenMP static</span></th><td><data value="10.678473499999999">10.68</data></td><td><data value="20.9073955">20.91</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:omp-dynamic/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">OpenMP dynamic</span></th><td><data value="9.6004515">9.600</data></td><td><data value="10.384836499999999">10.38</data></td></tr>
+<tr class="pb-language-cpp" data-case-id="cpp:tbb/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">C++</span><span class="pb-mobile-method">oneTBB</span></th><td><data value="8.865">8.865</data></td><td><data value="9.297773">9.298</data></td></tr>
+<tr class="pb-language-rust pb-language-start" data-case-id="rust:std-scoped/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Scoped threads</span></th><td><data value="13.92575">13.93</data></td><td><data value="21.134021">21.13</data></td></tr>
+<tr class="pb-language-rust" data-case-id="rust:rayon/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">Rust</span><span class="pb-mobile-method">Rayon</span></th><td><data value="9.5248995">9.525</data></td><td><data value="14.9655695">14.97</data></td></tr>
+<tr class="pb-language-python pb-language-start" data-case-id="python:thread/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Thread pool</span></th><td><data value="1027.0069565158337">1,027</data></td><td><data value="1070.016359037254">1,070</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:process-copy/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Processes / copy</span></th><td><data value="561.2732210429385">561.3</data></td><td><data value="1292.7415135200135">1,293</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:process-shared/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Processes / shared</span></th><td><data value="193.93917103298008">193.9</data></td><td><data value="924.2835689801723">924.3</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numpy-thread/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">SciPy CSR + threads</span></th><td><data value="12.531648972071707">12.53</data></td><td><data value="22.74705102900043">22.75</data></td></tr>
+<tr class="pb-language-python" data-case-id="python:numba-parallel/sparse-uniform/16"><th scope="row" lang="en"><span class="pb-mobile-language">Python</span><span class="pb-mobile-method">Numba prange</span></th><td><data value="10.134172509424388">10.13</data></td><td><data value="20.70378593634814">20.70</data></td></tr>
+</tbody></table>
+<figcaption id="stress-sparse-uniform-skew-caption"><span lang="en" data-lang="en">Larger CSR inputs under continuous load. Both use 8,388,608 stored entries and 16 requested workers.</span><span lang="zh-CN" data-lang="zh">持续负载下的更大 CSR 输入。两者都存储 8,388,608 项，请求 16 路并行。</span></figcaption></figure>
+<p class="parallel-text"><span lang="en" data-lang="en">On the larger skewed matrix, warm medians are 20.91 ms for OpenMP static, 10.38 ms for dynamic, 9.30 ms for oneTBB and 14.97 ms for Rayon. At sixteen equal row slabs, the first slab alone holds 76.56% of entries. The result is consistent with a benefit from redistributing work, but it does not isolate that cause: runtime overhead, memory access and competition still differ.</span><span lang="zh-CN" data-lang="zh">更大的不均匀矩阵上，OpenMP static 的热调用中位数为 20.91 ms，dynamic 为 10.38 ms，oneTBB 为 9.30 ms，Rayon 为 14.97 ms。连续十六等分时，第一个行块独占 76.56% 的存储项。结果与重新分配工作可能带来收益的解释相符，但未单独验证这一因果关系：运行时开销、访存与竞争状况仍有差异。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">The highest sampled lifecycle PSS in this profile is 687.5 MiB for python process-copy on dense. Completion within the configured memory guard shows that this specific run fit its budget; it does not establish absence of leaks, thermal stability or safety at larger sizes.</span><span lang="zh-CN" data-lang="zh">这一组最高的生命周期 PSS 采样峰值为 687.5 MiB，来自 python process-copy 的 dense 配置。在预算内完成，只说明这次具体运行没有超出配置的保护条件，不等于证明没有泄漏、温度已经稳定，或更大尺寸也能安全运行。</span></p>
+
+<p class="parallel-text">
+ <span lang="en" data-lang="en">This changes input size, CPU composition and concurrency together. It is a separate pressure profile, not the next point on the four-P-core scaling curve. Sixteen logical CPUs include both different core types and sibling hardware threads. The monitor shares the E-cores with this workload. The run does not lock temperature or frequency, establish a thermal steady state, or isolate all background work; it cannot establish long-term service capacity or predict a server’s throughput.</span>
+ <span lang="zh-CN" data-lang="zh">这一轮同时改变了输入规模、CPU 构成与并行度，属于独立的压力配置，不能接在四个 P 核的扩展曲线上当作下一个点。十六个逻辑 CPU 既包含不同类型的核心，也包含同核的硬件线程。监测进程也与本组负载共用 E 核。实验没有锁定温度和频率，没有确认已进入热稳态，也没有隔离所有后台任务，不能据此推断长期服务容量或服务器吞吐量。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">A once-per-second guard stops the process group if summed tree RSS exceeds 4 GiB or available system memory falls below 2 GiB; each launch also has a 120-second timeout. RSS is conservative here because shared pages may be counted repeatedly. This is a sampled stop condition, not a strict operating-system memory cap, and it is not the memory result plotted below.</span>
+ <span lang="zh-CN" data-lang="zh">监测器每秒检查一次：进程树 RSS 求和超过 4 GiB，或系统可用内存低于 2 GiB，就停止该进程组；单次启动还设有 120 秒超时。这里用 RSS 是保守的做法，因为共享页可能被重复统计。这是定期采样的停止条件，不是操作系统强制执行的精确内存上限，也不是下文用于比较的内存结果。</span>
+</p>
+
+<h2 class="parallel-text" id="memory-results">
+ <span lang="en" data-lang="en">Memory: data representation and process-tree PSS</span>
+ <span lang="zh-CN" data-lang="zh">内存：数据表示与进程树 PSS</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Start with the payload. For m rows, n columns and z stored CSR entries, the reference representation uses eight-byte values and vectors, four-byte column indices and eight-byte row pointers. Its logical byte count is:</span>
+ <span lang="zh-CN" data-lang="zh">数据占用按约定的表示计算。设矩阵有 m 行、n 列，CSR 存储 z 项，参考表示使用八字节数值与向量、四字节列下标、八字节行指针。对应的逻辑字节数为：</span>
+</p>
+<div class="shared-equation" data-math="\begin{aligned} B_{\mathrm{dense}}&amp;=8(mn+n+m)\\ B_{\mathrm{CSR}}&amp;=12z+8(m+1)+8n+8m \end{aligned}"></div>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">This count describes the agreed input and output representation; it is not the process’s footprint. SciPy can convert CSR index types, and its threaded path stores rebased row pointers for each slab. The raw records preserve actual array types and byte counts. SciPy also allocates a result vector during matvec and copies it into the agreed output buffer; that work remains inside its measured call.</span>
+ <span lang="zh-CN" data-lang="zh">这个数描述约定的输入与输出表示，不是整个进程的占用。SciPy 可能转换 CSR 索引类型，线程版本还会为各个行块保存重新定基的行指针；原始记录保留了实际数组类型与字节数。此外，SciPy 的 matvec 会分配结果向量，再复制到约定的输出缓冲区，这部分工作仍计入它的调用时间。</span>
+</p>
+<div class="lesson-scroll" tabindex="0" role="region" aria-label="Measured results / 实测结果"><table class="pb-results"><thead><tr><th scope="col"><span lang="en" data-lang="en">Dense implementation</span><span lang="zh-CN" data-lang="zh">稠密实现</span></th><th scope="col"><span lang="en" data-lang="en">Workers</span><span lang="zh-CN" data-lang="zh">worker 数</span></th><th scope="col"><span lang="en" data-lang="en">Sampled lifecycle peak PSS · MiB</span><span lang="zh-CN" data-lang="zh">生命周期 PSS 采样峰值 · MiB</span></th></tr></thead><tbody><tr><th scope="row">C++ OpenMP static</th><td>4</td><td>32.9</td></tr><tr><th scope="row">Python scalar serial</th><td>1</td><td>43.2</td></tr><tr><th scope="row">Python process-copy</th><td>4</td><td>236.0</td></tr><tr><th scope="row">Python process-shared</th><td>4</td><td>89.6</td></tr><tr><th scope="row">NumPy (BLAS 1)</th><td>1</td><td>56.0</td></tr><tr><th scope="row">Numba prange</th><td>4</td><td>172.6</td></tr></tbody></table></div>
+<p class="parallel-text"><span lang="en" data-lang="en">For the 32 MiB dense matrix, process-copy reaches 236.0 MiB of sampled tree PSS; process-shared reaches 89.6 MiB. Their warm times are 329.16 and 192.32 ms respectively. Repeated serialization and temporary buffers are part of the copy implementation. Shared buffers reduce this measured footprint, while interpreter and worker overhead remain. These are single-pass sampled peaks, so the decimal places are display precision, not an uncertainty estimate.</span><span lang="zh-CN" data-lang="zh">矩阵本身为 32 MiB 时，process-copy 的进程树 PSS 采样峰值达到 236.0 MiB，process-shared 为 89.6 MiB；两者的热调用中位数分别为 329.16 与 192.32 ms。反复序列化与临时缓冲区是复制版实现的一部分。共享缓冲区降低了本轮测得的占用，解释器与 worker 的成本仍然存在。这是单轮采样峰值，小数位只是显示精度，不是误差估计。</span></p>
+
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The plotted measure is the sampled peak of process-tree proportional set size, or PSS. At each sample the monitor adds the live parent and descendants, including process-pool helpers. <a data-citation href="https://www.kernel.org/doc/html/latest/filesystems/proc.html">Linux divides shared resident pages among their users for PSS</a>; simply summing each process’s RSS would count shared pages more than once. Summing individually observed peaks would be wrong too, because those peaks may occur at different times.</span>
+ <span lang="zh-CN" data-lang="zh">图中指标是进程树比例驻留集 PSS 的采样峰值。监测器在每次采样中，把仍存活的父进程与后代进程相加，也包含进程池的辅助进程。<a data-citation href="https://www.kernel.org/doc/html/latest/filesystems/proc.html">Linux 的 PSS 会在共享者之间分摊驻留页</a>；直接求各进程 RSS 之和，会把共享页重复计算。把各进程分别出现过的峰值相加同样不对，因为那些峰值可能出现在不同时间。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The peak covers the launch’s lifecycle: imports, buffers, worker startup and, where applicable, JIT compilation. It is neither a steady-state heap measurement nor a memory-leak test. One sampled memory pass per configuration can miss brief peaks; the interval is nominal and scanning a process tree takes time. A lower PSS also says nothing by itself about the speed of an implementation.</span>
+ <span lang="zh-CN" data-lang="zh">峰值覆盖这次启动的生命周期，包括模块导入、缓冲区、worker 启动，以及适用时的 JIT 编译。它既不是稳态堆内存，也不是内存泄漏测试。每个配置只有一轮内存采样，短暂峰值可能遗漏；采样间隔是目标值，读取整个进程树本身也需要时间。PSS 更低，同样不能单独说明实现更快。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The two process-pool variants differ in data-transfer and buffer-ownership costs. With <a data-citation href="https://docs.python.org/3.12/library/concurrent.futures.html#processpoolexecutor">ProcessPoolExecutor</a>, the copy path serializes a row slab and a copy of x for each task, then returns output bytes. The <a data-citation href="https://docs.python.org/3.12/library/multiprocessing.shared_memory.html">shared-memory path</a> attaches buffers once and subsequently sends only row ranges. Shared memory removes those repeated bulk transfers; it does not remove interpreters, coordination or the Python scalar loops in the workers.</span>
+ <span lang="zh-CN" data-lang="zh">两个进程池版本的差异主要在数据传输与缓冲区归属。使用 <a data-citation href="https://docs.python.org/3.12/library/concurrent.futures.html#processpoolexecutor">ProcessPoolExecutor</a> 时，复制路径为每个任务序列化一块矩阵行和一份 x，再传回输出字节；<a data-citation href="https://docs.python.org/3.12/library/multiprocessing.shared_memory.html">共享内存路径</a>只挂接一次缓冲区，随后传递行范围。共享内存消除了这些反复的大块传输，但解释器、协调工作，以及 worker 中的 Python 标量循环仍然存在。</span>
+</p>
+
+<h2 class="parallel-text" id="practical-lessons">
+ <span lang="en" data-lang="en">Engineering conclusions and library selection</span>
+ <span lang="zh-CN" data-lang="zh">工程结论与库选型</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en"><strong>For a new native implementation covering these three large workloads, prioritize C++ oneTBB.</strong> Among the eleven parallel implementations in the 16-worker stress test, it records the lowest warm-call median in all three cases: 11.82 ms for dense, 8.87 ms for uniform CSR, and 9.30 ms for skewed CSR. Its sampled lifecycle peak PSS is about 130 MiB for dense and 101 MiB for either sparse input, close to OpenMP's 129 and 100 MiB.</span>
+ <span lang="zh-CN" data-lang="zh"><strong>针对本文三种大矩阵负载新增原生并行实现时，优先采用 C++ oneTBB。</strong>在 16 路压测的十一种并行实现中，它的热调用中位数均最低：稠密 11.82 ms，均匀 CSR 8.87 ms，不均匀 CSR 9.30 ms。生命周期 PSS 采样峰值约为稠密 130 MiB、两种稀疏各 101 MiB，与 OpenMP 的 129 和 100 MiB 接近。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">On skewed CSR, oneTBB takes 9.30 ms versus OpenMP static's 20.91 ms, a measured speedup of about 2.25×. On dense input, oneTBB's 11.82 ms is only about 1.2% below OpenMP dynamic's 11.97 ms. That small difference is insufficient evidence for migrating an existing implementation. Each stress result comes from one timed window on a contended host, and serial NumPy/SciPy was excluded from this larger test. The recommendation is limited to the tested workload mix and must be validated on the target machine.</span>
+ <span lang="zh-CN" data-lang="zh">不均匀 CSR 上，oneTBB 为 9.30 ms，OpenMP static 为 20.91 ms，实测加速比约为 2.25。稠密输入上，oneTBB 的 11.82 ms 仅比 OpenMP dynamic 的 11.97 ms 低约 1.2%，不足以据此迁移已有实现。每项压测只有一个计时窗口，主机存在 CPU 竞争，且该规模未测试串行 NumPy/SciPy。推荐范围限于已测负载组合，落地前需要在目标机器上复验。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en"><strong>For standard matrix operations in Python, use NumPy/SciPy as the initial implementation.</strong> On the 2,048-square dense baseline, single-thread NumPy records the lowest median at 2.05 ms; four-worker OpenMP static takes 4.02 ms. This supports using an existing numerical kernel before rewriting the program or adding an outer pool. The table combines execution time, memory and integration cost. Its C++ and Rust loop recommendations apply to custom computation that requires an explicit loop.</span>
+ <span lang="zh-CN" data-lang="zh"><strong>Python 标准矩阵运算以 NumPy/SciPy 作为首选实现。</strong>在 2,048 阶稠密基线中，单线程 NumPy 的中位数最低，为 2.05 ms；四路 OpenMP static 为 4.02 ms。工程上应先评估现成数值内核，再考虑改写程序或增加外层线程池。下表综合执行时间、内存与接入成本；C++ 和 Rust 的循环方案适用于需要显式循环的自定义计算。</span>
+</p>
+<table class="pb-choice-table" aria-labelledby="practical-lessons">
+ <thead><tr>
+  <th scope="col"><span lang="en" data-lang="en">Workload</span><span lang="zh-CN" data-lang="zh">适用场景</span></th>
+  <th scope="col"><span lang="en" data-lang="en">Recommended implementation and constraints</span><span lang="zh-CN" data-lang="zh">推荐实现与约束条件</span></th>
+ </tr></thead>
+ <tbody>
+  <tr><th scope="row"><span lang="en" data-lang="en">Python · standard dense or sparse matvec</span><span lang="zh-CN" data-lang="zh">Python · 标准稠密或稀疏矩阵运算</span></th><td>
+   <span lang="en" data-lang="en"><strong>NumPy for dense; SciPy CSR for sparse.</strong> Establish direct-call performance before adding outer workers. Move to a custom loop when the required computation no longer fits the existing operation; this benchmark does not justify switching languages for ordinary matvec.</span>
+   <span lang="zh-CN" data-lang="zh"><strong>稠密选 NumPy，稀疏选 SciPy CSR。</strong>先测直接调用，再评估外层 worker 的收益。所需计算无法用现成运算表达时，再转向自定义循环；本文没有给出为普通 matvec 更换语言的理由。</span>
+  </td></tr>
+  <tr><th scope="row"><span lang="en" data-lang="en">C++ · existing, regular row loops</span><span lang="zh-CN" data-lang="zh">C++ · 已有的规则逐行循环</span></th><td>
+   <span lang="en" data-lang="en"><strong>OpenMP, starting with static scheduling.</strong> This recommendation favors a small integration change; static did not record the lowest time. If long rows concentrate on a few workers, evaluate dynamic scheduling. Consider oneTBB when imbalance remains a bottleneck.</span>
+   <span lang="zh-CN" data-lang="zh"><strong>OpenMP，以 static 调度为起点。</strong>推荐依据是接入改动较少，static 的实测耗时并非最低。长行集中到少数 worker 时，评估 dynamic；负载不均衡仍是瓶颈时，再考虑 oneTBB。</span>
+  </td></tr>
+  <tr><th scope="row"><span lang="en" data-lang="en">C++ · custom, strongly uneven sparse work</span><span lang="zh-CN" data-lang="zh">C++ · 工作量高度不均匀的自定义稀疏计算</span></th><td>
+   <span lang="en" data-lang="en"><strong>oneTBB.</strong> It has the lowest measured time in the large skewed case, with memory close to OpenMP. An existing OpenMP project should try dynamic scheduling first: 10.38 ms versus oneTBB's 9.30 ms may be sufficient without adding a dependency.</span>
+   <span lang="zh-CN" data-lang="zh"><strong>oneTBB。</strong>本轮大规模不均匀输入中，它的耗时最低，内存与 OpenMP 接近。已有 OpenMP 的项目先试 dynamic：不均匀压测为 10.38 ms，对比 oneTBB 的 9.30 ms，可能已满足需求，无需增加依赖。</span>
+  </td></tr>
+  <tr><th scope="row"><span lang="en" data-lang="en">Rust · custom parallel loops</span><span lang="zh-CN" data-lang="zh">Rust · 自定义并行循环</span></th><td>
+   <span lang="en" data-lang="en"><strong><a data-citation href="https://docs.rs/rayon/1.12.0/rayon/">Rayon</a>, with a reused pool.</strong> Its median is lower than this per-call scoped-thread implementation in all three large stress cases; the same ordering does not hold across the baseline cases. Tune chunking in the existing Rust implementation before evaluating a C++ rewrite.</span>
+   <span lang="zh-CN" data-lang="zh"><strong><a data-citation href="https://docs.rs/rayon/1.12.0/rayon/">Rayon</a>，复用线程池。</strong>三项大规模压测的中位数均低于本文每次创建 scoped 线程的实现，但基线配置不保持这一顺序。已有 Rust 程序应先调整分块，再评估改写 C++ 的成本与收益。</span>
+  </td></tr>
+  <tr><th scope="row"><span lang="en" data-lang="en">Python · repeated custom numerical loops</span><span lang="zh-CN" data-lang="zh">Python · 反复执行的自定义数值循环</span></th><td>
+   <span lang="en" data-lang="en"><strong>Numba, if the loop can compile in nopython mode.</strong> Compile the loop, then test <a data-citation href="https://numba.readthedocs.io/en/stable/user/parallel.html">prange</a> where iterations are independent. Budget for JIT startup and memory: dense stress records 13.02 ms warm but 269 MiB peak PSS, versus oneTBB's 130 MiB.</span>
+   <span lang="zh-CN" data-lang="zh"><strong>Numba，前提是循环能以 nopython 模式编译。</strong>先编译循环，各次迭代独立时再测 <a data-citation href="https://numba.readthedocs.io/en/stable/user/parallel.html">prange</a>。需计入 JIT 启动与内存成本：稠密压测热调用为 13.02 ms，PSS 峰值约 269 MiB，oneTBB 则约 130 MiB。</span>
+  </td></tr>
+  <tr><th scope="row"><span lang="en" data-lang="en">Python · must retain interpreted CPU loops</span><span lang="zh-CN" data-lang="zh">Python · 必须保留解释型 CPU 循环</span></th><td>
+   <span lang="en" data-lang="en"><strong>A process pool with shared arrays when native compilation is unavailable.</strong> Use it for sufficiently large, reusable array tasks that can be balanced across processes. Load imbalance can negate the parallel speedup: the baseline shared four-process path takes 249.91 ms versus serial Python's 208.22 ms. For small or poorly divisible work, keep a serial path.</span>
+   <span lang="zh-CN" data-lang="zh"><strong>无法编译为本地代码时，采用进程池与共享数组。</strong>任务要足够大、数组可复用，而且能够均衡拆分。负载倾斜可能抵消并行收益：基线共享内存四进程为 249.91 ms，Python 串行为 208.22 ms。任务小或难以均分时，保留串行路径。</span>
+  </td></tr>
+ </tbody>
+</table>
+<p class="parallel-text">
+ <span lang="en" data-lang="en"><strong>For these CPU loops, avoid Python scalar threads, per-task matrix copies and per-call thread creation as default implementations.</strong> Scalar Python threads remain constrained by the GIL; the other two paths incur repeated data transfer or thread lifecycle costs. This recommendation does not cover I/O threads, free-threaded Python or custom persistent native thread pools, none of which were tested.</span>
+ <span lang="zh-CN" data-lang="zh"><strong>本文这类 CPU 循环，不建议默认采用 Python 标量多线程、每任务复制矩阵的进程池，或每次调用创建线程的实现。</strong>Python 标量线程仍受 GIL 限制，后两种路径则引入重复数据传输或线程生命周期成本。I/O 线程、自由线程版 Python 和自建持久原生线程池不在本次测试范围内。</span>
+</p>
+<details class="pb-tuning">
+ <summary><span lang="en" data-lang="en">Tuning and validation checklist</span><span lang="zh-CN" data-lang="zh">调优与验证要点</span></summary>
+<ol class="pb-takeaways">
+ <li><p class="parallel-text">
+  <span lang="en" data-lang="en"><strong>Improve the numerical kernel before adding workers.</strong> On the baseline dense input, the Python scalar loop takes 384.19 ms, its four-thread version 377.77 ms, and single-thread NumPy 2.05 ms. For this kind of numerical task, first look for a NumPy/SciPy operation; consider Numba when the custom loop is worth compiling. Adding threads leaves the interpreted loop in place. Calling a native kernel changes that execution path, so this comparison cannot rank the languages themselves.</span>
+  <span lang="zh-CN" data-lang="zh"><strong>先优化数值内核，再增加 worker。</strong>基线稠密输入上，Python 标量循环为 384.19 ms，四线程版为 377.77 ms，而单线程 NumPy 为 2.05 ms。处理这类数值任务时，优先评估 NumPy/SciPy 的现成运算；有必要保留自定义循环时，再考虑 Numba。增加线程仍在执行原来的解释型循环，调用本地内核则改变了计算路径，因此这组差距不能解释成语言排名。</span>
+ </p></li>
+ <li><p class="parallel-text">
+  <span lang="en" data-lang="en"><strong>Plan data reuse before creating a process pool.</strong> With four processes and the same dense input, copying measures 329.16 ms and 236.0 MiB of sampled peak PSS; sharing measures 192.32 ms and 89.6 MiB. For repeated work on large read-only arrays, consider attaching buffers once and sending ranges thereafter, with disjoint output ownership. This removes repeated bulk transfers in this implementation; interpreter and coordination costs still remain.</span>
+  <span lang="zh-CN" data-lang="zh"><strong>使用多进程前，先安排数据如何复用。</strong>同样的稠密输入、四个进程，复制版测得 329.16 ms、236.0 MiB 的 PSS 采样峰值，共享版为 192.32 ms、89.6 MiB。反复处理大型只读数组时，可以先挂接缓冲区，随后只发送行范围，并让各进程负责互不重叠的输出。这消除了本实现中反复的大块传输，解释器与协调成本仍然存在。</span>
+ </p></li>
+ <li><p class="parallel-text">
+  <span lang="en" data-lang="en"><strong>Balance work, not just row counts.</strong> The four-process shared-memory path takes 126.84 ms for uniform CSR and 249.91 ms for skewed CSR. In the latter, the first quarter of rows holds 81.25% of entries. That is a reason to compare OpenMP static with dynamic scheduling, or investigate task-based execution with oneTBB in C++ and Rayon in Rust. Partitioning by cumulative CSR entries is another experiment to add; it was not tested here. Column access also changes, and dynamic scheduling did not have the lowest latency in every measured case.</span>
+  <span lang="zh-CN" data-lang="zh"><strong>按工作量分区，验证负载均衡。</strong>四进程共享内存版处理均匀 CSR 需要 126.84 ms，不均匀 CSR 则为 249.91 ms；后者前四分之一的行包含 81.25% 的存储项。遇到这种输入，应比较 OpenMP static 与 dynamic，也可以考察 C++ 的 oneTBB、Rust 的 Rayon 如何分配任务。按 CSR 累计存储项分区是另一项值得补测的方案，本文尚未验证。两组输入的列访问也有变化，动态调度在部分实测配置中的耗时高于静态调度。</span>
+ </p></li>
+ <li><p class="parallel-text">
+  <span lang="en" data-lang="en"><strong>Budget for the program's lifetime.</strong> Four-worker Numba takes 694.37 ms on the first dense call, including compilation, and 4.80 ms warm. For a one-shot command, measure launch to exit; for repeated work, account for how many calls share initialization and compilation costs. Repeated short operations also deserve a comparison between a reusable pool and per-call thread creation. First-call and warm medians alone do not give a universal break-even count.</span>
+  <span lang="zh-CN" data-lang="zh"><strong>按程序的使用方式计算成本。</strong>四路 Numba 的稠密首次调用包含编译，耗时 694.37 ms，热调用为 4.80 ms。一次性命令要看启动到退出；重复执行的程序，要看初始化与编译成本能分摊到多少次调用。反复执行短操作时，也应比较复用线程池与每次创建线程的完整开销。仅凭首次与热调用两个中位数，不能给出通用的盈亏平衡次数。</span>
+ </p></li>
+ <li><p class="parallel-text">
+  <span lang="en" data-lang="en"><strong>Tune worker count against available CPU capacity.</strong> Dense OpenMP static goes from 3.83 ms with one worker to 4.02 ms with four; Rayon goes from 4.24 to 4.70 ms. These occupied P-cores show no clear scaling benefit. Start with a worker-count sweep, check available CPU capacity, and keep inner numerical-library threads explicit when adding outer workers. This study fixed BLAS to one thread; it did not compare nested parallelism. Repeat on an idle host before attributing the result to a library or a memory-bandwidth ceiling.</span>
+  <span lang="zh-CN" data-lang="zh"><strong>扫描并行度，核对可用 CPU 资源。</strong>稠密 OpenMP static 从一路的 3.83 ms 变为四路的 4.02 ms，Rayon 则从 4.24 ms 变为 4.70 ms。在这些已被占用的 P 核上，没有看到明确的扩展收益。实际调优先扫描 worker 数量，检查可用 CPU，并在增加外层 worker 时明确数值库内部的线程数。本实验固定 BLAS 为单线程，并未比较嵌套并行；把结果归因于库本身或带宽上限之前，应先在空闲主机复测。</span>
+ </p></li>
+ <li><p class="parallel-text">
+  <span lang="en" data-lang="en"><strong>Set stress duration together with a sample target.</strong> In the larger dense windows, Python threads complete only 6 calls, copying processes 14, and shared processes 33. Slow paths need longer windows and independent repeat runs to characterize their tails. The thresholds used here—20 calls for P95 and 100 for P99—only decide whether a number is reported; they do not guarantee a stable tail estimate. Ten seconds of closed-loop execution also cannot establish endurance or service-request latency.</span>
+  <span lang="zh-CN" data-lang="zh"><strong>同时设置压测时长与目标样本数。</strong>更大稠密输入的压测窗口里，Python 线程只完成 6 次调用，复制进程完成 14 次，共享进程完成 33 次。较慢的路径需要延长窗口、增加独立轮次，才能进一步观察尾部。本文的 P95 至少 20 次、P99 至少 100 次，只是决定是否展示数字的门槛，不保证尾部估计已经稳定。十秒闭环执行也不能证明长期稳定性或服务请求延迟。</span>
+ </p></li>
+</ol>
+</details>
+
+<h2 class="parallel-text" id="choose-and-reproduce">
+ <span lang="en" data-lang="en">Implementation details and reproduction</span>
+ <span lang="zh-CN" data-lang="zh">实现细节与复现方法</span>
+</h2>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">For ordinary GIL-enabled CPython, threads running Python scalar loops cannot execute that Python work simultaneously across cores. That constraint is described in the <a data-citation href="https://docs.python.org/3.12/library/threading.html">threading documentation</a>. It does not imply that every Python thread pool is CPU-serial: many <a data-citation href="https://numpy.org/doc/2.2/reference/thread_safety.html">NumPy operations release the GIL</a>, and SciPy also exposes native numerical work. Here arrays are read-only inputs and workers write disjoint output ranges; CSR objects are not modified during computation.</span>
+ <span lang="zh-CN" data-lang="zh">普通的、启用 GIL 的 CPython 中，多个线程无法把这些 Python 标量循环同时放到不同核心上执行，<a data-citation href="https://docs.python.org/3.12/library/threading.html">threading 文档</a>说明了这个约束。但这不意味着所有 Python 线程池都只能串行算：不少 <a data-citation href="https://numpy.org/doc/2.2/reference/thread_safety.html">NumPy 操作会释放 GIL</a>，SciPy 也提供本地数值内核。本次输入数组只读，各 worker 写入互不重叠的输出区间，计算期间不修改 CSR 对象。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">The following excerpts show independent-row scheduling with OpenMP, Rayon and Numba. All three retain the same per-row operation contract, with different chunking, pool management and runtimes.</span>
+ <span lang="zh-CN" data-lang="zh">以下代码分别使用 OpenMP、Rayon 和 Numba 分配独立行。三种实现保持相同的逐行运算约定，分块方式、线程池管理和运行时不同。</span>
+</p>
+<pre><code class="language-cpp">#pragma omp parallel for schedule(dynamic, 32) num_threads(workers)
+for (std::size_t row = 0; row &lt; rows; ++row) {
+    output[row] = dot_row(row);
+}</code></pre>
+<pre><code class="language-rust">pool.install(|| {
+    output.par_chunks_mut(32).enumerate().for_each(|(chunk, out)| {
+        for (offset, y) in out.iter_mut().enumerate() {
+            *y = dot_row(chunk * 32 + offset);
+        }
+    });
+});</code></pre>
+<pre><code class="language-python">@numba.njit(parallel=True, fastmath=False)
+def spmv(values, indices, indptr, x, output):
+    for row in numba.prange(output.size):
+        total = 0.0
+        for k in range(indptr[row], indptr[row + 1]):
+            total += values[k] * x[indices[k]]
+        output[row] = total</code></pre>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Numba uses its OpenMP threading layer in this experiment. Its Python loop is compiled to native code and scheduled through OpenMP; the Numba and C++ OpenMP paths therefore share a runtime family. The <a data-citation href="https://numba.readthedocs.io/en/stable/user/threading-layer.html">threading-layer documentation</a> also distinguishes setting the pool’s maximum size with <code>NUMBA_NUM_THREADS</code> from masking existing threads with <code>set_num_threads</code>. The harness sets the former before importing Numba, so a small worker count does not retain a deliberately oversized pool.</span>
+ <span lang="zh-CN" data-lang="zh">本次 Numba 使用 OpenMP 线程层，Python 循环编译为本地代码后由 OpenMP 调度，因此 Numba 与 C++ OpenMP 路径使用同一类运行时。<a data-citation href="https://numba.readthedocs.io/en/stable/user/threading-layer.html">线程层文档</a>还区分了用 <code>NUMBA_NUM_THREADS</code> 设置池的最大规模，与用 <code>set_num_threads</code> 屏蔽已有线程。运行器在导入 Numba 前设置前者，避免小 worker 配置仍有意保留一个过大的池。</span>
+</p>
+<p class="parallel-text">
+ <span lang="en" data-lang="en">Reproduction starts from the source archive and its README: build the native programs, install the pinned Python dependencies, and choose CPU IDs that match the new machine. The native build uses C++ <code>-O3 -march=native -fno-fast-math -ffp-contract=off</code> and Rust release mode with <code>target-cpu=native</code>. The result manifests record source and executable hashes, runtime versions, affinity, samples and validation. Rebuild for the target CPU and record its environment; matching the procedure does not guarantee identical timings.</span>
+ <span lang="zh-CN" data-lang="zh">复现从源码包与其中的 README 开始：构建原生程序，安装锁定版本的 Python 依赖，再按新机器的拓扑选择 CPU 编号。原生构建使用 C++ 的 <code>-O3 -march=native -fno-fast-math -ffp-contract=off</code>，以及 Rust release 模式的 <code>target-cpu=native</code>。结果清单记录源码与可执行文件哈希、运行时版本、亲和性、样本和校验值。更换 CPU 后应重新构建并记录目标环境；流程一致不保证耗时相同。</span>
+</p>
+<ul class="pb-downloads">
+ <li><a href="/assets/content/parallel-libraries/baseline.json" download><span lang="en" data-lang="en">Baseline JSON</span><span lang="zh-CN" data-lang="zh">基线原始数据</span></a></li>
+ <li><a href="/assets/content/parallel-libraries/stress.json" download><span lang="en" data-lang="en">Sustained-load JSON</span><span lang="zh-CN" data-lang="zh">压力测试原始数据</span></a></li>
+ <li><a href="/assets/content/parallel-libraries/results.csv" download><span lang="en" data-lang="en">Results CSV</span><span lang="zh-CN" data-lang="zh">结果汇总 CSV</span></a></li>
+ <li><a href="/assets/content/parallel-libraries/source.zip" download><span lang="en" data-lang="en">Source and reproduction guide</span><span lang="zh-CN" data-lang="zh">源码与复现说明</span></a></li>
+</ul>
+</div>
+</body>
+</html>

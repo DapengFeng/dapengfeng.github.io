@@ -78,6 +78,20 @@ Separate what is observed, derived, checked in source code, executed, measured, 
 
 分清观察、推导、源码核对、实际执行、测量、推断和尚未确定的部分。来源靠近其支撑的论述，技术机制优先使用原始资料，并交代相关版本或条件；性能结论要说明工作负载、环境与计时边界。不把示意动画当作实测时序，也不把局部测试扩大为普遍结论。证据要支撑具体句子，不只是装饰参考文献列表。
 
+## Report benchmarks as engineering evidence / 用工程测试报告的语气写 benchmark
+
+Use the direct, precise voice of an engineering test report. Lead with the conclusion and its scope, then present the environment, protocol, data and engineering tradeoffs. State the implementation, workload, metric and observed difference. Avoid “I would choose”, “champion”, “wins” and conversational questions; a result does not need a contest narrative.
+
+benchmark 采用直接、准确的工程测试报告语气。先交代结论与适用范围，再展开环境、协议、数据和工程取舍。明确实现、负载、指标与观察到的差异，不用“我会选”“冠军”“赢下”等表达，也不用聊天式设问组织正文。
+
+Give each task a clear preferred approach when the evidence supports one, with the supporting measurements, relevant costs and conditions for switching. Distinguish the fastest measured configuration from an engineering recommendation that also considers integration, startup, memory and maintenance. Place limitations that change the choice beside the conclusion; keep the remaining detail in the methodology. Readers should be able to identify a starting choice without searching through repeated qualifications. If a necessary comparison is missing, name it instead of inventing a ranking.
+
+证据充分时，对每类任务给出明确首选，并附上支持它的测量、相关成本和改选条件。区分“本次实测最快的配置”与兼顾接入、启动、内存及维护成本的工程建议。会改变选型的限制紧邻结论，其余细节集中在方法部分，不让反复限定淹没可执行的选择；缺少必要对比时，指出缺项，不编造排名。
+
+Apply the evidence distinctions in the preceding section to a fair comparison: identify common work and correctness requirements, and expose differences in implementations or measurement boundaries. Preserve known host contention and other consequential conditions; a busy-host result must remain identified as such in its conclusions. Provide the recorded results and reproducible procedure through the [performance experiment guide](../development/testing.md#recorded-performance-experiments--已记录的性能实验), rather than duplicating commands here.
+
+按上一节的证据规则组织公平比较：明确共同任务与正确性要求，交代实现方式或测量边界上的差异。保留已知的主机竞争及其他影响结论的条件，在繁忙主机上测得的结果不能在总结中变成空闲环境下的普遍排名。通过[性能实验指南](../development/testing.md#recorded-performance-experiments--已记录的性能实验)提供记录结果与复现流程，不在本规范重复维护命令。
+
 ## Write observation before declaring emotion / 先写观察，再让情绪发生
 
 In travel and personal essays, choose the details that distinguish this place or moment: the lettering of a sign, the spacing of boats, the color of water against stone. Let a change of scene, scale or pace carry the reader. Vary longer descriptive sentences with shorter ones that let an image settle. Do not attach a metaphor to every object; a precise detail often needs no embellishment.

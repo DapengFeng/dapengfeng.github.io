@@ -241,6 +241,30 @@
         "en": "Symmetry mainly reduces storage; a narrow band can reduce both storage and arithmetic by skipping known zeros.",
         "zh": "对称性主要节省存储；窄带结构还可跳过已知为零的元素，同时减少存储与计算。"
       }
+    },
+    {
+      "source": "parallel-libraries-dense-sparse",
+      "target": "benchmark-with-evidence",
+      "reason": {
+        "en": "Separate what a timer measures from what a benchmark can establish, including repetitions, initialization and uncertainty.",
+        "zh": "继续区分计时器测到了什么、基准测试能证明什么，理解重复、初始化与不确定性。"
+      }
+    },
+    {
+      "source": "parallel-libraries-dense-sparse",
+      "target": "matrix-multiplication",
+      "reason": {
+        "en": "Matvec has little data reuse. Matrix–matrix multiplication introduces blocking and a different arithmetic-intensity tradeoff.",
+        "zh": "矩阵向量乘法的数据复用有限；矩阵矩阵乘法引入分块，改变算术强度与访存的关系。"
+      }
+    },
+    {
+      "source": "benchmark-with-evidence",
+      "target": "parallel-libraries-dense-sparse",
+      "reason": {
+        "en": "Inspect a recorded dense and sparse experiment across C++, Rust and Python, with process-tree memory, sustained load and raw evidence.",
+        "zh": "查看 C++、Rust 与 Python 的稠密／稀疏实测，追踪进程树内存、持续压测与原始数据。"
+      }
     }
   ]
 }
