@@ -38,7 +38,17 @@ try{
   await page.keyboard.press('Escape');await scrollTo(0);
  }
  await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
- await page.locator('.search-trigger').click();await page.locator('#global-search').fill('EventProp');await page.waitForSelector('.search-result');assert.equal(await page.locator('.search-results a[href="/blog/spike_notes.html"]').count(),1);await page.keyboard.press('Escape');assert.equal(await page.locator('dialog').isVisible(),false);
+ await page.locator('.search-trigger').click();
+ // Start from an empty result set so cached/default results cannot satisfy the next query.
+ await page.locator('#global-search').fill('no-such-result-1234');
+ await page.locator('.search-results .empty-state').waitFor({state:'visible'});
+ assert.equal(await page.locator('.search-result').count(),0);
+ await page.locator('#global-search').fill('EventProp');
+ const spikeResult=page.locator('.search-results a[href="/blog/spike_notes.html"]');
+ await spikeResult.waitFor({state:'visible'});
+ assert.equal(await spikeResult.count(),1);
+ assert.equal(await page.locator('.search-results a[href="/blog/tesla-roadster-2-physics.html"]').count(),0,'search excludes an unrelated article');
+ await page.keyboard.press('Escape');assert.equal(await page.locator('dialog').isVisible(),false);
  // Catalog membership grows with publication; compare article identities, not fixed totals.
  const visibleLibraryUrls=()=>page.locator('[data-library] .knowledge-card:visible .card-link').evaluateAll(links=>links.map(link=>link.getAttribute('href')).sort());
  const categoryUrls=category=>visiblePosts.filter(post=>category==='all'||post.category===category).map(post=>post.url).sort();
