@@ -59,6 +59,25 @@ html[data-language="both"] .section-heading h2 .i18n > [data-lang="zh"] { font-s
 .article-heading h1 { text-wrap: balance; }
 .article-technical .article-heading { max-width: 1000px; }
 .article-technical #article-content :is(figure, .equation, .interactive-lab) { scroll-margin-top: 32px; }
+/* Roadster leads with its accessible engineering figure in the article body. */
+@supports selector(:has(*)) {
+ .article-page:has(.rd-article) > .breadcrumbs { padding-block: 18px; }
+ .article-page:has(.rd-article) > .article-heading { max-width: 1100px; padding-block: 4px 24px; }
+ .article-page:has(.rd-article) > .article-heading > h1 { font-size: clamp(30px, 3.35vw, 48px); line-height: 1.2; letter-spacing: -.035em; margin: 0 0 16px; text-wrap: balance; }
+ .article-page:has(.rd-article) > .article-heading > h1 .i18n { gap: 12px; }
+ .article-page:has(.rd-article) > .article-heading > h1 .i18n > [data-lang="zh"] { line-height: 1.35; letter-spacing: -.02em; }
+ .article-page:has(.rd-article) > .article-heading > p { margin: 0; max-width: 78ch; line-height: 1.75; }
+ .article-page:has(.rd-article) > .article-heading > .article-byline { gap: 10px 16px; margin-top: 18px; }
+ .article-page:has(.rd-article) > .article-heading > .article-tags { gap: 8px 16px; margin-top: 12px; }
+ .article-page:has(.rd-article) > .reading-layout { border-top-color: #96b7c12b; padding-top: 24px; }
+ .article-page:has(.rd-article) .article-toc nav > a { border-left-color: #96b7c12b; }
+ .article-page:has(.rd-article) .article-toc nav > a:is(.active, :hover) { color: #bcecc0; border-left-color: #bcecc0; background: #bcecc009; }
+ .article-page:has(.rd-article) #article-content .formula-block { border-width: 1px 0; border-color: #53656d; border-radius: 0; background: #111a204d; }
+ @media (max-width: 560px) {
+  .article-page:has(.rd-article) > .article-heading > h1 { font-size: 30px; }
+  .article-page:has(.rd-article) > .reading-layout { padding-top: 20px; }
+ }
+}
 .article-travel .article-heading { max-width: 860px; margin-inline: auto; }
 .article-travel .article-heading > .overline,.article-travel .article-tags { display: none; }
 .article-travel .article-heading h1 { font-family: var(--serif, Georgia), 'Noto Serif CJK SC', 'Songti SC', serif; font-weight: 500; line-height: 1.4; }

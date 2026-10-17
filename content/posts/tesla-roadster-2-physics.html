@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roadster 2: engineering beyond the tyre limit</title>
+<script type="application/json" id="article-metadata">{
+  "titleEn": "Roadster 2: engineering beyond the tyre limit",
+  "title": "Roadster 2：突破轮胎限制的系统工程",
+  "descriptionEn": "A one-second launch needs more than motor power. Map the required suction and thrust, then calculate when fan power makes extra grip counterproductive.",
+  "description": "一秒起步，需要怎样的吸附力与推力组合？从整车受力反算条件，再看风扇功耗何时让更强的抓地力得不偿失。",
+  "cardDescriptionEn": "Map the suction and thrust needed for a one-second launch, then use a shared power budget to find when extra downforce stops improving acceleration.",
+  "cardDescription": "反算一秒起步需要的吸附力与推力组合，再用共用功率预算找出下压力何时不再改善加速。",
+  "date": "2026-10-17",
+  "category": "physics",
+  "tags": [
+    "Tesla",
+    "Roadster",
+    "Mechanics",
+    "Electric vehicles"
+  ],
+  "art": "wave",
+  "cover": "/assets/content/roadster/roadster-event.webp"
+}</script>
+<style>
+.rd-article{--rd-line:#34424b;--rd-mint:#bcecc0;--rd-blue:#97d5f5;--rd-gas:#f4bb83;counter-reset:rd-section}
+.rd-article [data-lang]{overflow-wrap:break-word}
+.rd-article .rd-source{margin-top:12px}.rd-article .rd-source a{font-size:16px}
+.rd-article .rd-section{counter-increment:rd-section;position:relative;padding-top:26px!important;margin-top:64px!important;border-top:1px solid var(--rd-line)}
+.rd-article .rd-section::before{content:counter(rd-section,decimal-leading-zero);display:block;color:#9dacb8;font:16px/1.5 var(--mono);margin-bottom:12px;letter-spacing:.12em}
+.rd-article .rd-section:first-child{margin-top:0!important;padding-top:0!important;border:0}
+.rd-article .rd-force-overview{margin:36px 0}
+.rd-force-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px}
+.rd-force-card{background:#111a20;border:1px solid var(--rd-line);border-top:2px solid var(--rd-tone);border-radius:6px;overflow:hidden;--rd-tone:var(--rd-mint)}
+.rd-force-suction{--rd-tone:var(--rd-blue)}.rd-force-jet{--rd-tone:var(--rd-gas)}
+.rd-force-label{display:flex;align-items:baseline;gap:12px;padding:18px 18px 0;font-size:16px;color:var(--rd-tone)}
+.rd-force-label strong{font-weight:500}.rd-force-card [data-lang]{display:block}
+.rd-index{font:16px/1.5 var(--mono);opacity:.85}.rd-article .rd-force-card img{display:block;width:100%;height:auto;margin:12px 0}
+.rd-force-copy{padding:0 18px 18px}.rd-force-copy>strong{font-weight:550;font-size:20px;line-height:1.6}
+.rd-article .rd-force-copy p{font-size:16px!important;line-height:1.75!important;margin:10px 0 0;color:#c4cfd5}
+.rd-article .rd-force-overview figcaption{margin:16px 0 0;font-size:16px;line-height:1.8;color:#bcc8cf}
+.rd-article .rd-figure{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:center;gap:clamp(20px,3vw,36px);margin:36px 0;padding:clamp(18px,2.3vw,30px);border:1px solid var(--rd-line);border-radius:8px;background:#11222b}
+.rd-article .rd-figure img{width:100%;max-width:540px;height:auto;display:block;margin:0 auto}
+.rd-article .rd-figure figcaption{margin:0;font-size:16px;color:#d4e1e5;line-height:1.8}
+.rd-article .rd-figure figcaption [data-lang]{display:block}
+.rd-figure-heading{font-size:24px;font-weight:550;line-height:1.5;letter-spacing:-.02em}
+.rd-article .rd-figure-summary{font-size:18px!important;line-height:1.8!important;margin:20px 0;color:#d4e1e5}
+.rd-caption-detail{padding-top:20px;border-top:1px solid var(--rd-line);color:#bbcbd2}
+.rd-article .rd-video{border:0;border-radius:0;background:transparent;margin:36px 0}
+.rd-video-stage{position:relative;aspect-ratio:16/9;background:#070b10;overflow:hidden;border:1px solid var(--rd-line);border-radius:8px}
+.rd-video-stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.rd-video-art{position:absolute;inset:0;pointer-events:none}.rd-video-art img{display:block;width:100%;height:100%;object-fit:contain}
+.rd-article .rd-video-play{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);display:grid;place-items:center;border:1px solid #f7fbff80;background:#081015b3;backdrop-filter:blur(8px);padding:12px;color:#fff;cursor:pointer;border-radius:50%;min-width:68px;min-height:68px;box-shadow:0 4px 24px #0005}
+.rd-article .rd-video-play svg{width:44px!important;height:44px!important;display:block}.rd-article .rd-video-play[hidden]{display:none}.rd-article .rd-video-play:hover{background:#32414be6}.rd-article .rd-video-play:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.rd-video-meta{position:absolute;left:20px;bottom:16px;font:16px/1.5 var(--mono);letter-spacing:.04em;color:#d7e2e8;pointer-events:none;text-shadow:0 1px 4px #000}
+.rd-article .rd-video figcaption{margin:0;padding:0;display:block;background:transparent;border:0}
+.rd-article .rd-chapters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 20px;margin:0!important;padding:10px 0;border-bottom:1px solid var(--rd-line)}
+.rd-article .rd-chapters a{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;min-width:0;padding:6px 0;font-size:16px;line-height:1.6;color:#d1dce0!important;text-decoration:none!important;border:0!important;background:none!important}
+.rd-article .rd-chapters a:hover,.rd-article .rd-chapters a:focus-visible{color:var(--rd-mint)!important;text-decoration:underline!important;text-underline-offset:4px}
+.rd-article .rd-chapters time{font:16px/1.6 var(--mono);color:var(--rd-blue)}
+.rd-chapter-name [data-lang],.rd-video-source>[data-lang],.rd-configurations [data-lang]{display:block}
+.rd-article .rd-video-source{padding-top:12px;font-size:16px;line-height:1.7;color:#b8c4ca}
+.rd-article .rd-video-source a{font-size:16px;color:inherit!important;text-decoration-color:#81969c88!important;text-underline-offset:4px}
+.rd-article .rd-configurations{margin:30px 0 12px;padding:0;border:0}
+.rd-configurations>div{display:grid;grid-template-columns:145px minmax(0,1fr);gap:20px;padding:12px 0;border-bottom:1px solid #34424b88}
+.rd-configurations dt{font-size:18px;font-weight:500;line-height:1.7;color:#e7eeea}
+.rd-configurations dd{margin:0;font-size:18px;line-height:1.7;color:#c7d1d4}
+.rd-article .rd-configuration-source{font-size:16px!important;line-height:1.7!important;margin:14px 0 28px!important;color:#b8c4ca}
+.rd-launch{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:24px;padding:30px 0;margin:28px 0;border-top:1px solid var(--rd-line);border-bottom:1px solid var(--rd-line)}
+.rd-launch>div{display:flex;flex-direction:column;gap:14px}.rd-launch-value{font:500 clamp(32px,4vw,52px)/1.1 var(--mono);letter-spacing:-.04em;color:#eff5f1}.rd-launch-value small{font-size:.55em;color:var(--rd-mint);font-weight:400}.rd-launch>div+div{border-left:1px solid var(--rd-line);padding-left:24px}.rd-launch-label{font-size:16px;line-height:1.6;color:#c1cdd2}.rd-launch-label [data-lang]{display:block}
+.rd-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:24px 0;border-bottom:1px solid var(--rd-line)}
+.rd-numbers>div{padding:12px 18px 24px 0}.rd-numbers>div+div{border-left:1px solid var(--rd-line);padding-left:22px}.rd-numbers strong{display:block;font:500 clamp(22px,2vw,30px)/1.5 var(--mono);color:var(--rd-mint);margin-bottom:10px}.rd-numbers [data-lang]{display:block;font-size:16px;line-height:1.7}
+.rd-article .rd-questions{counter-reset:rd-question;list-style:none;padding:0!important;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:30px 0}
+.rd-article .rd-questions li{counter-increment:rd-question;position:relative;padding:20px 0 0!important;margin:0;border-top:1px solid var(--rd-line)}.rd-questions li::before{content:counter(rd-question,decimal-leading-zero);display:block;font:16px/1.5 var(--mono);color:var(--rd-blue);margin-bottom:12px}.rd-questions li [data-lang]{display:block}
+@media(max-width:1150px){.rd-article .rd-figure{grid-template-columns:1fr}.rd-article .rd-figure figcaption{border-top:1px solid var(--rd-line);padding-top:22px}.rd-caption-detail{border:0;padding:0}}
+@media(max-width:650px){.rd-article .rd-section{margin-top:48px!important}.rd-article .rd-chapters{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px}.rd-configurations>div{grid-template-columns:1fr;gap:4px;padding:12px 0}.rd-numbers{grid-template-columns:1fr}.rd-numbers>div{padding:16px 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;align-items:center}.rd-numbers>div+div{border-left:0;border-top:1px solid var(--rd-line);padding-left:0}.rd-numbers strong{margin:0;font-size:21px}.rd-video-meta{left:14px;bottom:10px;font-size:16px}.rd-launch{gap:12px;padding:24px 0}.rd-launch-value{font-size:32px}.rd-launch>div+div{padding-left:16px}.rd-article .rd-questions{grid-template-columns:1fr;gap:24px}.rd-force-grid{grid-template-columns:1fr}.rd-figure-heading{font-size:23px}}
+@media print{.rd-article .rd-video-play{display:none}.rd-article .rd-force-card,.rd-article .rd-figure,.rd-article .rd-video{break-inside:avoid}.rd-article .rd-section{break-after:avoid}}
+
+.rd-envelope{--re-paper:#132126;--re-ink:#f2eee3;--re-muted:#b6c1c0;--re-line:#39484d;--re-tires:#bcecc0;--re-suction:#97d5f5;--re-thrust:#f4bb83;margin:30px 0;padding:clamp(16px,2.8vw,28px);border:1px solid #435052;border-radius:12px;background:var(--re-paper);color:var(--re-ink);container-type:inline-size}
+.rd-envelope [data-lang]{color:inherit;opacity:1}
+.rd-envelope-heading{margin:0 0 22px;font-size:22px;font-weight:600;line-height:1.5}
+.rd-envelope-heading [data-lang],.rd-envelope-result-name [data-lang],.rd-envelope-result-heading [data-lang],.rd-envelope-control label [data-lang],.rd-envelope-plot-note [data-lang],.rd-envelope-control-help [data-lang],.rd-envelope-caption [data-lang]{display:block}
+.rd-envelope-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:clamp(20px,3vw,32px);align-items:start}
+.rd-envelope-plot{min-width:0}
+.rd-envelope-plot>svg{display:block;width:100%;height:auto;max-width:480px;margin:0 auto;overflow:visible}
+.rd-envelope-plot>svg text{fill:var(--re-muted);font:22px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace}
+.rd-envelope-plot>svg .rd-envelope-axis-label{fill:var(--re-ink);font:italic 23px/1.2 Georgia,'Times New Roman',serif}
+.rd-envelope-grid path{fill:none;stroke:#60737a;stroke-opacity:.24;stroke-width:1}
+.rd-envelope-grid path.rd-envelope-zero{stroke:#a4b4b7;stroke-opacity:.6;stroke-width:1.25}
+.rd-envelope-curve{stroke-width:2.5;vector-effect:non-scaling-stroke}
+.rd-envelope-curve-tires{stroke:var(--re-tires)}
+.rd-envelope-curve-suction{stroke:var(--re-suction);stroke-dasharray:8 5}
+.rd-envelope-curve-thrust{stroke:var(--re-thrust);stroke-dasharray:11 4 2 4}
+.rd-envelope-demand-line{stroke:#f2eee3;stroke-width:1.5;stroke-opacity:.85}
+.rd-envelope-demand-cap{fill:none;stroke:#f2eee3;stroke-width:1.5}
+.rd-envelope-point{stroke:var(--re-paper);stroke-width:2}
+.rd-envelope-point-tires{fill:var(--re-tires)}.rd-envelope-point-suction{fill:var(--re-suction)}.rd-envelope-point-thrust{fill:var(--re-thrust)}
+.rd-envelope-plot-note,.rd-envelope-control-help,.rd-envelope-caption{color:var(--re-muted);font-size:16px;line-height:1.65}
+.rd-envelope-plot-note{margin:12px 0 0}
+.rd-envelope-result-heading{margin:0 0 8px;font-size:18px;line-height:1.5}
+.rd-envelope-symbol{font-family:Georgia,'Times New Roman',serif;font-style:italic;white-space:nowrap}
+.rd-envelope-result{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid var(--re-line)}
+.rd-envelope-result-tires{--re-case:var(--re-tires)}.rd-envelope-result-suction{--re-case:var(--re-suction)}.rd-envelope-result-thrust{--re-case:var(--re-thrust)}
+.rd-envelope-result-name{display:flex;align-items:flex-start;gap:9px;font-size:17px;line-height:1.45;min-width:0}
+.rd-envelope-key{display:block;flex:0 0 32px;width:32px;margin-top:4px;color:var(--re-case)}
+.rd-envelope-key svg{display:block;width:100%;height:auto;overflow:visible;fill:var(--re-case);stroke:var(--re-case);stroke-width:2}
+.rd-envelope-key svg>path:first-child{fill:none}
+.rd-envelope-parameters{display:block;margin-top:5px;font:16px/1.5 Georgia,'Times New Roman',serif;color:var(--re-muted);white-space:nowrap}
+.rd-envelope-result-number{flex:none;margin:0;white-space:nowrap;color:var(--re-case);font:600 27px/1.25 ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}
+.rd-envelope-result-number>span{font:italic 18px/1.2 Georgia,'Times New Roman',serif}
+.rd-envelope-control{margin-top:23px}
+.rd-envelope-control label{display:block;font-size:17px;line-height:1.5}
+.rd-envelope-control-value{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:8px;font-size:20px}
+.rd-envelope-control-value output{font:600 22px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}
+.rd-envelope-control input[type=range]{display:block;width:100%;height:32px;margin:6px 0 0;padding:0;accent-color:#bcecc0;cursor:pointer}
+.rd-envelope-control input[type=range]:disabled{cursor:default;opacity:.65}
+.rd-envelope-control input[type=range]:focus-visible{outline:3px solid #f2eee3;outline-offset:4px;border-radius:3px}
+.rd-envelope-range-ends{display:flex;justify-content:space-between;color:var(--re-muted);font:16px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace}
+.rd-envelope-control-help{margin:9px 0 0}
+.rd-envelope-caption{margin:22px 0 0;padding-top:18px;border-top:1px solid var(--re-line)}
+.rd-envelope-caption p{margin:0;font-size:inherit;line-height:inherit;color:inherit}.rd-envelope-caption p+p{margin-top:10px}
+@container(max-width:660px){.rd-envelope-layout{grid-template-columns:1fr;gap:24px}.rd-envelope-plot>svg{max-width:420px}.rd-envelope-heading{font-size:20px}.rd-envelope-reading{min-width:0}}
+@media(max-width:720px){.rd-envelope-layout{grid-template-columns:1fr;gap:24px}.rd-envelope-plot>svg{max-width:420px}}
+@media(prefers-reduced-motion:reduce){.rd-envelope *{animation:none!important;transition:none!important}}
+
+.rd-article .rd-envelope-result-number{font:600 27px/1.25 var(--mono)!important}.rd-article .rd-envelope-plot-note,.rd-article .rd-envelope-control-help,.rd-article .rd-envelope-caption p{font-size:16px!important;line-height:1.75!important}.rd-article .rd-envelope{border-radius:8px;background:#111a20}.rd-article .rd-envelope-result-number>span{font-size:18px}
+@media(max-width:400px){.rd-envelope-plot>svg text,.rd-envelope-plot>svg .rd-envelope-axis-label{font-size:26px}.rd-envelope-parameters{white-space:normal}.rd-envelope-result{gap:8px}.rd-envelope-key{flex-basis:26px;width:26px}.rd-envelope-result-name{gap:6px}}
+
+@container(max-width:460px){
+ .rd-envelope-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+ .rd-envelope-result{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 0}
+ .rd-envelope-result-name{display:block;font-size:16px}
+ .rd-envelope-key{margin:0 0 8px;width:28px}
+ .rd-envelope-parameters{white-space:normal;font-size:16px}
+ .rd-article .rd-envelope-result-number{font-size:22px!important;margin-top:auto!important}
+ .rd-envelope-result-number>span{font-size:16px!important}
+ .rd-envelope-control{margin-top:18px}
+ .rd-envelope-layout{gap:16px}
+ .rd-envelope-plot>svg{max-width:300px}
+ .rd-envelope-plot>svg text,.rd-envelope-plot>svg .rd-envelope-axis-label{font-size:26px}
+}
+.rd-article .rd-design-map{margin:32px 0;padding:clamp(16px,2.6vw,28px);border:1px solid var(--rd-line);border-radius:8px;background:#111a20;container-type:inline-size}
+.rd-design-heading{font-size:22px;font-weight:600;line-height:1.5;margin-bottom:20px}.rd-design-heading [data-lang],.rd-design-case [data-lang]{display:block}
+.rd-design-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(240px,1fr);gap:24px;align-items:center}
+.rd-design-layout>img{display:block;width:100%;max-width:480px;height:auto;margin:0 auto!important}
+.rd-design-case{display:grid;grid-template-columns:24px minmax(0,1fr);gap:14px;padding:18px 0;border-bottom:1px solid var(--rd-line);font-size:16px;line-height:1.7;color:#c4cfd5}
+.rd-design-case:first-child{padding-top:0}.rd-design-case:last-child{border:0;padding-bottom:0}
+.rd-design-letter{font:500 22px/1.6 var(--mono);color:#f2eee3}.rd-design-thrust .rd-design-letter{color:var(--rd-gas)}.rd-design-suction .rd-design-letter{color:var(--rd-blue)}
+.rd-design-case strong{font-size:18px;font-weight:500;color:#edf1ed}.rd-design-params{display:block;margin:8px 0;font-family:var(--mono);font-size:16px;color:#dbe7e7}
+.rd-article .rd-design-map figcaption{margin:22px 0 0;padding-top:18px;border-top:1px solid var(--rd-line);font-size:16px;line-height:1.7;color:#b6c1c0}.rd-design-map figcaption [data-lang]{display:block}
+@container(max-width:620px){.rd-design-layout{grid-template-columns:1fr;gap:20px}.rd-design-layout>img{max-width:400px}.rd-design-heading{font-size:20px}}
+@media(max-width:650px){.rd-design-layout{grid-template-columns:1fr}.rd-design-layout>img{max-width:400px}}
+
+.rd-article .rd-power{margin:32px 0;padding:clamp(16px,2.6vw,28px);border:1px solid var(--rd-line);border-radius:8px;background:#111a20;container-type:inline-size}
+.rd-power-heading{font-size:22px;font-weight:600;line-height:1.5;margin-bottom:20px}
+.rd-power-heading [data-lang],.rd-power-case [data-lang],.rd-power-legend [data-lang],.rd-power figcaption [data-lang],.rd-power-details [data-lang]{display:block}
+.rd-power-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(240px,1fr);gap:24px;align-items:center}
+.rd-power-plot{min-width:0}.rd-power-plot img{display:block;width:100%;max-width:480px;height:auto;margin:0 auto!important}
+.rd-article .rd-power-legend{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:8px}
+.rd-article .rd-power-legend li{display:flex;gap:12px;align-items:flex-start;padding:0;margin:0;font-size:16px;line-height:1.6;color:#c4cfd5}
+.rd-power-legend i{display:block;flex:none;width:28px;height:0;border-top:2px dashed var(--rd-blue);margin-top:12px}.rd-power-legend .rd-power-drive i{border-color:var(--rd-gas)}.rd-power-legend .rd-power-actual i{border:3px solid var(--rd-mint)}
+.rd-power-case{display:grid;grid-template-columns:24px minmax(0,1fr);gap:14px;padding:18px 0;border-bottom:1px solid var(--rd-line);font-size:16px;line-height:1.7;color:#c4cfd5}
+.rd-power-case:first-child{padding-top:0}.rd-power-case:last-child{border:0;padding-bottom:0}.rd-power-case strong{font-size:18px;font-weight:500;color:#edf1ed}
+.rd-power-letter{font:500 22px/1.6 var(--mono);color:#dbe7e7}.rd-power-best .rd-power-letter{color:var(--rd-mint)}
+.rd-power-value{display:block;font:500 27px/1.5 var(--mono);color:#dbe7e7;margin:6px 0}.rd-power-best .rd-power-value{color:var(--rd-mint)}.rd-power-params{display:block;font:16px/1.7 var(--mono)}
+.rd-article .rd-power figcaption{margin:22px 0 0;padding-top:18px;border-top:1px solid var(--rd-line);font-size:16px;line-height:1.7;color:#b6c1c0}
+.rd-article .rd-power-details{margin:28px 0;border-top:1px solid var(--rd-line);border-bottom:1px solid var(--rd-line);padding:16px 0}
+.rd-power-details summary{cursor:pointer;font-size:18px;line-height:1.8;color:#dbe7e7}.rd-power-details summary [data-lang]{display:inline}.rd-power-details summary [data-lang]+[data-lang]::before{content:' / '}
+.rd-power-details summary:focus-visible{outline:2px solid var(--rd-mint);outline-offset:6px}.rd-power-details[open] summary{margin-bottom:20px}
+.rd-article .rd-power-parameters{margin:24px 0}.rd-power-parameters>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:12px 0;border-bottom:1px solid var(--rd-line);font-size:16px;line-height:1.7}.rd-power-parameters dt{color:#b6c1c0}.rd-power-parameters dd{margin:0;color:#dbe7e7}
+html[data-language="zh"] .rd-power-details summary [data-lang]+[data-lang]::before{content:none}
+@container(max-width:620px){.rd-power-layout{grid-template-columns:1fr;gap:24px}.rd-power-plot img{max-width:400px}.rd-power-heading{font-size:20px}}
+@media(max-width:650px){.rd-power-layout{grid-template-columns:1fr}.rd-power-plot img{max-width:400px}.rd-power-parameters>div{grid-template-columns:1fr;gap:4px}}
+
+</style></head>
+<body><div class="lesson rd-article">
+<h2 class="parallel-text rd-section" id="force-first"><span lang="en" data-lang="en">Start with the force, not the motor rating</span><span lang="zh-CN" data-lang="zh">先看整车能得到多少力</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">Suction increases the force tyres can transmit; a jet adds force directly to the car. The difference is geometric: <strong>one enlarges the tyre-force circle, the other shifts the total-force envelope.</strong> Here forward force is horizontal, cornering force vertical, and one unit is the car’s weight, <span data-math="mg" data-display="inline"></span>.</span><span lang="zh-CN" data-lang="zh">负压增加轮胎能传递的力，喷流直接给车身增加推力。两者在图上的区别是：<strong>一个扩大轮胎受力的圆，一个平移整车合力的范围。</strong>横轴表示向前的力，纵轴表示转弯的力，单位是车重 <span data-math="mg" data-display="inline"></span>。</span></p>
+<figure id="force-envelope" class="rd-envelope" data-roadster-envelope aria-labelledby="rd-envelope-title">
+  <div class="rd-envelope-heading" id="rd-envelope-title">
+    <span lang="en" data-lang="en">Three ways to change the available force</span>
+    <span lang="zh-CN" data-lang="zh">三条路径，改变可用力的边界</span>
+  </div>
+  <div class="rd-envelope-layout">
+    <div class="rd-envelope-plot">
+      <svg viewBox="0 0 380 388" width="380" height="388" role="img" aria-labelledby="rd-envelope-svg-title rd-envelope-svg-desc">
+        <title id="rd-envelope-svg-title">Available-force envelopes on common normalized axes / 共用归一化坐标轴上的可用力范围</title>
+        <desc id="rd-envelope-svg-desc">With no cornering demand, longitudinal capacities are 1.00 mg for tyres, 2.00 mg with suction, and 2.50 mg with suction and direct thrust. The circles represent an ideal tyre-force model, not measured Tesla performance. / 侧向需求为零时，纵向能力分别为 1.00 mg、2.00 mg 和 2.50 mg，对应轮胎、加吸附力、再加直接推力。圆形边界表示理想轮胎受力模型，不是特斯拉实测性能。</desc>
+        <defs>
+          <pattern id="rd-envelope-slice-hatch" patternUnits="userSpaceOnUse" width="7" height="7"><path d="M0 7 7 0" stroke="#f2eee3" stroke-opacity=".13" stroke-width="1"/></pattern>
+        </defs>
+        <!-- Equal scale in both directions: 56 SVG units = 1 mg. Origin (188,178). -->
+        <g class="rd-envelope-grid" aria-hidden="true">
+          <path d="M76 38V318M132 38V318M244 38V318M300 38V318M48 66H356M48 122H356M48 234H356M48 290H356"/>
+          <path class="rd-envelope-zero" d="M188 38V318M48 178H356"/>
+        </g>
+        <g class="rd-envelope-ticks" aria-hidden="true">
+          <text x="76" y="345" text-anchor="middle">−2</text><text x="188" y="345" text-anchor="middle">0</text><text x="300" y="345" text-anchor="middle">2</text>
+          <text x="35" y="73" text-anchor="end">2</text><text x="35" y="185" text-anchor="end">0</text><text x="35" y="297" text-anchor="end">−2</text>
+          <text class="rd-envelope-axis-label" x="48" y="24">Fᵧ/(mg)</text><text class="rd-envelope-axis-label" x="356" y="380" text-anchor="end">Fₓ/(mg)</text>
+        </g>
+        <g class="rd-envelope-curves" fill="none" aria-hidden="true">
+          <circle class="rd-envelope-curve rd-envelope-curve-tires" cx="188" cy="178" r="56"/>
+          <circle class="rd-envelope-curve rd-envelope-curve-suction" cx="188" cy="178" r="112"/>
+          <circle class="rd-envelope-curve rd-envelope-curve-thrust" cx="216" cy="178" r="112"/>
+        </g>
+        <g data-envelope-slice transform="translate(0 178)" aria-hidden="true">
+          <rect x="48" y="-5" width="308" height="10" fill="url(#rd-envelope-slice-hatch)"/>
+          <path class="rd-envelope-demand-line" d="M48 0H356"/>
+          <path class="rd-envelope-demand-cap" d="M48-6V6M356-6V6"/>
+        </g>
+        <!-- Right-hand intersections are total available forward force, including Tx. -->
+        <g aria-hidden="true">
+          <circle class="rd-envelope-point rd-envelope-point-tires" data-envelope-point="tires" cx="244" cy="178" r="6"/>
+          <rect class="rd-envelope-point rd-envelope-point-suction" data-envelope-point="suction" x="294" y="172" width="12" height="12" rx="1"/>
+          <path class="rd-envelope-point rd-envelope-point-thrust" data-envelope-point="thrust" transform="translate(328 178)" d="M0-8 8 0 0 8-8 0Z"/>
+        </g>
+      </svg>
+
+    </div>
+    <div class="rd-envelope-reading">
+      <p class="rd-envelope-result-heading">
+        <span lang="en" data-lang="en">Available forward force <span class="rd-envelope-symbol">Fₓ,max</span></span>
+        <span lang="zh-CN" data-lang="zh">可用纵向力 <span class="rd-envelope-symbol">Fₓ,max</span></span>
+      </p>
+      <div class="rd-envelope-results" aria-live="polite" aria-atomic="true">
+        <div class="rd-envelope-result rd-envelope-result-tires">
+          <div class="rd-envelope-result-name">
+            <span class="rd-envelope-key" aria-hidden="true"><svg viewBox="0 0 52 18"><path d="M1 9H51"/><circle cx="26" cy="9" r="4"/></svg></span>
+            <div><span lang="en" data-lang="en">Tyres</span><span lang="zh-CN" data-lang="zh">轮胎</span><span class="rd-envelope-parameters">D = 0; Tₓ = 0</span></div>
+          </div>
+          <p class="rd-envelope-result-number"><output data-envelope-output="tires">1.00</output><span> mg</span></p>
+        </div>
+        <div class="rd-envelope-result rd-envelope-result-suction">
+          <div class="rd-envelope-result-name">
+            <span class="rd-envelope-key" aria-hidden="true"><svg viewBox="0 0 52 18"><path d="M1 9H51" stroke-dasharray="7 4"/><rect x="22" y="5" width="8" height="8"/></svg></span>
+            <div><span lang="en" data-lang="en">With suction</span><span lang="zh-CN" data-lang="zh">加吸附力</span><span class="rd-envelope-parameters">D = mg; Tₓ = 0</span></div>
+          </div>
+          <p class="rd-envelope-result-number"><output data-envelope-output="suction">2.00</output><span> mg</span></p>
+        </div>
+        <div class="rd-envelope-result rd-envelope-result-thrust">
+          <div class="rd-envelope-result-name">
+            <span class="rd-envelope-key" aria-hidden="true"><svg viewBox="0 0 52 18"><path d="M1 9H51" stroke-dasharray="8 3 2 3"/><path d="M26 3 32 9 26 15 20 9Z"/></svg></span>
+            <div><span lang="en" data-lang="en">Suction + thrust</span><span lang="zh-CN" data-lang="zh">吸附力 + 推力</span><span class="rd-envelope-parameters">D = mg; Tₓ = 0.5mg</span></div>
+          </div>
+          <p class="rd-envelope-result-number"><output data-envelope-output="thrust">2.50</output><span> mg</span></p>
+        </div>
+      </div>
+      <div class="rd-envelope-control">
+        <label for="rd-envelope-demand"><span lang="en" data-lang="en">Cornering demand</span><span lang="zh-CN" data-lang="zh">转弯所需侧向力</span></label>
+        <div class="rd-envelope-control-value"><span class="rd-envelope-symbol">|Fᵧ|/(mg)</span><output for="rd-envelope-demand" data-envelope-demand-value>0.00</output></div>
+        <input id="rd-envelope-demand" data-envelope-input type="range" min="0" max="1" step="0.05" value="0" disabled aria-describedby="rd-envelope-control-help" aria-valuetext="0.00 times vehicle weight / 车重的 0.00 倍">
+        <div class="rd-envelope-range-ends" aria-hidden="true"><span>0</span><span>1</span></div>
+        <p id="rd-envelope-control-help" class="rd-envelope-control-help"><span lang="en" data-lang="en">Change side force to compare all three cases.</span><span lang="zh-CN" data-lang="zh">改变侧向力，同时比较三种情况。</span></p>
+        <noscript><p class="rd-envelope-control-help"><span lang="en" data-lang="en">The static comparison above uses zero cornering demand.</span><span lang="zh-CN" data-lang="zh">上方静态对照取侧向需求为零。</span></p></noscript>
+      </div>
+    </div>
+  </div>
+  <figcaption class="rd-envelope-caption">      <p class="rd-envelope-plot-note">
+        <span lang="en" data-lang="en">The horizontal line fixes the side force. Its rightmost intersections give the forward-force limits.</span>
+        <span lang="zh-CN" data-lang="zh">水平线固定侧向力；各条边界右侧的交点给出纵向力上限。</span>
+      </p>
+    <p><span lang="en" data-lang="en">Figure 1 · μ = 1; N = mg + D. Suction expands the tyre-force circle. Fixed forward thrust shifts the total force envelope: <span data-math="F_x=F_{\mathrm{tire},x}+T_x" data-display="inline"></span>.</span><span lang="zh-CN" data-lang="zh">图 1 · 取 μ = 1、N = mg + D。负压扩大轮胎摩擦圆，固定向前推力平移合力范围：<span data-math="F_x=F_{\mathrm{tire},x}+T_x" data-display="inline"></span>。</span></p>
+    <p><span lang="en" data-lang="en">Ideal force capacity, not measured Tesla acceleration. Drive/brake limits, tyre load sensitivity, drag, load transfer and gas duration are excluded. Negative Fₓ includes braking.</span><span lang="zh-CN" data-lang="zh">这是理想可用力，不是特斯拉实测加速度；未计入驱动／制动限制、轮胎载荷敏感性、阻力、载荷转移与储气时长。横轴负向包含制动。</span></p>
+  </figcaption>
+</figure>
+<p class="parallel-text"><span lang="en" data-lang="en">The strongest illustrative case reaches <strong>2.50g</strong> in a straight line if the drivetrain can use all the grip. A full, no-rollout second from rest to 60 mph requires <strong>2.74g on average</strong>. Even the ideal example falls short: held constant, its best time is 1.094 s. These are model results, not Roadster measurements.</span><span lang="zh-CN" data-lang="zh">图中最强的示例，在电驱能用足全部抓地力时，直线加速度达到 <strong>2.50g</strong>。真正从静止开始，不扣除 rollout，在完整一秒内达到 60 mph，需要平均约 <strong>2.74g</strong>。示例即使全程保持理想上限，最快也需 1.094 秒。这些是模型结果，不是 Roadster 实测。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">That gap gives us a design problem: <a href="#launch-design-space">how much suction or direct thrust would close it?</a> Then the harder tradeoff: <a href="#fan-power-tradeoff">when does the fan consume more useful drive power than its extra grip is worth?</a></span><span lang="zh-CN" data-lang="zh">由此可以反算设计条件：<a href="#launch-design-space">增加多少吸附力或直接推力，才能补上差距？</a>接着再算代价：<a href="#fan-power-tradeoff">什么时候，风扇占用的驱动功率会抵消新增抓地力的收益？</a></span></p>
+<h2 class="parallel-text rd-section" id="watch-the-event"><span lang="en" data-lang="en">What the Roadster demonstration shows</span><span lang="zh-CN" data-lang="zh">从 Roadster 的演示看起</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">Tesla’s <strong>15 October 2026 Roadster event</strong>, featuring Elon Musk and the engineering team, puts both ideas on display. Its published sequences include inverted contact on a ramp and an airborne roll. The useful engineering question is how electric drive, fan suction and cold-gas thrust work together—and how their limits move as the car accelerates, turns or leaves the surface.</span><span lang="zh-CN" data-lang="zh"><strong>2026 年 10 月 15 日，Elon Musk 与工程团队参与的 Tesla Roadster 发布活动</strong>，把这两条思路放到了同一辆车上。官方影像包括倒置坡道上的贴附与空中翻滚。理解这些动作，需要看电驱、风扇负压与冷气推进怎样协同，以及车辆加速、转向、离开表面时，限制条件怎样随之变化。</span></p>
+<figure class="rd-video" id="roadster-video">
+<div class="rd-video-stage" data-roadster-player>
+<div class="rd-video-art" aria-hidden="true"><img src="/assets/content/roadster/roadster-event.webp" width="1280" height="720" alt="" loading="lazy" decoding="async"></div>
+<button class="rd-video-play" type="button" data-roadster-play hidden aria-label="Play Tesla’s Roadster event with Elon Musk / 播放 Elon Musk 参与的 Tesla Roadster 发布视频"><svg viewBox="0 0 48 48" width="64" height="64" aria-hidden="true"><path d="M18 12L36 24L18 36Z" fill="currentColor"/></svg></button>
+<span class="rd-video-meta">TESLA · 2026.10.15 · 23:21</span>
+</div>
+<figcaption class="rd-video-caption"><nav class="rd-chapters" aria-label="Video chapters / 视频章节"><a href="https://www.youtube.com/watch?v=qt5p-_tE8d0&amp;t=363s"><time>06:03</time><span class="rd-chapter-name"><span lang="en" data-lang="en">Ramp</span><span lang="zh-CN" data-lang="zh">倒置坡道</span></span></a><a href="https://www.youtube.com/watch?v=qt5p-_tE8d0&amp;t=656s"><time>10:56</time><span class="rd-chapter-name"><span lang="en" data-lang="en">Kickflip</span><span lang="zh-CN" data-lang="zh">空中翻滚</span></span></a><a href="https://www.youtube.com/watch?v=qt5p-_tE8d0&amp;t=878s"><time>14:38</time><span class="rd-chapter-name"><span lang="en" data-lang="en">Aero</span><span lang="zh-CN" data-lang="zh">空气动力</span></span></a><a href="https://www.youtube.com/watch?v=qt5p-_tE8d0&amp;t=958s"><time>15:58</time><span class="rd-chapter-name"><span lang="en" data-lang="en">Acceleration</span><span lang="zh-CN" data-lang="zh">加速演示</span></span></a></nav><div class="rd-video-source"><span lang="en" data-lang="en"><a data-citation href="https://www.youtube.com/watch?v=qt5p-_tE8d0">Video &amp; artwork: Tesla · Roadster Event</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www.youtube.com/watch?v=qt5p-_tE8d0">视频与宣传图：Tesla · Roadster 发布会</a></span></div></figcaption></figure>
+<dl class="rd-configurations"><div><dt>Performance</dt><dd><span lang="en" data-lang="en">Active aerodynamics and multi-mode suction.</span><span lang="zh-CN" data-lang="zh">主动空气动力装置与多模式负压系统。</span></dd></div><div><dt>Thrust</dt><dd><span lang="en" data-lang="en">Adds rear cold-gas thrusters.</span><span lang="zh-CN" data-lang="zh">增加车尾冷气推进器。</span></dd></div><div><dt>Rocket</dt><dd><span lang="en" data-lang="en">Perimeter thrusters provide upward and forward thrust and rotation. Not approved for public roads.</span><span lang="zh-CN" data-lang="zh">周向推进器提供向上、向前与旋转能力，未获公共道路使用批准。</span></dd></div></dl><p class="parallel-text rd-configuration-source"><span lang="en" data-lang="en">According to <a data-citation href="https://www.tesla.com/el_GR/roadster">Tesla’s configuration descriptions</a>, checked 17 October 2026; not independently tested.</span><span lang="zh-CN" data-lang="zh">据 <a data-citation href="https://www.tesla.com/el_GR/roadster">Tesla 配置说明</a>，核对日期为 2026-10-17；未经独立测试。</span></p><p class="parallel-text"><span lang="en" data-lang="en">The analysis below uses force schematics and explicitly assumed values, not Tesla’s internal design data. The demonstrations show particular manoeuvres; endurance and repeatability require separate measurements.</span><span lang="zh-CN" data-lang="zh">下文使用受力示意与明确假设的数值，不代表 Tesla 的内部设计数据。演示展示了特定动作；持续能力与重复性，需要另外测量。</span></p>
+<h2 class="parallel-text rd-section" id="electric-drive-and-grip"><span lang="en" data-lang="en">Electric drive still has to pass through the tyres</span><span lang="zh-CN" data-lang="zh">电机很强，为什么仍会受轮胎限制？</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">In a battery-electric drivetrain, power electronics regulate the motor, and a transmission delivers torque to the wheels. The motor creates torque through electromagnetic interaction. At the contact patch, a driven tyre pushes the road backwards; the road’s forward force accelerates the car. Increasing motor torque helps only while the tyre can transmit the resulting force.</span><span lang="zh-CN" data-lang="zh">电驱系统中，功率电子装置调节电机，传动机构把转矩传给车轮。电机通过电磁相互作用产生转矩；驱动轮在接触区向后推地面，地面对轮胎的向前作用力才使整车加速。电机继续增加转矩是否有用，取决于轮胎还能不能把这部分力传出去。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://afdc.energy.gov/vehicles/how-do-all-electric-cars-work">U.S. Department of Energy: the battery-electric drivetrain</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://afdc.energy.gov/vehicles/how-do-all-electric-cars-work">美国能源部：纯电动车的动力传递路径</a></span></p>
+<div data-math="\begin{aligned}F_{\mathrm{wheel}}&amp;\approx\frac{\tau_{\mathrm{wheel}}}{r}\\|F_{\mathrm{tire}}|&amp;\lesssim\mu N\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">Here wheel torque <span data-math="\tau_{\mathrm{wheel}}" data-display="inline"></span> divided by rolling radius <span data-math="r" data-display="inline"></span> gives a quasi-static force demand, neglecting wheel rotational inertia. The available tyre force is bounded approximately by friction coefficient <span data-math="\mu" data-display="inline"></span> times normal load <span data-math="N" data-display="inline"></span>. The first quantity is what the drivetrain asks for; the second is what contact with the road can supply.</span><span lang="zh-CN" data-lang="zh">式中，轮端转矩 <span data-math="\tau_{\mathrm{wheel}}" data-display="inline"></span> 除以滚动半径 <span data-math="r" data-display="inline"></span>，是在忽略车轮转动惯量的准静态近似下，对地面驱动力的需求；轮胎可提供的力，则粗略受摩擦系数 <span data-math="\mu" data-display="inline"></span> 与法向载荷 <span data-math="N" data-display="inline"></span> 的乘积约束。前者是动力系统想要多少，后者是轮胎与路面能传递多少。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://openstax.org/books/university-physics-volume-1/pages/6-2-friction">OpenStax: friction as an approximate contact-force model</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://openstax.org/books/university-physics-volume-1/pages/6-2-friction">OpenStax：摩擦力的近似接触模型</a></span></p>
+<figure class="rd-force-overview" id="three-force-paths"><div class="rd-force-grid"><div class="rd-force-card rd-force-tyre"><div class="rd-force-label"><span class="rd-index" aria-hidden="true">01</span><strong><span lang="en" data-lang="en">Wheel torque</span><span lang="zh-CN" data-lang="zh">轮端转矩</span></strong></div><img src="/assets/content/roadster/force-tyre.svg" width="540" height="190" alt="" aria-describedby="three-force-paths-caption" loading="lazy" decoding="async"><div class="rd-force-copy"><strong><span lang="en" data-lang="en">Use the contact</span><span lang="zh-CN" data-lang="zh">利用接触</span></strong><p class="parallel-text"><span lang="en" data-lang="en">The road supplies the force. More torque helps while grip remains.</span><span lang="zh-CN" data-lang="zh">路面提供驱动力；还有附着余量，增加转矩才有用。</span></p></div></div><div class="rd-force-card rd-force-suction"><div class="rd-force-label"><span class="rd-index" aria-hidden="true">02</span><strong><span lang="en" data-lang="en">Suction</span><span lang="zh-CN" data-lang="zh">负压吸附</span></strong></div><img src="/assets/content/roadster/force-suction.svg" width="540" height="190" alt="" aria-describedby="three-force-paths-caption" loading="lazy" decoding="async"><div class="rd-force-copy"><strong><span lang="en" data-lang="en">Raise the limit</span><span lang="zh-CN" data-lang="zh">抬高上限</span></strong><p class="parallel-text"><span lang="en" data-lang="en">Pressure difference adds load without an equivalent mass of ballast.</span><span lang="zh-CN" data-lang="zh">压差增加法向载荷，无需加入等重配重。</span></p></div></div><div class="rd-force-card rd-force-jet"><div class="rd-force-label"><span class="rd-index" aria-hidden="true">03</span><strong><span lang="en" data-lang="en">Cold-gas thrust</span><span lang="zh-CN" data-lang="zh">冷气推力</span></strong></div><img src="/assets/content/roadster/force-jet.svg" width="540" height="190" alt="" aria-describedby="three-force-paths-caption" loading="lazy" decoding="async"><div class="rd-force-copy"><strong><span lang="en" data-lang="en">Add another path</span><span lang="zh-CN" data-lang="zh">增加路径</span></strong><p class="parallel-text"><span lang="en" data-lang="en">Exhaust carries momentum away; the chassis receives thrust directly.</span><span lang="zh-CN" data-lang="zh">排气带走动量，车身直接获得反向推力。</span></p></div></div></div><figcaption class="parallel-text" id="three-force-paths-caption"><span lang="en" data-lang="en">Figure 2 · Three force paths. Mint: contact force. Blue: suction downforce. Amber: jet thrust. Each sketch isolates an added force; it is not a complete free-body diagram or a vehicle-packaging drawing.</span><span lang="zh-CN" data-lang="zh">图 2 · 三条受力路径。绿色为接触力，蓝色为负压下压力，琥珀色为喷流推力。每图只突出新增作用力，并非完整受力图或实车布置。</span></figcaption></figure>
+<p class="parallel-text"><span lang="en" data-lang="en">On a level road, with negligible vertical acceleration and no vertical thruster force, the total normal load is <span data-math="N=mg+D" data-display="inline"></span>. Added downforce <span data-math="D" data-display="inline"></span> increases the tyre-force allowance. A rearward-facing jet supplies a separate forward thrust <span data-math="T_x" data-display="inline"></span>. Their contributions meet in the longitudinal balance:</span><span lang="zh-CN" data-lang="zh">在水平路面、竖直加速度可忽略且没有竖直推力时，总法向载荷为 <span data-math="N=mg+D" data-display="inline"></span>。附加下压力 <span data-math="D" data-display="inline"></span> 增加轮胎可传递的力；朝后的喷流则单独提供向前推力 <span data-math="T_x" data-display="inline"></span>。两者在纵向受力平衡中汇合：</span></p>
+<div data-math="\begin{aligned}ma_x &amp;=F_{\mathrm{tire},x}+T_x\\&amp;\quad-F_{\mathrm{drag}}-F_{\mathrm{roll}}\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">Acceleration and cornering also share the tyre’s available force. In a simple friction-circle approximation, <span data-math="F_{\mathrm{tire},x}^2+F_y^2\le(\mu N)^2" data-display="inline"></span>. If cornering already uses 60% of this radius, the remaining longitudinal allowance is 80%, not 40%. Real tyres have load sensitivity, temperature dependence and slip; the circle is a useful budget, not a tyre datasheet.</span><span lang="zh-CN" data-lang="zh">加速与转弯还会共享轮胎的力预算。简化的摩擦圆模型写成 <span data-math="F_{\mathrm{tire},x}^2+F_y^2\le(\mu N)^2" data-display="inline"></span>。若转弯已用了半径的 60%，纵向最多剩下 80%，并非 40%。真实轮胎还受载荷、温度与滑移影响；这个圆用于理解预算，不能代替轮胎实测数据。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://code.eng.buffalo.edu/dat/sites/tire/tire.html">University at Buffalo: coupled longitudinal and lateral tyre forces</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://code.eng.buffalo.edu/dat/sites/tire/tire.html">布法罗大学：轮胎纵向力、横向力与滑移的耦合</a></span></p>
+<h2 class="parallel-text rd-section" id="suction-downforce"><span lang="en" data-lang="en">Suction works by maintaining a pressure difference</span><span lang="zh-CN" data-lang="zh">负压怎样把车压在路面上？</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">Imagine a shallow chamber between the floor of the car and the road. A fan removes air; a skirt or sealing system limits air leaking back in. Pressure underneath becomes lower than the surrounding pressure. Integrating that pressure difference over the effective area produces a force toward the road. It can exist while the car is stationary, because the fan is doing the work of moving air.</span><span lang="zh-CN" data-lang="zh">把车底与路面之间想象成一个浅腔：风扇向外抽气，裙边或密封结构限制外界空气补进来，车底压强便低于周围环境。把压差在有效面积上累加，就得到朝向路面的力。车辆静止时它也能存在，因为此时负责搬运空气的是风扇。</span></p>
+<div data-math="D_{\mathrm{fan}}\approx\Delta p\,A_{\mathrm{eff}}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">For a scale example only, let the average pressure difference be 5 kPa over 2 m². Then the added force is 10 kN—about the weight of one tonne. Neither number is a Roadster specification. The example shows why a modest fraction of atmospheric pressure, acting over a large area, can produce a substantial force.</span><span lang="zh-CN" data-lang="zh">只做一个数量级例子：假设平均压差为 5 kPa，有效面积为 2 m²，得到的附加力就是 10 kN，约等于一吨物体的重量。这两个数都不是 Roadster 参数。它说明：相对于大气压不算大的压差，作用在较大面积上，也能产生相当大的力。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/aerodynamic-force/">NASA Glenn: summing surface pressure into aerodynamic force</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/aerodynamic-force/">NASA Glenn：如何把表面压强累加成合力</a></span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Conventional wings and underbody aerodynamics depend on incoming airflow. With a downforce coefficient <span data-math="C_{L,d}" data-display="inline"></span> defined positive, their force scales approximately as <span data-math="D_{\mathrm{aero}}=\tfrac12\rho C_{L,d}A v_{\mathrm{air}}^2" data-display="inline"></span>. Near zero airspeed this contribution is small; fan-driven suction can fill that gap. At higher speed both mechanisms can contribute.</span><span lang="zh-CN" data-lang="zh">传统翼面与底部气动结构依赖来流。把下压力系数 <span data-math="C_{L,d}" data-display="inline"></span> 定义为正值，其力近似满足 <span data-math="D_{\mathrm{aero}}=\tfrac12\rho C_{L,d}A v_{\mathrm{air}}^2" data-display="inline"></span>。相对空气速度接近零时，这部分贡献很小；风扇主动建立的压差可以补上这一段，高速时则能与来流产生的下压力共同作用。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/lift-equation-2/">NASA Glenn: force scaling with airflow speed and area</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/lift-equation-2/">NASA Glenn：气动力与来流速度、面积的关系</a></span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Maintaining that pressure costs power. In a simple low-speed airflow estimate, fan shaft power is of order <span data-math="\Delta p\,Q/\eta" data-display="inline"></span>, where <span data-math="Q" data-display="inline"></span> is volume flow and <span data-math="\eta" data-display="inline"></span> is fan aerodynamic efficiency. Larger gaps and leaks demand more flow for the same pressure difference. Ground clearance, bumps and sealing are therefore central design variables, not details that can be omitted from a performance claim.</span><span lang="zh-CN" data-lang="zh">维持压差需要功率。在简单的低速气流估算中，风扇轴功率的量级是 <span data-math="\Delta p\,Q/\eta" data-display="inline"></span>，其中 <span data-math="Q" data-display="inline"></span> 为体积流量，<span data-math="\eta" data-display="inline"></span> 为风扇气动效率。间隙和漏气增大时，要维持同样压差就需搬运更多空气。因此离地间隙、路面起伏与密封方式，都是性能成立的条件。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://x.com/Tesla/status/2110907039493038577">Tesla’s description of its fan and ground-sealing system</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://x.com/Tesla/status/2110907039493038577">Tesla 对风扇与地面密封系统的说明</a></span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Why not simply make the car heavier? In the same constant-friction, all-wheel traction model, added ballast increases available force and inertia together: <span data-math="a_{\max}\approx\mu mg/m=\mu g" data-display="inline"></span>. Downforce can raise normal load without adding an equivalent mass to accelerate. That is its attraction. The fans, seals and ducts still have mass, consume power and impose loads on tyres and suspension; those costs must earn their place on the car.</span><span lang="zh-CN" data-lang="zh">直接把车做重，能不能得到同样的效果？在同一个摩擦系数不变、四轮附着能力都能利用的模型里，配重同时增加可用摩擦力与惯性：<span data-math="a_{\max}\approx\mu mg/m=\mu g" data-display="inline"></span>。下压力可以增加法向载荷，却不需要加入等重的配重一起加速。这正是它的吸引力。不过风扇、密封与风道仍有自重、耗电，也给轮胎和悬架增加负担；这些成本最终都要由性能收益来偿还。</span></p>
+<h2 class="parallel-text rd-section" id="cold-gas-thrust"><span lang="en" data-lang="en">Cold gas adds thrust by throwing mass away</span><span lang="zh-CN" data-lang="zh">冷气推进：把质量抛出去，换来推力</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">A cold-gas system stores pressurised gas, opens a controlled valve and expands the gas through a nozzle. The escaping gas carries momentum; the vehicle receives the opposite impulse. No combustion is required at the nozzle. “Cold” does not mean energy-free: energy was invested when the gas was compressed, and that stored capacity to do work is spent during discharge.</span><span lang="zh-CN" data-lang="zh">冷气系统先储存受压气体，随后打开受控阀门，让气体经过喷嘴膨胀、加速。排出的气体带走动量，车辆获得反方向的冲量。喷嘴里不需要燃烧。“冷”也不意味着不耗能：压缩阶段已经投入能量，排气时消耗的是预先储存的做功能力。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://www.nasa.gov/smallsat-institute/sst-soa/in-space_propulsion/">NASA: cold-gas propulsion and its storage constraints</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www.nasa.gov/smallsat-institute/sst-soa/in-space_propulsion/">NASA：冷气推进与储存约束</a></span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">For the Roadster, Tesla specifically describes <strong>carbon-fibre overwrapped pressure vessels (COPVs)</strong> and new thruster hardware and controls for vehicle operation. A COPV is a pressure vessel reinforced by a composite overwrap; it stores the supply, while valves and nozzles govern how that supply becomes thrust. The public description does not provide a complete pressure, gas-mass or duty-cycle specification.</span><span lang="zh-CN" data-lang="zh">针对 Roadster，Tesla 明确提到<strong>碳纤维缠绕压力容器（COPV）</strong>，以及为车辆应用重新开发的推进器硬件与控制。COPV 是外部以复合材料缠绕增强的压力容器，负责储存供给；阀门与喷嘴则决定怎样把供给转成推力。这份公开说明没有给出完整的压力、储气质量与工作周期参数。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://x.com/Tesla/status/2110904290743402880">Tesla: pressure vessels and vehicle-specific thruster hardware</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://x.com/Tesla/status/2110904290743402880">Tesla：压力容器与车辆专用推进器硬件</a></span></p>
+<figure class="rd-figure" id="gas-path"><img src="/assets/content/roadster/cold-gas-system.svg" width="540" height="420" alt="" aria-describedby="gas-path-caption" loading="lazy" decoding="async"><figcaption id="gas-path-caption"><div class="rd-figure-heading"><span lang="en" data-lang="en">A finite impulse budget</span><span lang="zh-CN" data-lang="zh">有限的冲量预算</span></div><p class="parallel-text rd-figure-summary"><span lang="en" data-lang="en">Pressure is stored. Momentum is released. Duration is spent.</span><span lang="zh-CN" data-lang="zh">储存的是受压气体，释放的是动量，消耗的是可用时长。</span></p><div class="parallel-text rd-caption-detail"><span lang="en" data-lang="en">Figure 3 · 01 is the gas vessel (pressure p₀), 02 the valve, and 03 the nozzle. Gas exits at speed vₑ; exhaust and vehicle thrust point in opposite directions. The lower sketch illustrates finite delivery: a tank contains a limited impulse budget; it does not prescribe Tesla’s pressure or thrust history.</span><span lang="zh-CN" data-lang="zh">图 3 · 01 为储气罐（压强 p₀），02 为阀门，03 为喷嘴。气体以 vₑ 排出，喷流与车身推力方向相反。下方强调有限供给：储气提供的是有限冲量预算，不表示 Tesla 的实际压力或推力曲线。</span></div></figcaption></figure>
+<div data-math="\begin{aligned}T&amp;=\dot m\,v_e\\&amp;\quad+(p_e-p_a)A_e\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">The first term is momentum carried away per second: mass flow <span data-math="\dot m" data-display="inline"></span> times exhaust speed relative to the nozzle <span data-math="v_e" data-display="inline"></span>. The second accounts for exit pressure <span data-math="p_e" data-display="inline"></span> differing from ambient pressure <span data-math="p_a" data-display="inline"></span> over exit area <span data-math="A_e" data-display="inline"></span>. Exit pressure is not tank pressure. Multiplying a storage-pressure headline by a nozzle area cannot reconstruct thrust.</span><span lang="zh-CN" data-lang="zh">第一项是每秒带走的动量：质量流量 <span data-math="\dot m" data-display="inline"></span> 乘以相对喷嘴的排气速度 <span data-math="v_e" data-display="inline"></span>。第二项来自出口压强 <span data-math="p_e" data-display="inline"></span> 与环境压强 <span data-math="p_a" data-display="inline"></span> 在出口面积 <span data-math="A_e" data-display="inline"></span> 上的差异。出口压强不等于罐内压强；仅把宣传中的储气压力乘以喷口面积，算不出真实推力。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/rocket-thrust-equation/">NASA Glenn: the momentum and pressure terms in thrust</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/rocket-thrust-equation/">NASA Glenn：推力中的动量项与压强项</a></span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Define an effective exhaust speed <span data-math="c_{\mathrm{eff}}=T/\dot m" data-display="inline"></span>. If it is approximately constant, the total impulse follows directly by integration:</span><span lang="zh-CN" data-lang="zh">定义有效排气速度 <span data-math="c_{\mathrm{eff}}=T/\dot m" data-display="inline"></span>。若它近似不变，对推力随时间积分便得到总冲量：</span></p>
+<div data-math="I=\int T\,dt\approx m_{\mathrm{gas}}c_{\mathrm{eff}}" data-display="block"></div>
+<div class="lesson-note"><p class="parallel-text"><span lang="en" data-lang="en">Illustrative calculation: choose <span data-math="c_{\mathrm{eff}}=500\ \mathrm{m/s}" data-display="inline"></span> and 10 kN of thrust. The mass flow is 20 kg/s; one second uses 20 kg of gas and supplies 10 kN·s of impulse. These assumptions are not measurements of the Roadster. They show why peak thrust and useful duration are separate specifications.</span><span lang="zh-CN" data-lang="zh">示例计算：取 <span data-math="c_{\mathrm{eff}}=500\ \mathrm{m/s}" data-display="inline"></span>、推力 10 kN，质量流量就是 20 kg/s；持续一秒消耗 20 kg 气体，提供 10 kN·s 冲量。这些假设不是 Roadster 实测值。它们说明，峰值推力与可用时长必须分别给出。</span></p></div>
+<p class="parallel-text"><span lang="en" data-lang="en">As gas leaves, tank pressure and temperature change. Regulation can hold a working condition for part of the discharge; the supply remains finite. Cold gas therefore separates two timescales: energy can be invested while the supply is prepared, then released as a short burst of thrust. That makes peak performance and recovery time separate design targets. Neither the peak thrust nor the tank pressure alone tells us how many launches remain.</span><span lang="zh-CN" data-lang="zh">排气时，罐内压力和温度会改变。调压可以在一段放气过程内维持工作条件，供给总量仍然有限。冷气系统把两个时间尺度分开：准备气源时投入能量，使用时以短促推力释放。于是峰值性能与恢复时间成为两个独立的设计目标。只知道峰值推力或储气压力，都算不出还可以再起步几次。</span></p>
+
+<h2 class="parallel-text rd-section" id="combined-force-budget"><span lang="en" data-lang="en">Work backwards from the launch target</span><span lang="zh-CN" data-lang="zh">从加速目标反算受力条件</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">Now hold the car at one operating point on a level road. Combine the four tyres into one ideal contact model, neglect vertical acceleration and wheel-to-wheel load differences, and define upward thrust <span data-math="T_z" data-display="inline"></span> as positive. With downforce D, the load available to the tyres is:</span><span lang="zh-CN" data-lang="zh">先考察车辆在水平路面上的某个瞬时工作点，将四个轮胎合并成一个理想接触模型，忽略竖直加速度与轮间载荷差异，并把向上推力 <span data-math="T_z" data-display="inline"></span> 定义为正。考虑下压力 D 后，轮胎承受的总载荷为：</span></p>
+<div data-math="N=mg+D-T_z" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">Let <span data-math="F_y" data-display="inline"></span> be the lateral tyre force required to turn, <span data-math="F_d" data-display="inline"></span> the forward force the drivetrain could supply with sufficient grip, and R the combined drag and rolling resistance. The friction circle gives a remaining longitudinal capacity <span data-math="F_g" data-display="inline"></span>. The forward tyre force <span data-math="F_w" data-display="inline"></span> is also limited by the drivetrain:</span><span lang="zh-CN" data-lang="zh">设 <span data-math="F_y" data-display="inline"></span> 是转弯需要的轮胎横向力，<span data-math="F_d" data-display="inline"></span> 是抓地力足够时动力系统能提供的向前力，R 是空气阻力与滚动阻力之和。先从摩擦圆算出剩余纵向容量 <span data-math="F_g" data-display="inline"></span>；实际向前轮胎力 <span data-math="F_w" data-display="inline"></span> 还要受动力系统限制：</span></p>
+<div data-math="\begin{aligned}F_g&amp;=\sqrt{(\mu N)^2-F_y^2}\\F_w^{\max}&amp;=\min(F_d,F_g)\end{aligned}" data-display="block"></div>
+<div data-math="ma_x^{\max}\approx F_w^{\max}+T_x-R" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">This approximation requires contact, <span data-math="N\ge0" data-display="inline"></span>, and a feasible lateral demand, <span data-math="|F_y|\le\mu N" data-display="inline"></span>. Otherwise this operating point cannot be supported by the model. Near rest, <span data-math="F_d" data-display="inline"></span> is limited by available wheel torque; in a power-limited region at nonzero speed it is approximately <span data-math="P_{\mathrm{wheel}}/v" data-display="inline"></span>. More grip helps only if there is useful drive force left to transmit.</span><span lang="zh-CN" data-lang="zh">这个近似要求接触仍然存在，即 <span data-math="N\ge0" data-display="inline"></span>，且横向需求可满足，即 <span data-math="|F_y|\le\mu N" data-display="inline"></span>；否则该工作点在模型中就不可行。起步附近，<span data-math="F_d" data-display="inline"></span> 受可用轮端转矩限制；进入功率受限区后，在非零车速下可近似写成 <span data-math="P_{\mathrm{wheel}}/v" data-display="inline"></span>。抓地力增加能否继续改善加速，还要看有没有多余的驱动力可传递。</span></p>
+
+<p class="parallel-text"><span lang="en" data-lang="en">The distinction is geometric: <strong>suction enlarges the contact-force circle; a fixed forward jet shifts the total-force circle.</strong> A jet can add longitudinal force without spending the tyre’s friction allowance. That does not guarantee neutral handling: its height and position can also create pitch or yaw moments. Likewise, adding upward thrust while the car is still on the road reduces N and can remove some tyre traction before lift-off.</span><span lang="zh-CN" data-lang="zh">开头图中的几何关系，现在可以从模型读出来：<strong>负压扩大接触力的圆，固定向前喷流平移整车合力的圆。</strong>喷流可以不占用轮胎的摩擦额度就增加纵向力，但其高度与位置仍可能产生俯仰或偏航力矩，影响操控。同样，车还在地面上时，增加向上推力会减小 N，在离地之前就可能先损失一部分轮胎抓地力。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">A controller must therefore coordinate the systems around the current limit. Suction is useful when contact capacity is scarce and the power budget permits it. A forward jet is useful when extra longitudinal force justifies spending gas. Upward thrust changes the contact condition itself. Turning every actuator to its maximum is not a general solution; the useful command depends on speed, turn demand, wheel loads and remaining resources.</span><span lang="zh-CN" data-lang="zh">控制系统因此要围绕当前瓶颈组织这些装置：接触力不足、功率预算又允许时，负压才有继续增加的价值；额外纵向力值得消耗储气时，再使用向前喷流；向上推力则会改变接触条件本身。每个执行器都开到最大，不构成通用解法；有用的指令取决于车速、转向需求、各轮载荷与剩余资源。</span></p>
+
+<h3 class="parallel-text" id="launch-design-space"><span lang="en" data-lang="en">Which combinations can meet the one-second force threshold?</span><span lang="zh-CN" data-lang="zh">哪些组合能达到一秒起步的受力门槛？</span></h3>
+<p class="parallel-text"><span lang="en" data-lang="en">Apply the model to a straight launch: no cornering force or upward thrust, μ = 1, fixed mass and no resistance. Assume the motors can transmit all available grip throughout the run, and that suction and forward thrust remain constant. Write their magnitudes as fractions of vehicle weight:</span><span lang="zh-CN" data-lang="zh">把模型用于直线起步：侧向力与向上推力为零，μ = 1，质量不变，忽略阻力。再假设电驱在整个过程都能用足抓地力，吸附力与向前推力保持恒定。用它们与车重的比值表示大小：</span></p>
+<div data-math="\begin{aligned}d&amp;=\frac{D}{mg},\qquad s=\frac{T_x}{mg}\\\frac{a_{\max}}g&amp;=1+d+s\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">A full second from rest to 60 mph, with no rollout deducted, requires 26.8224 m/s of velocity change. With <span data-math="g=9.80665\ \mathrm{m/s^2}" data-display="inline"></span>, the required mean acceleration is 2.7351g. In this constant-force model, reaching that target within one second requires:</span><span lang="zh-CN" data-lang="zh">真正从静止开始，不扣除 rollout，在一秒内达到 60 mph，需要增加 26.8224 m/s 的速度。取 <span data-math="g=9.80665\ \mathrm{m/s^2}" data-display="inline"></span>，所需平均加速度为 2.7351g。这个恒力模型若要在一秒内达到目标，就必须满足：</span></p>
+<div data-math="\begin{aligned}d+s&amp;\ge\frac{\bar a}{g}-1\\&amp;\approx1.7351\end{aligned}" data-display="block"></div>
+<figure class="rd-design-map" id="launch-feasibility" aria-labelledby="rd-design-title">
+  <div class="rd-design-heading" id="rd-design-title"><span lang="en" data-lang="en">The missing force has two possible sources</span><span lang="zh-CN" data-lang="zh">缺少的力，可以从两个方向补上</span></div>
+  <div class="rd-design-layout">
+    <img src="/assets/content/roadster/launch-design-space.svg" width="500" height="500" alt="" aria-describedby="rd-design-caption" loading="lazy" decoding="async">
+    <div class="rd-design-cases">
+      <div class="rd-design-case"><span class="rd-design-letter">A</span><div><strong><span lang="en" data-lang="en">Opening example</span><span lang="zh-CN" data-lang="zh">开头的示例</span></strong><span class="rd-design-params">D = mg · Tₓ = 0.50mg</span><span lang="en" data-lang="en">2.50g ceiling · at least 1.094 s</span><span lang="zh-CN" data-lang="zh">上限 2.50g · 最快 1.094 秒</span></div></div>
+      <div class="rd-design-case rd-design-thrust"><span class="rd-design-letter">B</span><div><strong><span lang="en" data-lang="en">Keep suction, add thrust</span><span lang="zh-CN" data-lang="zh">保持吸附，增加推力</span></strong><span class="rd-design-params">D = mg · Tₓ ≈ 0.735mg</span><span lang="en" data-lang="en">Meets the ideal force threshold</span><span lang="zh-CN" data-lang="zh">达到理想受力门槛</span></div></div>
+      <div class="rd-design-case rd-design-suction"><span class="rd-design-letter">C</span><div><strong><span lang="en" data-lang="en">Keep thrust, add suction</span><span lang="zh-CN" data-lang="zh">保持推力，增加吸附</span></strong><span class="rd-design-params">D ≈ 1.235mg · Tₓ = 0.50mg</span><span lang="en" data-lang="en">Meets the same ideal threshold</span><span lang="zh-CN" data-lang="zh">达到同一个理想门槛</span></div></div>
+    </div>
+  </div>
+  <figcaption id="rd-design-caption" class="parallel-text"><span lang="en" data-lang="en">Figure 4 · The line is the one-second threshold; the shaded side has sufficient ideal force capacity. A falls below it. B increases direct thrust; C increases the tyre load. All values are illustrative. The shaded region alone does not establish motor power, gas duration, thermal capacity or control feasibility.</span><span lang="zh-CN" data-lang="zh">图 4 · 斜线是一秒目标的门槛，阴影一侧具有足够的理想力容量。A 尚未达到；B 增加直接推力，C 增加轮胎载荷。数值均为示例。进入阴影区域，并不说明电机功率、储气时长、热容量或控制能力已经满足要求。</span></figcaption>
+</figure>
+<p class="parallel-text"><span lang="en" data-lang="en">For A, even constant maximum acceleration gives a best possible time of:</span><span lang="zh-CN" data-lang="zh">对 A 而言，即使全程保持最大加速度，最快也只能达到：</span></p>
+<div data-math="\begin{aligned}t_{\min}&amp;=\frac{26.8224\ \mathrm{m/s}}{2.5g}\\&amp;\approx1.094\ \mathrm{s}\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">This quantifies the shortfall identified at the start; it does not dispute a Tesla measurement. B and C close the same <em>ideal force</em> gap, with different hardware costs. At unchanged effective exhaust speed, B consumes more gas. C needs more tyre load and enough wheel force to use it; its fan-power cost depends on pressure, flow and efficiency. For time-varying operation, reaching 60 mph from rest in one second instead requires:</span><span lang="zh-CN" data-lang="zh">这回答了开头示例为何不够，并非在否定某项 Tesla 实测。B 与 C 补上的是同一段<em>理想力容量</em>，硬件代价却不相同。在有效排气速度不变时，B 会多消耗气体。C 需要更大的轮胎载荷，也要有足够的轮端驱动力来利用它；风扇的功率代价取决于压差、流量与效率。若工况随时间变化，从静止起步并在一秒内达到 60 mph 应满足：</span></p>
+<div data-math="\begin{aligned}\int_0^{1\,\mathrm{s}}a_x(t)\,dt\\\ge26.8224\ \mathrm{m/s}\end{aligned}" data-display="block"></div>
+
+<h2 class="parallel-text rd-section" id="fan-power-tradeoff"><span lang="en" data-lang="en">When more suction makes the car slower</span><span lang="zh-CN" data-lang="zh">吸附力更大，加速度反而更小</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">The previous chart treats grip as a capacity. To turn that capacity into acceleration, the motors still have to supply wheel force. Suppose a 1,000 kg car travels at 20 m/s, with its drive and suction fan sharing a 500 kW electrical power budget. Hold mass and speed fixed, use a friction coefficient of one, and omit jets and resistance. These are chosen parameters for a comparison at one operating point, not Tesla specifications or a simulation of the whole launch.</span><span lang="zh-CN" data-lang="zh">上一张图算的是抓地力容量，要把容量用成加速度，电机仍需提供轮端驱动力。设一辆 1,000 kg 的车以 20 m/s 行驶，电驱与吸附风扇共用 500 kW 电功率。比较时固定质量与车速，摩擦系数取一，不计喷流与行驶阻力。这是一组用于比较单个工作点的自选参数，并非 Tesla 规格，也不是完整起步过程的仿真。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Assume a fixed underbody gap with leakage flow proportional to the square root of pressure difference. Suction grows with pressure, but the fan must move more air against that pressure, so its electrical draw grows faster. In the plotted range, the shared power budget sets the available drive force. Let <span data-math="P_0" data-display="inline"></span> be the electrical pool, <span data-math="P_f" data-display="inline"></span> the fan’s electrical draw, and <span data-math="\eta_d" data-display="inline"></span> the traction-drive efficiency. Acceleration follows the <strong>lower</strong> of the tyre limit and available drive force:</span><span lang="zh-CN" data-lang="zh">假设车底间隙固定，漏气流量与压差的平方根成正比。吸附力随压差增加，风扇却要在更高压差下抽走更多空气，电功率增长得更快。在图示范围内，可用驱动力受共用功率预算限制。用 <span data-math="P_0" data-display="inline"></span> 表示共用电功率，<span data-math="P_f" data-display="inline"></span> 表示风扇用电，<span data-math="\eta_d" data-display="inline"></span> 表示车辆电驱效率。实际加速度由轮胎上限和可用驱动力中<strong>较低的一个</strong>决定：</span></p>
+<div data-math="\begin{aligned}F_g&amp;=\mu(mg+D)\\F_d&amp;=\frac{\eta_d(P_0-P_f)}{v}\\a&amp;=\frac{\min(F_g,F_d)}{m}\end{aligned}" data-display="block"></div>
+<figure class="rd-power" id="fan-power-figure" aria-labelledby="rd-power-title">
+ <div class="rd-power-heading" id="rd-power-title"><span lang="en" data-lang="en">The useful setting is at the intersection</span><span lang="zh-CN" data-lang="zh">交点处，抓地力与驱动力恰好匹配</span></div>
+ <div class="rd-power-layout">
+  <div class="rd-power-plot"><img src="/assets/content/roadster/fan-power-tradeoff.svg" width="500" height="500" alt="" aria-describedby="rd-power-caption" loading="lazy" decoding="async">
+   <ul class="rd-power-legend">
+    <li class="rd-power-grip"><i aria-hidden="true"></i><span><span lang="en" data-lang="en">Tyre limit / mg</span><span lang="zh-CN" data-lang="zh">轮胎上限 / mg</span></span></li>
+    <li class="rd-power-drive"><i aria-hidden="true"></i><span><span lang="en" data-lang="en">Drive force / mg</span><span lang="zh-CN" data-lang="zh">可用驱动力 / mg</span></span></li>
+    <li class="rd-power-actual"><i aria-hidden="true"></i><span><span lang="en" data-lang="en">Resulting acceleration / g</span><span lang="zh-CN" data-lang="zh">实际加速度 / g</span></span></li>
+   </ul>
+  </div>
+  <div class="rd-power-cases">
+   <div class="rd-power-case"><span class="rd-power-letter">A</span><div><strong><span lang="en" data-lang="en">No suction</span><span lang="zh-CN" data-lang="zh">尚未增加吸附力</span></strong><span class="rd-power-value">1.00 g</span><span class="rd-power-params">D = 0 kN</span><span lang="en" data-lang="en">Fan draw: 0 kW</span><span lang="zh-CN" data-lang="zh">风扇用电：0 kW</span></div></div>
+   <div class="rd-power-case rd-power-best"><span class="rd-power-letter">B</span><div><strong><span lang="en" data-lang="en">Limits meet</span><span lang="zh-CN" data-lang="zh">两条限制相交</span></strong><span class="rd-power-value">2.03 g</span><span class="rd-power-params">D ≈ 10.14 kN</span><span lang="en" data-lang="en">Fan draw: 56.73 kW</span><span lang="zh-CN" data-lang="zh">风扇用电：56.73 kW</span></div></div>
+   <div class="rd-power-case"><span class="rd-power-letter">C</span><div><strong><span lang="en" data-lang="en">More grip, less drive</span><span lang="zh-CN" data-lang="zh">抓地力有余，驱动力不足</span></strong><span class="rd-power-value">1.57 g</span><span class="rd-power-params">D = 20 kN</span><span lang="en" data-lang="en">Fan draw: 157.13 kW</span><span lang="zh-CN" data-lang="zh">风扇用电：157.13 kW</span></div></div>
+  </div>
+ </div>
+ <figcaption class="parallel-text" id="rd-power-caption"><span lang="en" data-lang="en">Figure 5 · At 20 m/s with a shared 500 kW supply. The solid curve follows the lower force limit; its corner is the switch between grip-limited and power-limited operation. From B to C, tyre capacity rises about 49%, but acceleration falls about 23%. The optimum belongs to this assumed operating point.</span><span lang="zh-CN" data-lang="zh">图 5 · 车速 20 m/s，共用电功率 500 kW。实线沿较低的受力上限变化，折点对应从附着受限切换到功率受限。从 B 到 C，轮胎容量增加约 49%，加速度却降低约 23%。这个最优点只对应本算例的假设与工作点。</span></figcaption>
+</figure>
+<p class="parallel-text"><span lang="en" data-lang="en">At first, suction converts unused drive capacity into acceleration: the tyres can transmit more of the force the motors could already supply. At the intersection, tyre capacity and available drive force match. Beyond it, stronger suction consumes electrical power that the motors need, so acceleration falls even as the tyre-force limit rises. The best suction setting therefore depends on speed, available power and leakage. A controller needs to choose that setting, not simply command maximum suction.</span><span lang="zh-CN" data-lang="zh">起初，负压增加轮胎能传递的力，让电驱系统原本用不出去的能力变成加速度。到了交点，轮胎容量与可用驱动力恰好相等。再提高吸附力，风扇便会占用电机所需的电功率；轮胎上限继续升高，加速度却开始下降。因此，最佳吸附设定会随车速、可用功率与漏气状况改变。控制器要选择合适的工作点，不能只是把吸附力开到最大。</span></p>
+<details class="rd-power-details"><summary><span lang="en" data-lang="en">Model parameters and calculation</span><span lang="zh-CN" data-lang="zh">模型参数与计算过程</span></summary>
+<p class="parallel-text"><span lang="en" data-lang="en">All three points use the same installed hardware and mass. This is a quasi-steady, straight-line model with all available grip accessible to the driven wheels. Air density is constant, added duct losses are omitted, and fan control is assumed able to realize the selected pressure and flow. The leakage relation is a model of a fixed gap, not a universal fan characteristic.</span><span lang="zh-CN" data-lang="zh">三个点使用相同的已安装硬件与整车质量。模型采用准稳态直线工况，并假设驱动轮可以利用全部附着能力。空气密度不变，不计额外管道损失，假定风扇控制可以实现所选压差与流量。漏气关系是固定间隙的简化模型，并非通用风扇特性。</span></p>
+<dl class="rd-power-parameters">
+<div><dt><span lang="en" data-lang="en">Mass · speed · gravity</span><span lang="zh-CN" data-lang="zh">质量 · 车速 · 重力加速度</span></dt><dd>1,000 kg · 20 m/s · 9.80665 m/s²</dd></div>
+<div><dt><span lang="en" data-lang="en">Friction coefficient · suction area</span><span lang="zh-CN" data-lang="zh">摩擦系数 · 有效吸附面积</span></dt><dd>μ = 1 · A = 4 m²</dd></div>
+<div><dt><span lang="en" data-lang="en">Reference pressure · leakage flow</span><span lang="zh-CN" data-lang="zh">参考压差 · 漏气流量</span></dt><dd>Δp₀ = 2,500 Pa · Q₀ = 12 m³/s</dd></div>
+<div><dt><span lang="en" data-lang="en">Fan · fan drive · traction drive efficiency</span><span lang="zh-CN" data-lang="zh">风扇 · 风扇电驱 · 车辆电驱效率</span></dt><dd>ηf = 0.60 · ηm = 0.90 · ηd = 0.90</dd></div>
+<div><dt><span lang="en" data-lang="en">Electrical pool · wheel power rating</span><span lang="zh-CN" data-lang="zh">共用电功率 · 轮端额定功率</span></dt><dd>500 kW · 450 kW</dd></div>
+<div><dt><span lang="en" data-lang="en">Torque-limited wheel force</span><span lang="zh-CN" data-lang="zh">轮端转矩对应的力上限</span></dt><dd>25 kN</dd></div>
+</dl>
+<div data-math="\begin{aligned}\Delta p&amp;=D/A\\Q&amp;=Q_0\sqrt{\Delta p/\Delta p_0}\\P_f&amp;=\frac{\Delta p\,Q}{\eta_f\eta_m}\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">Subtract the fan’s <em>electrical draw</em> from the electrical pool, then apply traction-drive efficiency to the remainder. Fan shaft power alone would underestimate the draw. Divide the resulting wheel power by the nonzero speed, and also enforce the 25 kN torque-force cap and 450 kW wheel rating; neither adds a tighter limit over this plot. At zero speed, use torque rather than dividing by speed.</span><span lang="zh-CN" data-lang="zh">从电功率池中扣除风扇的<em>电功率</em>，再对剩余部分乘车辆电驱效率，得到轮端机械功率。只扣风扇轴功率会低估用电。轮端功率除以非零车速得到驱动力，还要检查 25 kN 转矩对应的力上限与 450 kW 轮端额定功率；在本图范围内，两者都不会进一步收紧限制。车速为零时应使用转矩约束，不能除以零车速。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://www.energy.gov/sites/default/files/2014/05/f16/fan_sourcebook.pdf">U.S. Department of Energy: fan efficiency and electrical power accounting</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www.energy.gov/sites/default/files/2014/05/f16/fan_sourcebook.pdf">美国能源部：风扇效率与电功率计算</a></span></p>
+</details>
+
+<h2 class="parallel-text rd-section" id="inverted-and-airborne"><span lang="en" data-lang="en">Hanging upside down and hovering are different force balances</span><span lang="zh-CN" data-lang="zh">倒挂与腾空，必须分开解释</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">On the underside of a horizontal surface, suction pulls toward that surface while gravity still points down. For stationary contact, suction must balance both weight and the surface’s normal reaction. In free air, there is no road to supply support. Hovering or holding altitude then requires upward force to balance weight; a ballistic airborne arc can instead have less thrust than weight, or none. This change in the force balance is more important than whether a clip looks like “flying”.</span><span lang="zh-CN" data-lang="zh">在水平顶面的下侧，负压作用力朝向顶面，重力仍然向下。静止贴附时，吸附力要平衡重量与顶面对车的法向反力。离开表面之后，路面不再提供支承。若要悬停或保持高度，需要向上力平衡重量；若沿弹道弧线运动，推力则可以小于重量，甚至为零。看懂这个受力条件的变化，才能判断画面中的“飞”具体意味着什么。</span></p>
+<figure class="rd-figure" id="surface-and-flight"><img src="/assets/content/roadster/surface-and-flight.svg" width="540" height="630" alt="" aria-describedby="surface-and-flight-caption" loading="lazy" decoding="async"><figcaption id="surface-and-flight-caption"><div class="rd-figure-heading"><span lang="en" data-lang="en">The surface changes the equation</span><span lang="zh-CN" data-lang="zh">表面改变了受力条件</span></div><p class="parallel-text rd-figure-summary"><span lang="en" data-lang="en">Contact, inverted contact, free air: support comes from a different balance in each case.</span><span lang="zh-CN" data-lang="zh">正置、倒置、离地：每一种状态，都需要重新列出支承从哪里来。</span></p><div class="parallel-text rd-caption-detail"><span lang="en" data-lang="en">Figure 6 · Upright contact, inverted contact and free air. The gravity vector mg always points downward. D points toward the nearby surface; to hover in free air, upward thrust T must balance weight. Only vertical forces are shown; arrow lengths do not encode their magnitudes.</span><span lang="zh-CN" data-lang="zh">图 6 · 正置接触、倒置接触与离开表面。重力 mg 始终向下；D 朝向附近表面；在空中悬停时，向上推力 T 要平衡重量。图中仅展示竖直方向的力，箭头长度不表示力的大小。</span></div></figcaption></figure>
+<div data-math="\begin{aligned}D&amp;=mg+N,\quad N\ge0\\m\ddot z&amp;=\sum_i T_{i,z}-mg\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">The first equation contains a useful distinction: if suction only equals weight, <span data-math="D=mg" data-display="inline"></span>, then <span data-math="N=0" data-display="inline"></span>. The car is just at the ideal separation threshold, with no tyre-friction allowance left. Accelerating, braking or steering through the tyres on the underside needs suction beyond the amount required merely to avoid falling. “Can remain attached” and “can manoeuvre while attached” require different margins.</span><span lang="zh-CN" data-lang="zh">第一式里藏着一个关键区别：若吸附力刚好等于重量，即 <span data-math="D=mg" data-display="inline"></span>，则 <span data-math="N=0" data-display="inline"></span>。此时只处于理想的分离临界点，已经没有轮胎摩擦力额度。在顶面下侧依靠轮胎加速、制动或转向，需要超过“刚好不掉下来”的吸附力。能够贴住，与贴住之后还能操纵，需要不同的余量。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">The second equation ignores other aerodynamic lift and takes upward as positive. Hovering requires total upward thrust equal to weight; upward acceleration requires more. <strong>Each tonne needs about 9.81 kN just to hover.</strong> With the previous illustrative exhaust speed, that would use about 19.6 kg/s per tonne before control margins. This is a scaling calculation, not an estimate of the demonstration car’s mass or flight duration.</span><span lang="zh-CN" data-lang="zh">第二式忽略其他气动升力，并以向上为正。悬停要求总向上推力等于重量；要向上加速，还需更大推力。<strong>每吨质量仅维持悬停，就需要约 9.81 kN。</strong>沿用前面的示例排气速度，每吨每秒约消耗 19.6 kg 气体，尚未留出控制余量。这是比例计算，不是在推测演示车辆的质量或续航时间。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Fan suction near a sealed surface cannot simply be extrapolated into free-air lift. A fan can produce lift in free air if it accelerates enough air downwards, as a rotor or ducted fan does, but that is a different airflow problem. Tesla’s official ramp and kickflip clips are useful to compare the manoeuvres; neither clip alone is an endurance test.</span><span lang="zh-CN" data-lang="zh">依靠附近表面与密封形成的负压，不能直接外推为空中升力。风扇若像旋翼或涵道风扇那样，把足够多的空气加速向下，也能在自由空气中产生升力，但那已是另一种流动条件。对照 Tesla 的坡道与翻滚官方短片，可以分清动作；单段视频并不能给出持续能力。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://www.youtube.com/watch?v=7p5LxFdc-Qg">Tesla: The Ramp</a> · <a data-citation href="https://www.youtube.com/watch?v=r5vsHHPVhJg">Tesla: The Kickflip</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www.youtube.com/watch?v=7p5LxFdc-Qg">Tesla：坡道演示</a> · <a data-citation href="https://www.youtube.com/watch?v=r5vsHHPVhJg">Tesla：空中翻滚演示</a></span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Starting or stopping an airborne roll requires torque. A thrust line that misses the centre of mass produces <span data-math="\vec{\tau}=\mathbf r\times\mathbf T" data-display="inline"></span>. A general control system must estimate attitude and angular rate, command valves, arrest the rotation and manage landing. As the body rotates, body-fixed thrust directions rotate too. Enough total thrust does not automatically give a stable trajectory; the timing and distribution of that thrust matter.</span><span lang="zh-CN" data-lang="zh">启动或停止空中翻滚需要力矩。推力作用线不经过质心时，产生 <span data-math="\vec{\tau}=\mathbf r\times\mathbf T" data-display="inline"></span>。一般的控制系统必须估计姿态与角速度、指挥阀门、停止旋转并处理着陆。车身旋转时，固定在车身上的推力方向也一起旋转。总推力足够大，并不自动意味着轨迹稳定，推力的分配与时序同样重要。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://www.grc.nasa.gov/www/k-12/airplane/torque.html">NASA Glenn: off-centre forces and torque</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www.grc.nasa.gov/www/k-12/airplane/torque.html">NASA Glenn：偏心力与转动力矩</a></span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Consider a general example, not Tesla’s layout: two upward thrusters sit on opposite sides of the centre of mass. If both are already at maximum just to hover, reducing one creates a roll moment but also loses total lift. To roll while maintaining altitude requires thrust headroom or other actuators. The capacity to support weight and the capacity to control attitude have to be available at the same time.</span><span lang="zh-CN" data-lang="zh">可以看一个通用例子，而非 Tesla 的实际布置：两只向上的推进器位于质心两侧。如果两只都要满推力才能勉强悬停，减小一侧推力虽然能启动翻滚，总升力却会下降。要在控制翻滚的同时保持高度，就需要推力余量，或者其他执行器。托住重量与控制姿态的能力，必须能在同一时刻兑现。</span></p>
+<h2 class="parallel-text rd-section" id="acceleration-and-timing"><span lang="en" data-lang="en">What does a one-second launch imply?</span><span lang="zh-CN" data-lang="zh">一秒加速，究竟要求多大的力？</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">Tesla describes the Thrust package as capable of a sub-one-second launch. To understand the scale without treating a headline as a test report, consider a precisely defined hypothetical run: <strong>from rest to 60 mph in a full 1.000 s, with no rollout deducted</strong>. Sixty mph is 26.8224 m/s, or 96.56 km/h, not 100 km/h.</span><span lang="zh-CN" data-lang="zh">Tesla 对 Thrust 配置给出了不到一秒的起步加速描述。要理解这个量级，可以先明确一组假设：<strong>真正从静止开始，完整计时 1.000 秒达到 60 mph，且不扣除 rollout</strong>。60 mph 等于 26.8224 m/s，即 96.56 km/h，并不等于 100 km/h。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://x.com/Tesla/status/2110905588402295283">Tesla: the Performance, Thrust and Rocket announcement</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://x.com/Tesla/status/2110905588402295283">Tesla：Performance、Thrust 与 Rocket 配置公告</a></span></p>
+<div class="rd-launch"><div><span class="rd-launch-value">1.000 <small>s</small></span><span class="rd-launch-label"><span lang="en" data-lang="en">0–60 mph · no rollout</span><span lang="zh-CN" data-lang="zh">0–60 mph · 不扣除 rollout</span></span></div><div><span class="rd-launch-value">2.74 <small>g</small></span><span class="rd-launch-label"><span lang="en" data-lang="en">Mean acceleration</span><span lang="zh-CN" data-lang="zh">平均加速度</span></span></div></div><div data-math="\begin{aligned}\bar a&amp;=\frac{\Delta v}{\Delta t}\\&amp;\approx2.74g\end{aligned}" data-display="block"></div>
+<div class="rd-numbers"><div><strong>26.82 kN</strong><span lang="en" data-lang="en">Mean net force per tonne</span><span lang="zh-CN" data-lang="zh">每吨所需平均净力</span></div><div><strong>0.100 kWh</strong><span lang="en" data-lang="en">Kinetic energy gained per tonne</span><span lang="zh-CN" data-lang="zh">每吨增加的平动动能</span></div><div><strong>360 kW</strong><span lang="en" data-lang="en">Mean kinetic-energy rate per tonne</span><span lang="zh-CN" data-lang="zh">每吨平均动能增长率</span></div></div>
+<p class="parallel-text"><span lang="en" data-lang="en">These values follow from <span data-math="\bar F_{\mathrm{net}}=m\bar a" data-display="inline"></span> and <span data-math="\Delta E_k=\tfrac12mv^2" data-display="inline"></span>, treating mass as constant and using 1,000 kg only as a normalization. The average acceleration is not the peak acceleration. The energy-growth rate is not the battery rating: wheel rotation, losses, fans and gas discharge also enter the full energy budget.</span><span lang="zh-CN" data-lang="zh">这些数由 <span data-math="\bar F_{\mathrm{net}}=m\bar a" data-display="inline"></span> 与 <span data-math="\Delta E_k=\tfrac12mv^2" data-display="inline"></span> 得到，计算近似认为质量不变，1,000 kg 仅用于按吨归一化。平均加速度不是峰值；动能增长率也不是电池额定功率，因为车轮转动、损失、风扇与排气还会占用整套系统的能量预算。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">The small energy figure and large power figure are consistent: delivering about 0.100 kWh in one second requires about 360 kW. The launch problem is therefore not captured by battery capacity alone. Energy must be released fast enough, turned into useful force, and kept within tyre, thermal and structural limits. Each part of the car answers a different part of that requirement.</span><span lang="zh-CN" data-lang="zh">0.100 kWh 看起来很小，360 kW 却很大，两者没有矛盾：把前者集中在一秒内交出去，就需要后者这样的功率量级。起步问题因此不能只看电池容量；能量要足够快地释放，转成有效受力，还要守住轮胎、温度与结构的限制。整车的不同装置，各自解决其中一部分。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">Now change only the timing rule. One-foot rollout excludes the first foot of travel from the recorded time. The car is already moving when that clock starts, so dividing the full 60 mph by the reported time no longer gives the average acceleration from rest. Before comparing two results, align the target speed, rollout, slope, surface, tyres, load and instrumentation.</span><span lang="zh-CN" data-lang="zh">再只改变计时规则。One-foot rollout 会把最初一英尺的行程排除在记录时间之外。计时开始时，车已经在移动；这时再用完整的 60 mph 除以公布时间，就不再是从静止起步的平均加速度。比较两个成绩前，需要对齐终点速度、rollout、坡度、路面、轮胎、载荷与测量设备。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://en.racelogic.support/motorsport/kb/one-foot-rollout/">Racelogic: what one-foot rollout removes from a timing result</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://en.racelogic.support/motorsport/kb/one-foot-rollout/">Racelogic：one-foot rollout 从计时中扣除了什么</a></span></p>
+<h2 class="parallel-text rd-section" id="power-and-repetition"><span lang="en" data-lang="en">Make the hardware earn its mass</span><span lang="zh-CN" data-lang="zh">让增加的硬件，挣回自己的重量</span></h2>
+
+<p class="parallel-text"><span lang="en" data-lang="en">Every added vessel, valve, fan and reinforcement travels with the car even when it is inactive. To test whether the package improves acceleration, compare the same operating point before and after adding it. Let the original mass and net forward force be <span data-math="m_0" data-display="inline"></span> and <span data-math="F_0" data-display="inline"></span>; let the changes be <span data-math="\Delta m" data-display="inline"></span> and <span data-math="\Delta F" data-display="inline"></span>:</span><span lang="zh-CN" data-lang="zh">新增的储罐、阀门、风扇与加强结构，即使不工作，也要跟着车一起走。判断一套装置是否改善加速，可以在相同工作点比较加装前后：原车质量与净向前力分别是 <span data-math="m_0" data-display="inline"></span>、<span data-math="F_0" data-display="inline"></span>，变化量分别是 <span data-math="\Delta m" data-display="inline"></span>、<span data-math="\Delta F" data-display="inline"></span>：</span></p>
+<div data-math="\begin{aligned}a_0&amp;=\frac{F_0}{m_0}\\a_1&amp;=\frac{F_0+\Delta F}{m_0+\Delta m}\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">For the acceleration to improve, <span data-math="a_1&gt;a_0" data-display="inline"></span>. Rearranging gives the minimum force benefit that the added mass must earn:</span><span lang="zh-CN" data-lang="zh">要改善加速度，就需满足 <span data-math="a_1&gt;a_0" data-display="inline"></span>。整理后，便得到新增重量必须换回的净力收益门槛：</span></p>
+<div data-math="\Delta F&gt;a_0\Delta m" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">At an illustrative operating point with acceleration 26.82 m/s², an extra 100 kg must deliver more than 2.68 kN of additional <strong>net</strong> force just to improve that acceleration. <span data-math="\Delta F" data-display="inline"></span> includes every force change: extra traction from loading, extra rolling resistance, and any loss of drive force if fans consume power that the motors need. It is not simply the new thruster’s rating. This comparison holds mass approximately constant over a short interval; a whole manoeuvre must track discharged gas.</span><span lang="zh-CN" data-lang="zh">取一个加速度为 26.82 m/s² 的示例工作点，增加 100 kg，就要带来超过 2.68 kN 的额外<strong>净力</strong>，才会改善当时的加速度。<span data-math="\Delta F" data-display="inline"></span> 要计入全部变化：增载带来的附着收益、新增滚阻，以及风扇占用电机所需功率时损失的驱动力，不能直接拿新增推进器的额定推力代替。这里在短时间内近似认为质量不变；评估完整动作还要跟踪排出的气体质量。</span></p>
+
+<p class="parallel-text"><span lang="en" data-lang="en">A brief launch and sustained high speed stress different parts of the system. At low speed, traction and available thrust can dominate. As speed rises, delivering the same drive force takes more mechanical power, <span data-math="P=Fv" data-display="inline"></span>. In still air, with air density, area and drag coefficient treated as constant:</span><span lang="zh-CN" data-lang="zh">短促起步与持续高速，考验的不是同一部分。低速时，抓地力与可用推力可能先成为限制；速度升高后，要维持同样的驱动力，机械功率 <span data-math="P=Fv" data-display="inline"></span> 就要增加。在无风、空气密度、面积与阻力系数近似不变时：</span></p>
+<div data-math="\begin{aligned}F_{\mathrm{drag}}&amp;=\tfrac12\rho C_D A v^2\\P_{\mathrm{drag}}&amp;=\tfrac12\rho C_D A v^3\end{aligned}" data-display="block"></div>
+<p class="parallel-text"><span lang="en" data-lang="en">Doubling speed then quadruples aerodynamic drag and multiplies the power needed to overcome it by eight. Real active aerodynamics can change <span data-math="C_D" data-display="inline"></span>, so this is a fixed-configuration comparison. A configuration that maximizes downforce need not minimize drag. Range, top speed and launch acceleration describe different operating points.</span><span lang="zh-CN" data-lang="zh">在这个条件下，速度翻倍，气动阻力变成四倍，克服它所需的功率变成八倍。真实主动气动装置会改变 <span data-math="C_D" data-display="inline"></span>，所以这里比较的是固定配置。追求最大下压力的状态，也不一定阻力最小。续航、最高速度和起步加速，描述的是不同工作点。</span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/drag-equation/">NASA Glenn: the drag equation</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/drag-equation/">NASA Glenn：空气阻力公式</a></span></p>
+<p class="parallel-text rd-source"><span lang="en" data-lang="en"><a data-citation href="https://openstax.org/books/university-physics-volume-1/pages/7-4-power">OpenStax: mechanical power and work rate</a></span><span lang="zh-CN" data-lang="zh"><a data-citation href="https://openstax.org/books/university-physics-volume-1/pages/7-4-power">OpenStax：机械功率与做功速率</a></span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">The useful next test is a sequence, not just a single best launch. Record successive accelerations under stated conditions, along with the time needed to recover performance. That exposes whether a spectacular peak remains available when the driver asks for it again. Four measurements would connect the demonstration to an engineering assessment:</span><span lang="zh-CN" data-lang="zh">下一步最有信息量的测试，是一组连续过程：在明确条件下记录多次加速，再记录恢复性能需要的时间。这样才能看出，驾驶者再次提出同样要求时，那个惊人的峰值是否仍然可用。以下四组测量，可以把演示与工程评估接起来：</span></p>
+<ol class="rd-questions">
+<li class="parallel-text"><span lang="en" data-lang="en"><strong>Repeatability:</strong> several launches with stated intervals, recording battery temperature, charge state and remaining gas.</span><span lang="zh-CN" data-lang="zh"><strong>重复性：</strong>明确间隔，连续起步，记录电池温度、荷电状态与剩余气量。</span></li>
+<li class="parallel-text"><span lang="en" data-lang="en"><strong>Pressure retention:</strong> downforce, fan power and response as ground clearance and surface conditions change.</span><span lang="zh-CN" data-lang="zh"><strong>压差保持：</strong>离地间隙、路面条件改变时，下压力、风扇功率与响应怎样变化。</span></li>
+<li class="parallel-text"><span lang="en" data-lang="en"><strong>Impulse and recovery:</strong> thrust versus time, gas used per manoeuvre, and the time and energy needed to restore readiness.</span><span lang="zh-CN" data-lang="zh"><strong>冲量与恢复：</strong>推力时间曲线、单次耗气量，以及恢复可用状态所需的时间和能量。</span></li>
+<li class="parallel-text"><span lang="en" data-lang="en"><strong>Control envelope:</strong> vehicle mass and load distribution, available lift and torque, and the conditions under which the demonstrated manoeuvre remains controllable.</span><span lang="zh-CN" data-lang="zh"><strong>控制范围：</strong>整车质量、载荷分布、可用升力与力矩，以及演示动作在什么条件下仍可控。</span></li>
+</ol>
+<p class="parallel-text"><span lang="en" data-lang="en">Read this way, the Roadster raises a design question larger than its launch time: <strong>how much of a car’s available force can become something its controller actively shapes?</strong> Motor torque selects a demand within the tyre limit; suction changes that limit; jets contribute force beyond the tyre contact. Together they offer more ways to respond to the driver, but also more conditions under which the response can change.</span><span lang="zh-CN" data-lang="zh">沿着这条线看，Roadster 提出的设计问题比起步成绩更大：<strong>一辆车可用的受力范围，有多少能够由控制系统主动塑造？</strong>电机转矩在轮胎限制内提出需求，负压改变这条限制，喷流在接触力之外增加贡献。三者让车辆拥有更多响应驾驶者的方式，也带来更多会改变响应能力的条件。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">The strongest demonstration of this architecture would be a car that knows the force it can still deliver, allocates it between acceleration, steering and attitude control, and reduces its demands coherently as grip, gas or thermal margin falls. Peak force makes the manoeuvre possible. Predictable force, available at the right instant and repeatable under stated conditions, is what would make the combination a convincing vehicle.</span><span lang="zh-CN" data-lang="zh">最能证明这套架构价值的，是车辆知道自己此刻还能给出多少力，能够协调加速、转向与姿态控制，并在附着、储气或温度余量下降时，有序地收回超出能力的需求。峰值受力让动作成为可能；在正确时刻提供可预期的响应，并在明确条件下再次实现，才会让这些装置真正组成一辆令人信服的车。</span></p>
+</div>
+<script>
+(() => {
+  const stage = document.querySelector('[data-roadster-player]');
+  const button = stage?.querySelector('[data-roadster-play]');
+  if (!button) return;
+  button.hidden = false;
+  button.addEventListener('click', () => {
+    const frame = document.createElement('iframe');
+    frame.src = 'https://www.youtube-nocookie.com/embed/qt5p-_tE8d0?autoplay=1&rel=0';
+    frame.title = 'Tesla Roadster Event · Elon Musk / Tesla Roadster 发布视频';
+    frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    frame.allowFullscreen = true;
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    stage.replaceChildren(frame);
+    frame.focus();
+  }, {once: true});
+})();
+</script>
+<script>
+(() => {
+  const definitions = [
+    { name: 'tires', radius: 1, shift: 0 },
+    { name: 'suction', radius: 2, shift: 0 },
+    { name: 'thrust', radius: 2, shift: 0.5 }
+  ];
+  const origin = { x: 188, y: 178, scale: 56 };
+  for (const root of document.querySelectorAll('[data-roadster-envelope]')) {
+    if (root.dataset.envelopeReady === 'true') continue;
+    const input = root.querySelector('[data-envelope-input]');
+    const slice = root.querySelector('[data-envelope-slice]');
+    const demandValue = root.querySelector('[data-envelope-demand-value]');
+    const description = root.querySelector('#rd-envelope-svg-desc');
+    if (!input || !slice || !demandValue || !description) continue;
+    const cases = definitions.map(definition => ({ ...definition,
+      output: root.querySelector(`[data-envelope-output="${definition.name}"]`),
+      point: root.querySelector(`[data-envelope-point="${definition.name}"]`)
+    }));
+    if (cases.some(item => !item.output || !item.point)) continue;
+    const update = () => {
+      const raw = Number(input.value);
+      const demand = Number.isFinite(raw) ? Math.max(0, Math.min(1, raw)) : 0.6;
+      const vertical = origin.y - origin.scale * demand;
+      const fixedDemand = demand.toFixed(2);
+      slice.setAttribute('transform', `translate(0 ${vertical})`);
+      demandValue.value = fixedDemand;
+      input.setAttribute('aria-valuetext', `${fixedDemand} times vehicle weight / 车重的 ${fixedDemand} 倍`);
+      const capacities = [];
+      for (const item of cases) {
+        const capacity = Math.sqrt(Math.max(0, item.radius * item.radius - demand * demand)) + item.shift;
+        const horizontal = origin.x + origin.scale * capacity;
+        item.output.value = capacity.toFixed(2);
+        capacities.push(capacity.toFixed(2));
+        if (item.name === 'tires') {
+          item.point.setAttribute('cx', horizontal);
+          item.point.setAttribute('cy', vertical);
+        } else if (item.name === 'suction') {
+          item.point.setAttribute('x', horizontal - 6);
+          item.point.setAttribute('y', vertical - 6);
+        } else {
+          item.point.setAttribute('transform', `translate(${horizontal} ${vertical})`);
+        }
+      }
+      description.textContent = `At a lateral demand of ${fixedDemand} mg, available forward force is ${capacities[0]} mg for tires, ${capacities[1]} mg with suction, and ${capacities[2]} mg with suction and direct thrust. Ideal force envelopes, not measured Tesla performance. / 侧向需求为 ${fixedDemand} mg 时，轮胎、加吸附力、再加直接推力的可用纵向力分别为 ${capacities[0]} mg、${capacities[1]} mg 和 ${capacities[2]} mg。这是理想受力范围，不是特斯拉实测性能。`;
+    };
+    update();
+    input.disabled = false;
+    input.addEventListener('input', update);
+    root.dataset.envelopeReady = 'true';
+  }
+})();
+</script>
+</body></html>

@@ -265,6 +265,14 @@
         "en": "Inspect a recorded dense and sparse experiment across C++, Rust and Python, with process-tree memory, sustained load and raw evidence.",
         "zh": "查看 C++、Rust 与 Python 的稠密／稀疏实测，追踪进程树内存、持续压测与原始数据。"
       }
+    },
+    {
+      "source": "tesla-roadster-2-physics",
+      "target": "benchmark-with-evidence",
+      "reason": {
+        "en": "A launch time needs a timing boundary and repeatable conditions. Follow the same measurement discipline through warm-up, repeated samples and raw results.",
+        "zh": "加速成绩也需要明确计时边界与可重复条件；继续看预热、重复采样与原始结果怎样支撑性能判断。"
+      }
     }
   ]
 }

@@ -77,6 +77,10 @@ Inline CSS in standalone articles is scoped to `.legacy-content` to avoid overri
 
 独立文章的内联 CSS 会限定在 `.legacy-content` 范围，避免覆盖站点导航；内联脚本会保留。请使用唯一 ID 或文章局部选择器。共享样式位于 `src/styles/`，交互脚本位于 `src/scripts/`。仅发布自己信任的 HTML 和脚本。
 
+An article-specific outer header can be styled in `src/styles/editorial.css` using a selector tied to that article's root class, as with `.article-page:has(.rd-article)` for the Roadster essay. Keep the shared template and other articles unaffected, preserve a readable fallback, and verify the header in all language modes. Put an explanatory lead figure in accessible article markup with its labels and assumptions; do not put essential information only in a CSS background or repeat a video poster merely to fill the header.
+
+文章专属的外层标题区可在 `src/styles/editorial.css` 中用绑定该文章根类的选择器设计，例如 Roadster 文章的 `.article-page:has(.rd-article)`。保持共用模板与其他文章不受影响，保留可读的回退布局，并核对各语言模式。承担解释任务的主图放在可访问的文章标记中，带上标注与假设；不把关键信息只放进 CSS 背景，也不为填充标题区重复视频封面。
+
 ## Code blocks / 代码块
 
 All block code (including plain `pre`, highlighted fragments, editable examples, and compiler output) receives a compact toolbar with one copy icon on the right, matching display equations. Named code languages appear on the left; plain text omits that label. Copying preserves the current source and indentation without line numbers. Labels follow the language setting; if clipboard access is blocked, a selected text field allows manual copying. Inline code has no button. Do not add article-specific copy controls.

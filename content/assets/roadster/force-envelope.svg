@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="680" viewBox="0 0 540 680" role="img" aria-labelledby="force-envelope-title force-envelope-desc">
+  <title id="force-envelope-title">Suction enlarges the planar force envelope; fixed thrust shifts it</title>
+  <desc id="force-envelope-desc">Illustrative tire-friction capacity on a level road, with constant friction coefficient one and no vertical thrust, before drive and brake actuator limits. Both axes show total planar force divided by weight mg. Blue solid circle 01: D equals zero, Tx equals zero, radius one. Mint dashed circle 02: D equals mg, Tx equals zero, radius two. Orange dash-dot circle 03: D equals mg with fixed forward Tx equal to 0.5 mg, radius two centered at x equals 0.5. The forward boundaries are one, two and 2.5; the fixed-thrust circle has a rearward boundary of minus 1.5 instead of minus two. This is not a measured vehicle performance envelope.</desc>
+  <style>
+    text{font-family:Arial,Helvetica,sans-serif;fill:#e6efec;font-size:24px}
+    .math{font-family:Georgia,'Times New Roman',serif;font-size:28px;font-style:italic}
+    .sub{font-size:21px}
+    .number{font-size:24px;font-weight:600;fill:#91a9af;letter-spacing:1px}
+    .tick{fill:#b8c9ce}
+    .grid{fill:none;stroke:#3a505a;stroke-width:1;opacity:.65}
+    .axis{fill:none;stroke:#8298a0;stroke-width:1.6}
+    .zero{fill:none;stroke:#69818b;stroke-width:1.4}
+    .boundary{fill:none;stroke-width:3.2}
+    .blue{stroke:#97d5f5}
+    .mint{stroke:#bcecc0;stroke-dasharray:11 8}
+    .orange{stroke:#f4bb83;stroke-dasharray:14 6 2 6}
+    .projection{fill:none;stroke-width:1.4;stroke-dasharray:2 6;opacity:.65}
+  </style>
+  <rect width="540" height="680" rx="14" fill="#11222b"/>
+
+  <!-- The legend uses the same line styles as the exact circles below. -->
+  <g>
+    <text class="number" x="26" y="48">01</text>
+    <path class="boundary blue" d="M73 39H119"/>
+    <text class="math" x="140" y="48">D = 0, T<tspan class="sub" dy="6">x</tspan><tspan dy="-6"> = 0</tspan></text>
+    <text class="number" x="26" y="92">02</text>
+    <path class="boundary mint" d="M73 83H119"/>
+    <text class="math" x="140" y="92">D = mg, T<tspan class="sub" dy="6">x</tspan><tspan dy="-6"> = 0</tspan></text>
+    <text class="number" x="26" y="136">03</text>
+    <path class="boundary orange" d="M73 127H119"/>
+    <text class="math" x="140" y="136">D = mg, T<tspan class="sub" dy="6">x</tspan><tspan dy="-6"> = 0.5mg</tspan></text>
+    <text class="math" x="292" y="190" text-anchor="middle">μ = 1</text>
+  </g>
+
+  <!-- Equal axis scale: 80 SVG units per mg. Origin: (268,407). -->
+  <g class="grid">
+    <path d="M108 217V599M188 217V599M348 217V599M428 217V599"/>
+    <path d="M78 247H507M78 327H507M78 487H507M78 567H507"/>
+  </g>
+  <path class="zero" d="M268 217V599M78 407H507"/>
+  <path class="axis" d="M78 217V599H507"/>
+
+  <!-- Radius=1, radius=2, then radius=2 centered at x=0.5. -->
+  <circle class="boundary blue" cx="268" cy="407" r="80"/>
+  <circle class="boundary mint" cx="268" cy="407" r="160"/>
+  <circle class="boundary orange" cx="308" cy="407" r="160"/>
+
+  <!-- Zero-lateral-force forward boundaries, projected to the x scale. -->
+  <path class="projection" stroke="#97d5f5" d="M348 414V599"/>
+  <path class="projection" stroke="#bcecc0" d="M428 414V599"/>
+  <path class="projection" stroke="#f4bb83" d="M468 414V599"/>
+  <g fill="#11222b" stroke-width="3">
+    <circle cx="348" cy="407" r="5" stroke="#97d5f5"/>
+    <circle cx="428" cy="407" r="5" stroke="#bcecc0"/>
+    <circle cx="468" cy="407" r="5" stroke="#f4bb83"/>
+  </g>
+  <circle cx="268" cy="407" r="3" fill="#e6efec"/>
+  <path d="M302 407H314M308 401V413" stroke="#f4bb83" stroke-width="2"/>
+
+  <g class="axis">
+    <path d="M71 247H78M71 327H78M71 407H78M71 487H78M71 567H78"/>
+    <path d="M108 599V606M188 599V606M268 599V606M348 599V606M428 599V606M468 599V606"/>
+  </g>
+  <g class="tick" text-anchor="end">
+    <text class="tick" x="64" y="255">2</text>
+    <text class="tick" x="64" y="335">1</text>
+    <text class="tick" x="64" y="415">0</text>
+    <text class="tick" x="64" y="495">−1</text>
+    <text class="tick" x="64" y="575">−2</text>
+  </g>
+  <g text-anchor="middle">
+    <text class="tick" x="108" y="632">−2</text>
+    <text class="tick" x="188" y="632">−1</text>
+    <text class="tick" x="268" y="632">0</text>
+    <text x="348" y="632" style="fill:#97d5f5">1</text>
+    <text x="428" y="632" style="fill:#bcecc0">2</text>
+    <text x="468" y="632" style="fill:#f4bb83">2.5</text>
+    <text class="math" x="292" y="668">F<tspan class="sub" dy="6">x</tspan><tspan dy="-6"> / (mg)</tspan></text>
+    <text class="math" transform="translate(26 407) rotate(-90)">F<tspan class="sub" dy="6">y</tspan><tspan dy="-6"> / (mg)</tspan></text>
+  </g>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Roadster physics: conceptual illustration / Roadster 物理：概念示意</title>
+  <desc id="desc">A schematic red coupe, a blue underbody pressure region and a small rearward orange gas jet. This is a conceptual illustration, not a product photograph or a diagram of actual hardware placement. / 红色跑车轮廓、蓝色车底压差区域与向后的橙色气流。本图为概念示意，不是产品照片，也不代表实际硬件布置。</desc>
+  <defs>
+    <linearGradient id="car-red" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fa8b87"/><stop offset=".36" stop-color="#e56564"/><stop offset="1" stop-color="#ac3f4a"/></linearGradient>
+    <linearGradient id="jet"><stop stop-color="#f7b875" stop-opacity="0"/><stop offset="1" stop-color="#f7b875" stop-opacity=".55"/></linearGradient>
+    <linearGradient id="pressure" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8fcbe8" stop-opacity=".32"/><stop offset="1" stop-color="#8fcbe8" stop-opacity=".12"/></linearGradient>
+    <linearGradient id="road" gradientUnits="userSpaceOnUse" x1="100" y1="515" x2="1100" y2="515"><stop stop-color="#8298a0" stop-opacity="0"/><stop offset=".15" stop-color="#8298a0" stop-opacity=".65"/><stop offset=".85" stop-color="#8298a0" stop-opacity=".65"/><stop offset="1" stop-color="#8298a0" stop-opacity="0"/></linearGradient>
+    <g id="coupe">
+      <path d="M17 67 52 61C81 57 96 27 134 24L166 24C192 24 214 47 230 58L275 67Q287 69 289 80L281 88 26 88 13 80Z" fill="url(#car-red)" stroke="#f69a93" stroke-width="1.5"/>
+      <path d="M92 56C106 40 117 31 136 30L165 30C182 30 199 44 213 57Z" fill="#192f3a" stroke="#ffb0a5" stroke-width="1.2"/>
+      <path d="M151 31 156 57M32 69 75 66M111 67 215 67" stroke="#fca59a" stroke-width="1.5" fill="none"/>
+      <path d="m266 71 17 3-1 5-15-2" fill="#ffeed5"/>
+      <path d="M17 69 28 68 28 75 16 76" fill="#ffcab9"/>
+      <path d="M30 85 271 85" stroke="#792c37" stroke-width="5"/>
+      <g fill="#11212a" stroke="#a8b6bc" stroke-width="3">
+        <circle cx="76" cy="81" r="18"/><circle cx="233" cy="81" r="18"/>
+      </g>
+      <g fill="#5e7580" stroke="#c3ced2" stroke-width="1.5">
+        <circle cx="76" cy="81" r="9"/><circle cx="233" cy="81" r="9"/>
+      </g>
+      <g stroke="#b7c8cc" stroke-width="1.5">
+        <path d="m70 75 12 12m-12 0 12-12m-6-3v18m-9-9h18"/>
+        <path d="m227 75 12 12m-12 0 12-12m-6-3v18m-9-9h18"/>
+      </g>
+    </g>
+  </defs>
+  <rect width="1200" height="800" fill="#11222b"/>
+  <!-- Principal subject remains within the central band for wide sharing crops. -->
+  <path d="M233 441 108 413V493L233 463Z" fill="url(#jet)"/>
+  <path d="M228 450H143M227 456H120" stroke="#f7b875" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/>
+  <path d="M459 478H791V515H459Z" fill="url(#pressure)"/>
+  <path d="M459 481V512H791V481" fill="none" stroke="#8fcbe8" stroke-opacity=".45" stroke-width="2" stroke-dasharray="10 9"/>
+  <path d="M100 515H1100" stroke="url(#road)" stroke-width="3"/>
+  <g stroke="#5f7781" stroke-width="1.5" stroke-opacity=".4">
+    <path d="m220 531 16-16m64 16 16-16m64 16 16-16m64 16 16-16m64 16 16-16m64 16 16-16m64 16 16-16m64 16 16-16m64 16 16-16m64 16 16-16"/>
+  </g>
+  <use href="#coupe" transform="translate(190 235) scale(2.8)"/>
+</svg>

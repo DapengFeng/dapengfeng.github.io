@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="190" viewBox="0 190 540 190" role="img" aria-labelledby="title desc">
+  <title id="title">Three sources of force / 三种力的来源</title>
+  <desc id="desc">Schematic comparison, not vehicle packaging. Panel 1: the road exerts forward tire force at the contact patch. Panel 2: reduced underbody pressure produces downward force. Panel 3: backward gas exhaust produces forward thrust. / 原理示意，不代表实车布置。1：路面在轮胎接地点施加向前的力。2：车底低压产生向下的力。3：向后排气产生向前推力。</desc>
+  <style>
+    text{font-family:Arial,Helvetica,sans-serif;fill:#eef4f1;font-size:32px}
+    .math{font-family:Georgia,'Times New Roman',serif;font-style:italic}
+    .sub{font-size:30px;font-style:normal}
+    .id{font-size:30px;font-weight:600;letter-spacing:1px;fill:#91a9af}
+    .force{fill:none;stroke:#97d5f5;stroke-width:5;stroke-linecap:round;marker-end:url(#force-arrow)}
+    .gravity{fill:none;stroke:#ced9de;stroke-width:4;stroke-linecap:round;marker-end:url(#gravity-arrow)}
+    .gas{fill:none;stroke:#f7b875;stroke-width:4;stroke-linecap:round;marker-end:url(#gas-arrow)}
+    .road{stroke:#8298a0;stroke-width:3}
+    .divider{stroke:#354a52;stroke-width:1}
+    .pressure{fill:#8fcbe8}
+    .force-label{fill:#97d5f5}
+  </style>
+  <defs>
+    <marker id="force-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M1 1 11 6 1 11Z" fill="#97d5f5"/></marker>
+    <marker id="gravity-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M1 1 11 6 1 11Z" fill="#ced9de"/></marker>
+    <marker id="gas-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M1 1 11 6 1 11Z" fill="#f7b875"/></marker>
+    <linearGradient id="car-red" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c3d0d6"/><stop offset=".36" stop-color="#71828d"/><stop offset="1" stop-color="#35454e"/></linearGradient>
+    <linearGradient id="plume-right"><stop stop-color="#f7b875" stop-opacity=".48"/><stop offset="1" stop-color="#f7b875" stop-opacity="0"/></linearGradient>
+    <linearGradient id="plume-left"><stop stop-color="#f7b875" stop-opacity="0"/><stop offset="1" stop-color="#f7b875" stop-opacity=".48"/></linearGradient>
+    <linearGradient id="plume-down" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f7b875" stop-opacity=".48"/><stop offset="1" stop-color="#f7b875" stop-opacity="0"/></linearGradient>
+    <pattern id="road-hatch" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M-2 14 12 0M12 14 26 0" stroke="#4b626b" stroke-width="1"/></pattern>
+    <g id="coupe">
+      <path d="M17 67 52 61C81 57 96 27 134 24L166 24C192 24 214 47 230 58L275 67Q287 69 289 80L281 88 26 88 13 80Z" fill="url(#car-red)" stroke="#b8c6cd" stroke-width="1.5"/>
+      <path d="M92 56C106 40 117 31 136 30L165 30C182 30 199 44 213 57Z" fill="#192f3a" stroke="#a3b4bf" stroke-width="1.2"/>
+      <path d="M151 31 156 57M32 69 75 66M111 67 215 67" stroke="#b7c6ce" stroke-width="1.5" fill="none"/>
+      <path d="m266 71 17 3-1 5-15-2" fill="#ffeed5"/>
+      <path d="M17 69 28 68 28 75 16 76" fill="#ffcab9"/>
+      <path d="M30 85 271 85" stroke="#28343c" stroke-width="5"/>
+      <g fill="#11212a" stroke="#a8b6bc" stroke-width="3">
+        <circle cx="76" cy="81" r="18"/><circle cx="233" cy="81" r="18"/>
+      </g>
+      <g fill="#5e7580" stroke="#c3ced2" stroke-width="1.5">
+        <circle cx="76" cy="81" r="9"/><circle cx="233" cy="81" r="9"/>
+      </g>
+      <g stroke="#b7c8cc" stroke-width="1.5">
+        <path d="m70 75 12 12m-12 0 12-12m-6-3v18m-9-9h18"/>
+        <path d="m227 75 12 12m-12 0 12-12m-6-3v18m-9-9h18"/>
+      </g>
+    </g>
+  </defs>
+  <rect width="540" height="570" rx="14" fill="#111a20"/>
+  <!-- Each row isolates one force mechanism; these are not complete free-body diagrams. -->
+
+  <g>
+
+    <rect x="84" y="150" width="408" height="13" fill="url(#road-hatch)"/>
+    <path class="road" d="M84 150H492"/>
+    <use href="#coupe" x="120" y="50"/>
+    <path d="M186 150h20" stroke="#97d5f5" stroke-width="5" stroke-linecap="round"/>
+    <path class="force" d="M196 150H482"/>
+    <text class="math force-label" x="418" y="131">F<tspan class="sub" dy="6">tire</tspan></text>
+  </g>
+  <g>
+
+    <rect x="84" y="340" width="408" height="13" fill="url(#road-hatch)"/>
+    <path class="road" d="M84 340H492"/>
+    <path d="M216 322H332V339H216Z" fill="#78bfe7" fill-opacity=".26" stroke="#8fcbe8" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <use href="#coupe" x="120" y="240"/>
+    <path class="force" d="M271 211V266"/>
+    <text class="math force-label" x="294" y="231">D</text>
+    <path d="M136 327H206" stroke="#8fcbe8" stroke-width="1.5"/>
+    <text class="math pressure" x="49" y="328">p<tspan class="sub" dy="6">low</tspan></text>
+    <g transform="translate(274 330)" fill="#8fcbe8">
+      <circle r="3"/><path d="M1-3C15-16 19-1 6 1ZM-3 0C-21-5-10-18-1-6ZM-1 3C2 22-15 15-6 4Z"/>
+    </g>
+  </g>
+  <g>
+
+    <rect x="84" y="530" width="408" height="13" fill="url(#road-hatch)"/>
+    <path class="road" d="M84 530H492"/>
+    <path d="M139 494 35 467V522L139 501Z" fill="url(#plume-left)"/>
+    <use href="#coupe" x="120" y="430"/>
+    <path class="gas" d="M132 498H48"/>
+    <path class="force" d="M408 482H492"/>
+    <text class="math force-label" x="450" y="463">T</text>
+  </g>
+</svg>
