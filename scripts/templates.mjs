@@ -67,7 +67,7 @@ export function home(posts,scene,date) {
  const choices=['pytorch-01-what-is-pytorch','human-visual-system','chaoshan-streets-and-sea'];
  const selected=choices.map(slug=>visible.find(p=>p.slug===slug)).filter(Boolean);
  const latest=visible.filter(p=>!choices.includes(p.slug)).slice(0,4);
- const series=collectSeries(posts)[0];
+ const series=collectSeries(posts).find(group=>group.id==='pytorch-internals');
  const routes=[
   {url:series?.url||'/blog/?category=systems',symbol:'⌘',en:'Inside PyTorch',zh:'沿着 PyTorch 深入',descriptionEn:'From tensor storage to dispatch, gradients and compiled kernels.',description:'从张量存储到算子调度、梯度与编译内核。'},
   {url:'/math/',symbol:'∿',en:'One mathematical idea',zh:'每天理解一个数学想法',descriptionEn:'A drawing, a relation, and the principle that connects them.',description:'从一幅图、一个关系式，读懂它们背后的原理。'},
@@ -133,7 +133,10 @@ export function seriesLinks(posts) {
 }
 export function seriesPage(group){
  const [titleEn,title,descriptionEn,description]=seriesMetadata(group);
- return shell({title,url:group.url,active:'blog',body:`<main id="main" class="site-width"><div class="page-heading"><span class="overline">${pair('LEARNING SERIES','学习专题')}</span><h1>${pair(titleEn,title)}</h1><p>${pair(descriptionEn,description)}</p></div>${seriesGuide(group)}<ol class="series-episodes">${group.posts.map(p=>`<li id="part-${p.series.part}" value="${p.series.part}"><a href="${p.url}"><span class="series-label">${pair(`PART ${String(p.series.part).padStart(2,'0')}`,`第 ${p.series.part} 期`)} · <time datetime="${p.date}">${p.date}</time></span><h2>${pair(p.titleEn,p.title)}</h2><p>${pair(p.descriptionEn,p.description)}</p></a></li>`).join('')}</ol><p><a href="/blog/">${pair('Browse all notes','浏览全部笔记')}</a></p></main>`});
+ const published=new Set(group.posts.map(post=>post.series.part));
+ const upcoming=[...(group.roadmap?.values()||[])].filter(entry=>!published.has(entry.part)).sort((a,b)=>a.part-b.part);
+ const roadmap=upcoming.length?`<section class="series-upcoming" aria-labelledby="series-upcoming-title"><h2 id="series-upcoming-title">${pair('Planned installments','后续规划')}</h2><ol class="series-roadmap">${upcoming.map(entry=>`<li value="${entry.part}" data-series-part="${entry.part}"><span class="series-upcoming-part">${pair(`Part ${entry.part}`,`第 ${entry.part} 期`)}</span><div><h3>${pair(entry.titleEn,entry.title)}</h3>${entry.descriptionEn?`<p>${pair(entry.descriptionEn,entry.description)}</p>`:''}</div></li>`).join('')}</ol></section>`:'';
+ return shell({title,url:group.url,active:'blog',body:`<main id="main" class="site-width"><div class="page-heading"><span class="overline">${pair('LEARNING SERIES','学习专题')}</span><h1>${pair(titleEn,title)}</h1><p>${pair(descriptionEn,description)}</p></div>${seriesGuide(group)}<ol class="series-episodes">${group.posts.map(p=>`<li id="part-${p.series.part}" value="${p.series.part}"><a href="${p.url}"><span class="series-label">${pair(`PART ${String(p.series.part).padStart(2,'0')}`,`第 ${p.series.part} 期`)} · <time datetime="${p.date}">${p.date}</time></span><h2>${pair(p.titleEn,p.title)}</h2><p>${pair(p.descriptionEn,p.description)}</p></a></li>`).join('')}</ol>${roadmap}<p><a href="/blog/">${pair('Browse all notes','浏览全部笔记')}</a></p></main>`});
 }
 export function seriesNavigation(post,posts){
  if(!post.series)return '';

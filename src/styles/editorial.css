@@ -49,6 +49,13 @@ html[data-language="both"] .section-heading h2 .i18n > [data-lang="zh"] { font-s
 .series-path ol { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 24px 0 0; list-style: none; }
 .series-path a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border: 1px solid #667859; border-radius: 6px; color: var(--lime); font-size: 16px; }
 .series-episodes > li { scroll-margin-top: 32px; border-width: 1px 0 0; border-radius: 0; padding: 28px 0; }
+.series-upcoming { margin-block: 40px; }
+.series-upcoming > h2 { font-size: 23px; font-weight: 550; line-height: 1.5; margin: 0 0 20px; }
+.series-roadmap { padding: 0; margin: 0; list-style: none; }
+.series-roadmap > li { display: grid; grid-template-columns: 90px minmax(0,1fr); gap: 20px; padding-block: 18px; border-top: 1px solid var(--rule-soft); }
+.series-upcoming-part { font: 16px/1.7 var(--mono); color: var(--copy-quiet); }
+.series-roadmap h3 { margin: 0; font-size: 18px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
+.series-roadmap p { margin: 8px 0 0; font-size: 16px; line-height: 1.75; color: var(--copy-quiet); overflow-wrap: anywhere; }
 .about-grid { grid-template-columns: minmax(160px,260px) minmax(0,1fr); align-items: start; gap: 56px; }
 .about-page .page-heading h1 { text-wrap: balance; }
 .about-mark { min-height: 0; aspect-ratio: 1; font-size: 140px; }
@@ -116,6 +123,8 @@ html[data-language="both"] .section-heading h2 .i18n > [data-lang="zh"] { font-s
  .article-travel #article-content .travelogue h2 { font-size: 25px; margin-top: 44px; }
 }
 @media (max-width: 560px) {
+ .series-roadmap > li { grid-template-columns: minmax(0,1fr); gap: 8px; }
+ .series-upcoming-part .i18n { flex-direction: row; flex-wrap: wrap; gap: 0 12px; }
  .home-editorial .featured-grid { grid-template-columns: minmax(0,1fr); }
  .home-editorial .featured-grid > .knowledge-card:last-child .card-link { display: flex; }
  .home-editorial .featured-grid > .knowledge-card:last-child .card-visual { min-height: 0; height: 190px; }

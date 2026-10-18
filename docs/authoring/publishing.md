@@ -78,13 +78,21 @@ Every installment automatically includes the same compact, collapsible series co
 
 每一期正文之后、相关阅读之前都会自动出现同一份紧凑、可折叠的专题目录，显示发布日期并突出当前期，无需添加预览标记。若需列出后续规划，在任一期元信息的 `series.roadmap` 中声明一次即可，例如 `[{"part":3,"titleEn":"Operator dispatch","title":"算子调度"}]`。各期共用这份规划；对应章节发布后，自动采用实际文章标题与日期。新增的已发布章节始终自动加入。
 
+The series landing page lists published installments first, followed by a compact “Planned installments” list when the roadmap contains unpublished parts. Planned entries have no links or dates and disappear from that list as their parts are published. Optional `descriptionEn` and `description` fields add a short question or explanation to a planned entry on the landing page; provide both nonempty languages together. Repeated declarations of a part must agree on its titles and any supplied descriptions. The article-footer directory stays compact and shows only titles and publication status. Generic series metadata describes ordered reading without promising source-code coverage or executable examples.
+
+专题首页先列出已发布文章；若规划中还有未发布期数，再显示紧凑的“后续规划”。规划条目没有链接或日期，对应期数发布后会自动从这份列表移除。可选的 `descriptionEn` 与 `description` 字段为首页中的规划条目补充简短问题或说明，两种语言须同时填写且非空。同一期的重复声明，其标题及已提供的说明须保持一致。文章末尾的专题目录仍保持紧凑，只显示标题与发布状态。通用专题元信息只说明按期阅读，不承诺每个专题都包含源码讲解或可运行示例。
+
 An optional `<div data-series-preview>` can embed the list elsewhere; set its attribute to a series ID to reference another series. Child entries with `data-series-part` and bilingual titles can add local planned topics. Avoid duplicating the automatically generated directory in ordinary installments.
 
 如需在其他位置引用，可选用 `<div data-series-preview>`，属性值可指定其他专题 ID。带 `data-series-part` 与双语标题的子元素可补充局部规划。普通专题文章无需再重复插入自动生成的目录。
 
-The series landing page can add an editorial reading guide from `content/editorial.json`. Each entry in `series` names an existing series `id`, gives bilingual `audience`, `prerequisites`, and `outcomes`, and lists short `paths` with a stable `id`, bilingual `title` and `description`, and published `parts` numbers. These guides organize already published material; they must not imply an unimplemented course, tool, or credential.
+The series landing page can add an editorial reading guide from `content/editorial.json`. Each entry in `series` names an existing series `id`, gives bilingual `audience`, `prerequisites`, and `outcomes`, and lists short `paths` with a stable `id`, bilingual `title` and `description`, and published `parts` numbers. These guides organize already published material; they must not imply an unimplemented course, tool, or credential. The homepage’s fixed PyTorch reading route selects `pytorch-internals` by ID, so adding another series does not change that destination.
 
-专题首页可从 `content/editorial.json` 补充阅读指引。`series` 中的条目指定已有专题 `id`，以双语填写 `audience`（适合谁）、`prerequisites`（先修知识）和 `outcomes`（读后能理解什么）；`paths` 使用稳定的 `id`、双语 `title` 和 `description`，以及已发布的 `parts` 期数。指引用于组织现有内容，不应暗示尚未完成的课程、工具或作者资历。
+专题首页可从 `content/editorial.json` 补充阅读指引。`series` 中的条目指定已有专题 `id`，以双语填写 `audience`（适合谁）、`prerequisites`（先修知识）和 `outcomes`（读后能理解什么）；`paths` 使用稳定的 `id`、双语 `title` 和 `description`，以及已发布的 `parts` 期数。指引用于组织现有内容，不应暗示尚未完成的课程、工具或作者资历。首页固定的 PyTorch 阅读路径按 `pytorch-internals` 标识选择专题，新增其他专题不会改变这个入口的目标。
+
+Series search records inherit tags from their published installments. A series whose published articles share one category uses that category; mixed-topic series use `series`. Do not assign another series' subject tags to a new series.
+
+专题搜索条目从已发布各期汇总标签。各期同属一个分类时采用该分类，跨分类专题使用 `series`；新增专题不沿用其他专题的主题标签。
 
 ## Site copy and reading entry points / 站点文案与阅读入口
 

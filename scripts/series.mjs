@@ -13,16 +13,19 @@ export function collectSeries(posts) {
   if(s.roadmap!==undefined&&!Array.isArray(s.roadmap))throw Error(`${post.slug}: series roadmap must be an array`);
   for(const entry of s.roadmap||[]){
    if(!Number.isInteger(entry.part)||entry.part<1||!entry.title?.trim()||!entry.titleEn?.trim())throw Error(`${post.slug}: roadmap requires a positive part and bilingual titles`);
+   const hasDescription=entry.description!==undefined||entry.descriptionEn!==undefined;
+   if(hasDescription&&(typeof entry.description!=='string'||typeof entry.descriptionEn!=='string'||!entry.description.trim()||!entry.descriptionEn.trim()))throw Error(`${post.slug}: roadmap descriptions require both languages`);
    const previous=group.roadmap.get(entry.part);
    if(previous&&(previous.title!==entry.title||previous.titleEn!==entry.titleEn))throw Error(`Conflicting roadmap part: ${s.id}/${entry.part}`);
-   group.roadmap.set(entry.part,entry);
+   if(previous?.description&&hasDescription&&(previous.description!==entry.description||previous.descriptionEn!==entry.descriptionEn))throw Error(`Conflicting roadmap description: ${s.id}/${entry.part}`);
+   group.roadmap.set(entry.part,{...previous,...entry});
   }
   group.posts.push(post);
  }
  return [...groups.values()].map(group=>({...group,posts:group.posts.sort((a,b)=>a.series.part-b.series.part)}));
 }
 export function seriesMetadata(group){
- return [group.titleEn,group.title,`Read ${group.titleEn} in order: source-guided articles, working examples, and interactive explanations.`,`按期阅读《${group.title}》：结合源码、可运行示例与交互图解循序学习。`];
+ return [group.titleEn,group.title,`Read ${group.titleEn} in order, following the questions developed in each installment.`,`按期阅读《${group.title}》，沿着每一期的问题逐步展开。`];
 }
 
 // Resolve roadmap entries from published metadata, without article-specific URLs.

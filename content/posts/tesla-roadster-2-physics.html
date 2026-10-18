@@ -1,14 +1,57 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roadster 2: engineering beyond the tyre limit</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roadster engineering 01: beyond the tyre limit</title>
 <script type="application/json" id="article-metadata">{
-  "titleEn": "Roadster 2: engineering beyond the tyre limit",
-  "title": "Roadster 2：突破轮胎限制的系统工程",
-  "descriptionEn": "A one-second launch needs more than motor power. Map the required suction and thrust, then calculate when fan power makes extra grip counterproductive.",
-  "description": "一秒起步，需要怎样的吸附力与推力组合？从整车受力反算条件，再看风扇功耗何时让更强的抓地力得不偿失。",
-  "cardDescriptionEn": "Map the suction and thrust needed for a one-second launch, then use a shared power budget to find when extra downforce stops improving acceleration.",
-  "cardDescription": "反算一秒起步需要的吸附力与推力组合，再用共用功率预算找出下压力何时不再改善加速。",
+  "titleEn": "Roadster engineering 01: beyond the tyre limit",
+  "title": "Roadster 技术拆解 01：突破轮胎限制",
+  "descriptionEn": "Start with a target: reach 60 mph in one second. Derive the required force, compare suction with direct thrust, and make each added system justify its power and mass.",
+  "description": "先定目标：一秒达到 60 mph。反算需要的力，比较负压与直接推力，再检查每一套新增装置能否挣回自己的功耗与重量。",
+  "cardDescriptionEn": "The series opens with the force budget: what must change when more motor torque no longer produces more acceleration?",
+  "cardDescription": "连载从受力预算开始：当更大的电机转矩也无法提高加速度，应该改变哪一条限制？",
   "date": "2026-10-17",
   "category": "physics",
+  "series": {
+    "id": "roadster-engineering",
+    "titleEn": "Roadster: from physical limits to vehicle engineering",
+    "title": "Roadster：从物理极限到整车工程",
+    "part": 1,
+    "roadmap": [
+      {
+        "part": 2,
+        "titleEn": "Power or grip for a one-second launch?",
+        "title": "一秒加速，先补功率还是抓地力？",
+        "descriptionEn": "Trace battery power through the motor and gears, then compare power, gearing, mass and downforce changes against the same acceleration target.",
+        "description": "沿电池、电机和传动追踪功率，再对着同一加速目标比较功率、减速比、质量与下压力的改动。"
+      },
+      {
+        "part": 3,
+        "titleEn": "Make downforce usable at all four tyres",
+        "title": "让下压力成为四个车轮可用的抓地力",
+        "descriptionEn": "Replace the single friction circle with four contact patches. Examine load transfer, tyre sensitivity, suspension, sealing and the demands of braking and cornering.",
+        "description": "把一个摩擦圆拆成四个接触区，考察载荷转移、轮胎载荷敏感性、悬架与密封，以及制动和转弯对它们的要求。"
+      },
+      {
+        "part": 4,
+        "titleEn": "Buy impulse with a finite gas supply",
+        "title": "用有限的储气，换取需要的冲量",
+        "descriptionEn": "Work backward from a thrust-time requirement to gas mass, vessels, valves and nozzles, then account for pressure changes and the cost of refilling.",
+        "description": "从推力与持续时间反推气体质量、储罐、阀门与喷嘴，再计入放气过程的压力变化，以及补气所需的时间和能量。"
+      },
+      {
+        "part": 5,
+        "titleEn": "Coordinate force, grip and attitude",
+        "title": "让驱动、吸附与姿态控制协同工作",
+        "descriptionEn": "Translate a requested motion into actuator commands. Follow sensing, force allocation, delays and fallback when grip or thrust becomes unavailable.",
+        "description": "把期望运动分解成执行器指令，沿状态估计、受力分配、响应延迟和故障降级，解释控制系统如何应对抓地力或推力的变化。"
+      },
+      {
+        "part": 6,
+        "titleEn": "Make peak performance repeatable",
+        "title": "让峰值性能成为可重复的能力",
+        "descriptionEn": "Run the whole cycle: prepare, launch, brake and recover. Combine heat, gas, mass and durability budgets to judge what can be repeated, tested and manufactured.",
+        "description": "串起准备、起步、制动与恢复，合并热量、储气、质量和耐久预算，判断性能能否重复、如何验证，以及制造需要满足什么条件。"
+      }
+    ]
+  },
   "tags": [
     "Tesla",
     "Roadster",
@@ -170,7 +213,8 @@ html[data-language="zh"] .rd-power-details summary [data-lang]+[data-lang]::befo
 
 </style></head>
 <body><div class="lesson rd-article">
-<h2 class="parallel-text rd-section" id="force-first"><span lang="en" data-lang="en">Start with the force, not the motor rating</span><span lang="zh-CN" data-lang="zh">先看整车能得到多少力</span></h2>
+<h2 class="parallel-text rd-section" id="force-first"><span lang="en" data-lang="en">Choose the constraint to change</span><span lang="zh-CN" data-lang="zh">先决定要改变哪一条限制</span></h2>
+<p class="parallel-text"><span lang="en" data-lang="en">Set a target: take a car from rest to 60 mph in one second. Begin with the force that this motion requires, then ask which component prevents the car from delivering it. If the tyres already use all available grip, more motor torque alone cannot close the gap. A useful design must change the contact conditions or provide another path for force. This first installment compares those paths and their costs; the rest of the series follows the hardware needed to make the force available.</span><span lang="zh-CN" data-lang="zh">先定一个目标：让车从静止开始，在一秒内达到 60 mph。先算这个动作需要多少力，再找出什么限制了车辆提供这股力。如果轮胎已经用尽抓地力，只增加电机转矩就补不上差距。有效的设计必须改变接触条件，或增加另一条受力路径。本期先比较这些路径及其代价，后续再逐步检查：需要怎样的硬件，才能真正把这些力交出来。</span></p>
 <p class="parallel-text"><span lang="en" data-lang="en">Suction increases the force tyres can transmit; a jet adds force directly to the car. The difference is geometric: <strong>one enlarges the tyre-force circle, the other shifts the total-force envelope.</strong> Here forward force is horizontal, cornering force vertical, and one unit is the car’s weight, <span data-math="mg" data-display="inline"></span>.</span><span lang="zh-CN" data-lang="zh">负压增加轮胎能传递的力，喷流直接给车身增加推力。两者在图上的区别是：<strong>一个扩大轮胎受力的圆，一个平移整车合力的范围。</strong>横轴表示向前的力，纵轴表示转弯的力，单位是车重 <span data-math="mg" data-display="inline"></span>。</span></p>
 <figure id="force-envelope" class="rd-envelope" data-roadster-envelope aria-labelledby="rd-envelope-title">
   <div class="rd-envelope-heading" id="rd-envelope-title">
@@ -420,6 +464,7 @@ html[data-language="zh"] .rd-power-details summary [data-lang]+[data-lang]::befo
 </ol>
 <p class="parallel-text"><span lang="en" data-lang="en">Read this way, the Roadster raises a design question larger than its launch time: <strong>how much of a car’s available force can become something its controller actively shapes?</strong> Motor torque selects a demand within the tyre limit; suction changes that limit; jets contribute force beyond the tyre contact. Together they offer more ways to respond to the driver, but also more conditions under which the response can change.</span><span lang="zh-CN" data-lang="zh">沿着这条线看，Roadster 提出的设计问题比起步成绩更大：<strong>一辆车可用的受力范围，有多少能够由控制系统主动塑造？</strong>电机转矩在轮胎限制内提出需求，负压改变这条限制，喷流在接触力之外增加贡献。三者让车辆拥有更多响应驾驶者的方式，也带来更多会改变响应能力的条件。</span></p>
 <p class="parallel-text"><span lang="en" data-lang="en">The strongest demonstration of this architecture would be a car that knows the force it can still deliver, allocates it between acceleration, steering and attitude control, and reduces its demands coherently as grip, gas or thermal margin falls. Peak force makes the manoeuvre possible. Predictable force, available at the right instant and repeatable under stated conditions, is what would make the combination a convincing vehicle.</span><span lang="zh-CN" data-lang="zh">最能证明这套架构价值的，是车辆知道自己此刻还能给出多少力，能够协调加速、转向与姿态控制，并在附着、储气或温度余量下降时，有序地收回超出能力的需求。峰值受力让动作成为可能；在正确时刻提供可预期的响应，并在明确条件下再次实现，才会让这些装置真正组成一辆令人信服的车。</span></p>
+<p class="parallel-text"><span lang="en" data-lang="en">The first design decision is now clear: identify the active constraint before adding hardware. When grip limits the car, suction may help; when wheel power limits it, the fan competes for that power; a jet adds force while consuming stored gas. The next installment, <strong>Power or grip for a one-second launch?</strong>, examines the quantity this article treated as an input: how much drive force can the battery, inverter and motor actually deliver at each speed?</span><span lang="zh-CN" data-lang="zh">第一步设计判断由此明确：先找出当前约束，再决定增加什么硬件。抓地力不足时，吸附可能有用；轮端功率不足时，风扇反而与驱动争用功率；喷流增加受力，同时消耗储气。下一期<strong>《一秒加速，先补功率还是抓地力？》</strong>将检查本期作为输入使用的量：在不同车速下，电池、逆变器和电机究竟能给出多少驱动力？</span></p>
 </div>
 <script>
 (() => {

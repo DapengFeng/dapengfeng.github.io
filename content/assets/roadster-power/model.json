@@ -1,0 +1,646 @@
+{
+  "kind": "illustrative-equivalent-drivetrain-not-tesla-specifications",
+  "assumptions": {
+    "mass_kg": 2000.0,
+    "g_m_s2": 9.81,
+    "mu": 1.5,
+    "radius_m": 0.34,
+    "torque_max_Nm": 1200.0,
+    "rpm_max": 18000.0,
+    "pack_dc_W": 1000000.0,
+    "inverter_efficiency": 0.98,
+    "motor_efficiency": 0.95,
+    "gear_efficiency": 0.97
+  },
+  "shaft_power_W": 931000.0,
+  "wheel_power_W": 903070.0,
+  "loss_W": {
+    "inverter": 20000,
+    "motor": 49000,
+    "gear": 27930
+  },
+  "motor_base_rpm": 7408.662600927728,
+  "tyre_grip_N": 29430.0,
+  "grip_to_power_kmh": 110.46727828746177,
+  "gears": [
+    {
+      "ratio": 9,
+      "available_torque_force_N": 30811.76470588235,
+      "motor_base_kmh": 105.51333333333335,
+      "motor_speed_cutoff_kmh": 256.35396053292715
+    },
+    {
+      "ratio": 12,
+      "available_torque_force_N": 41082.35294117647,
+      "motor_base_kmh": 79.13500000000002,
+      "motor_speed_cutoff_kmh": 192.26547039969537
+    }
+  ],
+  "examples": [
+    {
+      "speed_kmh": 0.0,
+      "road_force_N": 29430.0,
+      "acceleration_m_s2": 14.715
+    },
+    {
+      "speed_kmh": 72.0,
+      "road_force_N": 29430.0,
+      "acceleration_m_s2": 14.715
+    },
+    {
+      "speed_kmh": 144.0,
+      "road_force_N": 22576.75,
+      "acceleration_m_s2": 11.288375
+    },
+    {
+      "speed_kmh": 180.0,
+      "road_force_N": 18061.399999999998,
+      "acceleration_m_s2": 9.0307
+    }
+  ],
+  "launch_requirement": {
+    "kind": "required-performance-not-a-prediction-of-the-plotted-drivetrain",
+    "assumptions": {
+      "mass_kg": 2000.0,
+      "start_speed_m_s": 0,
+      "end_speed_m_s": 26.8224,
+      "duration_s": 1.0,
+      "constant_acceleration": true,
+      "g_m_s2": 9.81,
+      "road_resistance_N": 0,
+      "rotational_inertia_kg_m2": 0,
+      "downforce_N": 0,
+      "direct_thrust_N": 0,
+      "radius_m": 0.34,
+      "gear_ratio": 9,
+      "inverter_efficiency": 0.98,
+      "motor_efficiency": 0.95,
+      "gear_efficiency": 0.97
+    },
+    "acceleration_m_s2": 26.8224,
+    "distance_m": 13.4112,
+    "kinetic_energy_J": 719441.1417599999,
+    "kinetic_energy_kWh": 0.19984476159999998,
+    "mean_wheel_power_W": 719441.1417599999,
+    "end_wheel_power_W": 1438882.2835199998,
+    "required_force_N": 53644.799999999996,
+    "required_mu_without_downforce": 2.734189602446483,
+    "required_aggregate_motor_torque_Nm": 2089.2591065292095,
+    "end_dc_power_W": 1593323.0907017174
+  },
+  "nominal_pack_comparison": {
+    "kind": "nominal-voltage-wiring-comparison-not-a-loaded-pack-solution",
+    "assumptions": {
+      "cell_count": 4000,
+      "cell_nominal_voltage_V": 3.6,
+      "cell_capacity_Ah": 5.0,
+      "cell_resistance_ohm": 0.002,
+      "nominal_voltage_referenced_power_W": 360000.0,
+      "voltage_sag_ignored": true,
+      "external_conductor_resistance_ohm": 0.002,
+      "identical_cells": true
+    },
+    "packs": [
+      {
+        "series_cells": 100,
+        "parallel_cells": 40,
+        "nominal_voltage_V": 360.0,
+        "capacity_Ah": 200.0,
+        "nominal_energy_kWh": 72.0,
+        "pack_current_A": 1000.0,
+        "cell_current_A": 25.0,
+        "cell_C_rate": 5.0,
+        "equivalent_cell_resistance_ohm": 0.005,
+        "all_cells_loss_W": 5000.0,
+        "fixed_external_conductor_loss_W": 2000.0
+      },
+      {
+        "series_cells": 200,
+        "parallel_cells": 20,
+        "nominal_voltage_V": 720.0,
+        "capacity_Ah": 100.0,
+        "nominal_energy_kWh": 72.0,
+        "pack_current_A": 500.0,
+        "cell_current_A": 25.0,
+        "cell_C_rate": 5.0,
+        "equivalent_cell_resistance_ohm": 0.02,
+        "all_cells_loss_W": 5000.0,
+        "fixed_external_conductor_loss_W": 500.0
+      }
+    ]
+  },
+  "design_comparison": {
+    "kind": "controlled-illustrative-force-envelope-comparison-not-vehicle-performance",
+    "target_speed_m_s": 26.8224,
+    "target_speed_kmh": 96.56064,
+    "time_definition": "minimum theoretical rest-to-60-mph time from dt=m*dv/F(v), no rollout",
+    "time_formula": "C=min(mu*(m*g+D),eta_g*G*Tmax/r); vb=Pwheel/C; t=m*v/C for v<=vb, otherwise m*vb/C+m*(v^2-vb^2)/(2*Pwheel)",
+    "force_domain": "At v=0 use C; at 0<v<=omega_max*r/G use min(C,Pwheel/v). No extrapolation above maximum motor speed.",
+    "constraints": [
+      "Each single-variable case changes only the named parameter; baseline mass is 2000 kg.",
+      "The power increase assumes the battery, inverter and motor all support 25 percent more power, with unchanged torque and rpm limits and efficiencies.",
+      "The mass reduction retains all powertrain limits and tyre mu; it is not a claim that a lighter physical battery has identical power.",
+      "Downforce is a constant 4905 N referenced to the baseline mass, available at rest; not speed-squared passive aero downforce.",
+      "Downforce has zero added mass, zero power draw and zero drag here; its benefit is an optimistic isolated-force bound, not a realizable system estimate.",
+      "Combined modifications have their own group and are not a single-variable comparison.",
+      "The separate mu=2 cases test when the original gear-ratio conclusion reverses; they do not assert a real tyre coefficient."
+    ],
+    "omissions": [
+      "aerodynamic drag",
+      "rolling resistance",
+      "rotational inertia",
+      "tyre load sensitivity",
+      "axle load transfer",
+      "traction-control transients",
+      "battery sag",
+      "thermal limits",
+      "power needed to create downforce",
+      "mass or drag added by downforce hardware"
+    ],
+    "scenarios": [
+      {
+        "id": "baseline",
+        "group": "baseline",
+        "changed": "none",
+        "assumptions": {
+          "mass_kg": 2000.0,
+          "mu": 1.5,
+          "gear_ratio": 9,
+          "pack_dc_W": 1000000.0,
+          "wheel_power_W": 903070.0,
+          "aggregate_motor_torque_Nm": 1200.0,
+          "constant_downforce_N": 0.0,
+          "motor_rpm_limit": 18000.0,
+          "radius_m": 0.34
+        },
+        "grip_limit_N": 29430.0,
+        "torque_force_limit_N": 30811.76470588235,
+        "low_speed_force_cap_N": 29430.0,
+        "full_envelope_0_to_60_mph_time_s": 1.8227930682976552,
+        "constant_force_phase_s": 1.8227930682976552,
+        "constant_power_phase_s": 0.0,
+        "acceleration_at_0_m_s2": 14.715,
+        "acceleration_at_60_mph_m_s2": 14.715,
+        "force_at_0_N": 29430.0,
+        "force_at_60_mph_N": 29430.0,
+        "initial_limiting_constraint": "tyre-grip",
+        "final_limiting_constraint": "tyre-grip",
+        "force_to_power_transition_kmh": 110.46727828746177,
+        "motor_torque_to_power_transition_kmh": 105.51333333333335,
+        "transition_within_motor_speed_range": true,
+        "motor_speed_cutoff_kmh": 256.35396053292715
+      },
+      {
+        "id": "power-plus-25-percent",
+        "group": "single-variable",
+        "changed": "DC and wheel power +25 percent; torque unchanged",
+        "assumptions": {
+          "mass_kg": 2000.0,
+          "mu": 1.5,
+          "gear_ratio": 9,
+          "pack_dc_W": 1250000.0,
+          "wheel_power_W": 1128837.5,
+          "aggregate_motor_torque_Nm": 1200.0,
+          "constant_downforce_N": 0.0,
+          "motor_rpm_limit": 18000.0,
+          "radius_m": 0.34
+        },
+        "grip_limit_N": 29430.0,
+        "torque_force_limit_N": 30811.76470588235,
+        "low_speed_force_cap_N": 29430.0,
+        "full_envelope_0_to_60_mph_time_s": 1.8227930682976552,
+        "constant_force_phase_s": 1.8227930682976552,
+        "constant_power_phase_s": 0.0,
+        "acceleration_at_0_m_s2": 14.715,
+        "acceleration_at_60_mph_m_s2": 14.715,
+        "force_at_0_N": 29430.0,
+        "force_at_60_mph_N": 29430.0,
+        "initial_limiting_constraint": "tyre-grip",
+        "final_limiting_constraint": "tyre-grip",
+        "force_to_power_transition_kmh": 138.08409785932724,
+        "motor_torque_to_power_transition_kmh": 131.89166666666668,
+        "transition_within_motor_speed_range": true,
+        "motor_speed_cutoff_kmh": 256.35396053292715
+      },
+      {
+        "id": "gear-12",
+        "group": "single-variable",
+        "changed": "gear ratio 9 to 12",
+        "assumptions": {
+          "mass_kg": 2000.0,
+          "mu": 1.5,
+          "gear_ratio": 12,
+          "pack_dc_W": 1000000.0,
+          "wheel_power_W": 903070.0,
+          "aggregate_motor_torque_Nm": 1200.0,
+          "constant_downforce_N": 0.0,
+          "motor_rpm_limit": 18000.0,
+          "radius_m": 0.34
+        },
+        "grip_limit_N": 29430.0,
+        "torque_force_limit_N": 41082.35294117647,
+        "low_speed_force_cap_N": 29430.0,
+        "full_envelope_0_to_60_mph_time_s": 1.8227930682976552,
+        "constant_force_phase_s": 1.8227930682976552,
+        "constant_power_phase_s": 0.0,
+        "acceleration_at_0_m_s2": 14.715,
+        "acceleration_at_60_mph_m_s2": 14.715,
+        "force_at_0_N": 29430.0,
+        "force_at_60_mph_N": 29430.0,
+        "initial_limiting_constraint": "tyre-grip",
+        "final_limiting_constraint": "tyre-grip",
+        "force_to_power_transition_kmh": 110.46727828746177,
+        "motor_torque_to_power_transition_kmh": 79.135,
+        "transition_within_motor_speed_range": true,
+        "motor_speed_cutoff_kmh": 192.26547039969537
+      },
+      {
+        "id": "mass-minus-10-percent",
+        "group": "single-variable",
+        "changed": "mass 2000 to 1800 kg",
+        "assumptions": {
+          "mass_kg": 1800.0,
+          "mu": 1.5,
+          "gear_ratio": 9,
+          "pack_dc_W": 1000000.0,
+          "wheel_power_W": 903070.0,
+          "aggregate_motor_torque_Nm": 1200.0,
+          "constant_downforce_N": 0.0,
+          "motor_rpm_limit": 18000.0,
+          "radius_m": 0.34
+        },
+        "grip_limit_N": 26487.0,
+        "torque_force_limit_N": 30811.76470588235,
+        "low_speed_force_cap_N": 26487.0,
+        "full_envelope_0_to_60_mph_time_s": 1.8227930682976554,
+        "constant_force_phase_s": 1.8227930682976554,
+        "constant_power_phase_s": 0.0,
+        "acceleration_at_0_m_s2": 14.715,
+        "acceleration_at_60_mph_m_s2": 14.715,
+        "force_at_0_N": 26487.0,
+        "force_at_60_mph_N": 26487.0,
+        "initial_limiting_constraint": "tyre-grip",
+        "final_limiting_constraint": "tyre-grip",
+        "force_to_power_transition_kmh": 122.74142031940197,
+        "motor_torque_to_power_transition_kmh": 105.51333333333335,
+        "transition_within_motor_speed_range": true,
+        "motor_speed_cutoff_kmh": 256.35396053292715
+      },
+      {
+        "id": "constant-downforce",
+        "group": "single-variable",
+        "changed": "constant normal downforce +4905 N",
+        "assumptions": {
+          "mass_kg": 2000.0,
+          "mu": 1.5,
+          "gear_ratio": 9,
+          "pack_dc_W": 1000000.0,
+          "wheel_power_W": 903070.0,
+          "aggregate_motor_torque_Nm": 1200.0,
+          "constant_downforce_N": 4905.0,
+          "motor_rpm_limit": 18000.0,
+          "radius_m": 0.34
+        },
+        "grip_limit_N": 36787.5,
+        "torque_force_limit_N": 30811.76470588235,
+        "low_speed_force_cap_N": 30811.76470588235,
+        "full_envelope_0_to_60_mph_time_s": 1.741049255441008,
+        "constant_force_phase_s": 1.741049255441008,
+        "constant_power_phase_s": 0.0,
+        "acceleration_at_0_m_s2": 15.405882352941175,
+        "acceleration_at_60_mph_m_s2": 15.405882352941175,
+        "force_at_0_N": 30811.76470588235,
+        "force_at_60_mph_N": 30811.76470588235,
+        "initial_limiting_constraint": "motor-torque",
+        "final_limiting_constraint": "motor-torque",
+        "force_to_power_transition_kmh": 105.51333333333335,
+        "motor_torque_to_power_transition_kmh": 105.51333333333335,
+        "transition_within_motor_speed_range": true,
+        "motor_speed_cutoff_kmh": 256.35396053292715
+      },
+      {
+        "id": "downforce-and-gear-12",
+        "group": "combined",
+        "changed": "constant normal downforce +4905 N and gear ratio 9 to 12",
+        "assumptions": {
+          "mass_kg": 2000.0,
+          "mu": 1.5,
+          "gear_ratio": 12,
+          "pack_dc_W": 1000000.0,
+          "wheel_power_W": 903070.0,
+          "aggregate_motor_torque_Nm": 1200.0,
+          "constant_downforce_N": 4905.0,
+          "motor_rpm_limit": 18000.0,
+          "radius_m": 0.34
+        },
+        "grip_limit_N": 36787.5,
+        "torque_force_limit_N": 41082.35294117647,
+        "low_speed_force_cap_N": 36787.5,
+        "full_envelope_0_to_60_mph_time_s": 1.4639611461359185,
+        "constant_force_phase_s": 1.33459920157012,
+        "constant_power_phase_s": 0.12936194456579858,
+        "acceleration_at_0_m_s2": 18.39375,
+        "acceleration_at_60_mph_m_s2": 16.83425047721308,
+        "force_at_0_N": 36787.5,
+        "force_at_60_mph_N": 33668.500954426156,
+        "initial_limiting_constraint": "tyre-grip",
+        "final_limiting_constraint": "wheel-power",
+        "force_to_power_transition_kmh": 88.37382262996942,
+        "motor_torque_to_power_transition_kmh": 79.135,
+        "transition_within_motor_speed_range": true,
+        "motor_speed_cutoff_kmh": 192.26547039969537
+      },
+      {
+        "id": "mu-2-gear-9",
+        "group": "sensitivity",
+        "changed": "mu 1.5 to 2.0",
+        "assumptions": {
+          "mass_kg": 2000.0,
+          "mu": 2.0,
+          "gear_ratio": 9,
+          "pack_dc_W": 1000000.0,
+          "wheel_power_W": 903070.0,
+          "aggregate_motor_torque_Nm": 1200.0,
+          "constant_downforce_N": 0.0,
+          "motor_rpm_limit": 18000.0,
+          "radius_m": 0.34
+        },
+        "grip_limit_N": 39240.0,
+        "torque_force_limit_N": 30811.76470588235,
+        "low_speed_force_cap_N": 30811.76470588235,
+        "full_envelope_0_to_60_mph_time_s": 1.741049255441008,
+        "constant_force_phase_s": 1.741049255441008,
+        "constant_power_phase_s": 0.0,
+        "acceleration_at_0_m_s2": 15.405882352941175,
+        "acceleration_at_60_mph_m_s2": 15.405882352941175,
+        "force_at_0_N": 30811.76470588235,
+        "force_at_60_mph_N": 30811.76470588235,
+        "initial_limiting_constraint": "motor-torque",
+        "final_limiting_constraint": "motor-torque",
+        "force_to_power_transition_kmh": 105.51333333333335,
+        "motor_torque_to_power_transition_kmh": 105.51333333333335,
+        "transition_within_motor_speed_range": true,
+        "motor_speed_cutoff_kmh": 256.35396053292715
+      },
+      {
+        "id": "mu-2-gear-12",
+        "group": "sensitivity",
+        "changed": "mu 1.5 to 2.0 and gear ratio 9 to 12",
+        "assumptions": {
+          "mass_kg": 2000.0,
+          "mu": 2.0,
+          "gear_ratio": 12,
+          "pack_dc_W": 1000000.0,
+          "wheel_power_W": 903070.0,
+          "aggregate_motor_torque_Nm": 1200.0,
+          "constant_downforce_N": 0.0,
+          "motor_rpm_limit": 18000.0,
+          "radius_m": 0.34
+        },
+        "grip_limit_N": 39240.0,
+        "torque_force_limit_N": 41082.35294117647,
+        "low_speed_force_cap_N": 39240.0,
+        "full_envelope_0_to_60_mph_time_s": 1.383155335103353,
+        "constant_force_phase_s": 1.1729875795049882,
+        "constant_power_phase_s": 0.21016775559836465,
+        "acceleration_at_0_m_s2": 19.62,
+        "acceleration_at_60_mph_m_s2": 16.83425047721308,
+        "force_at_0_N": 39240.0,
+        "force_at_60_mph_N": 33668.500954426156,
+        "initial_limiting_constraint": "tyre-grip",
+        "final_limiting_constraint": "wheel-power",
+        "force_to_power_transition_kmh": 82.85045871559633,
+        "motor_torque_to_power_transition_kmh": 79.135,
+        "transition_within_motor_speed_range": true,
+        "motor_speed_cutoff_kmh": 192.26547039969537
+      }
+    ]
+  },
+  "decision_boundaries": {
+    "kind": "conditional-capacity-boundaries-not-real-vehicle-predictions",
+    "shared_model": {
+      "target_speed_m_s": 26.8224,
+      "mass_kg": 2000.0,
+      "time_formula": "t=m*vf/C if P>=C*vf; otherwise t=m/2*(vf^2/P+P/C^2)",
+      "power_inversion": "Pmin=m*vf^2/(T+sqrt(T^2-(m*vf/C)^2)); feasible only C>=m*vf/T",
+      "force_definition": "C=min(mu*(m*g+D),eta_g*G*Tmax/r)",
+      "force_at_rest": "C; P/v is not evaluated at v=0",
+      "omissions": [
+        "drag",
+        "rolling resistance",
+        "rotational inertia",
+        "tyre load sensitivity",
+        "axle load transfer",
+        "traction-control delay",
+        "battery sag",
+        "thermal derating"
+      ],
+      "limits": "G=9 and G=12 examples obey the 18000 rpm cutoff through 60 mph. Capacity feasibility map is a requirements map; it does not assert those capacities are available from the assumed motor or tyres."
+    },
+    "gear_sensitivity": {
+      "fixed": {
+        "mass_kg": 2000.0,
+        "aggregate_motor_torque_Nm": 1200.0,
+        "radius_m": 0.34,
+        "downforce_N": 0,
+        "efficiency": 0.9030699999999999
+      },
+      "map_domain": {
+        "mu": [
+          1.0,
+          2.5
+        ],
+        "available_drive_dc_MW": [
+          0.3,
+          1.5
+        ]
+      },
+      "mu_where_gear_9_becomes_torque_limited": 1.5704263356718833,
+      "baseline_G9_torque_threshold_Nm": 1146.1855670103093,
+      "baseline_G9_dc_power_threshold_W": 874110.790968585,
+      "interpretation": "Within this positive-power shared-speed domain G12 has zero time benefit when mu<=the G9 torque/grip crossing. Above it G12 is faster, with the percentage benefit dependent on power. This says nothing about higher-speed gearing or tyre feasibility.",
+      "samples": [
+        {
+          "mu": 1.5,
+          "pack_dc_W": 1000000.0,
+          "gear_9_time_s": 1.8227930682976552,
+          "gear_12_time_s": 1.8227930682976552,
+          "time_reduction_percent": 0.0
+        },
+        {
+          "mu": 1.6,
+          "pack_dc_W": 1000000.0,
+          "gear_9_time_s": 1.741049255441008,
+          "gear_12_time_s": 1.708868501529052,
+          "time_reduction_percent": 1.8483540205072924
+        },
+        {
+          "mu": 2.0,
+          "pack_dc_W": 1000000.0,
+          "gear_9_time_s": 1.741049255441008,
+          "gear_12_time_s": 1.3831553351033528,
+          "time_reduction_percent": 20.5562202918263
+        },
+        {
+          "mu": 2.0,
+          "pack_dc_W": 400000.0,
+          "gear_9_time_s": 2.372148256204491,
+          "gear_12_time_s": 2.2262513792781444,
+          "time_reduction_percent": 6.150411406401135
+        },
+        {
+          "mu": 2.5,
+          "pack_dc_W": 1500000.0,
+          "gear_9_time_s": 1.741049255441008,
+          "gear_12_time_s": 1.305786941580756,
+          "time_reduction_percent": 25.0
+        }
+      ]
+    },
+    "downforce_budget": {
+      "reference_time_s": 1.8227930682976552,
+      "fixed": {
+        "mu": 1.5,
+        "gear": 12,
+        "constant_downforce_N": 4905.0,
+        "shared_pack_dc_W": 1000000.0,
+        "wheel_power_formula": "(1000000-Paux)*0.98*0.95*0.97",
+        "force_formula": "min(1.5*((2000+dm)*9.81+4905),0.97*12*1200/0.34)"
+      },
+      "map_domain": {
+        "added_mass_kg": [
+          0,
+          900
+        ],
+        "auxiliary_dc_kW": [
+          0,
+          600
+        ]
+      },
+      "interpretation": "A budget sensitivity only: D is prescribed independently of auxiliary draw and hardware mass. The map does not establish that any fan can generate D at the specified cost. Positive gain is relative to original G9 without downforce, not to G12 without hardware.",
+      "constant_draw_at_rest": "Auxiliary power is drawn from rest; unused drive power is not automatically transferred to the auxiliary system. No time-dependent sharing or fan ramp-up is modelled.",
+      "zero_auxiliary_break_even_added_mass_kg": 737.4777541047899,
+      "break_even_samples": [
+        {
+          "added_mass_kg": 0,
+          "auxiliary_dc_W": 453680.75564463437
+        },
+        {
+          "added_mass_kg": 200,
+          "auxiliary_dc_W": 391334.5010115546
+        },
+        {
+          "added_mass_kg": 500,
+          "auxiliary_dc_W": 243925.74765719054
+        },
+        {
+          "added_mass_kg": 700,
+          "auxiliary_dc_W": 59285.99933422124
+        }
+      ],
+      "samples": [
+        {
+          "added_mass_kg": 0,
+          "auxiliary_dc_W": 0,
+          "total_mass_kg": 2000.0,
+          "low_speed_force_cap_N": 36787.5,
+          "drive_dc_W": 1000000.0,
+          "wheel_power_W": 903070.0,
+          "time_s": 1.4639611461359185,
+          "time_reduction_percent": 19.685828764800895
+        },
+        {
+          "added_mass_kg": 100,
+          "auxiliary_dc_W": 100000,
+          "total_mass_kg": 2100.0,
+          "low_speed_force_cap_N": 38259.0,
+          "drive_dc_W": 900000.0,
+          "wheel_power_W": 812763.0,
+          "time_s": 1.5124618818743392,
+          "time_reduction_percent": 17.02503656726876
+        },
+        {
+          "added_mass_kg": 200,
+          "auxiliary_dc_W": 200000,
+          "total_mass_kg": 2200.0,
+          "low_speed_force_cap_N": 39730.5,
+          "drive_dc_W": 800000.0,
+          "wheel_power_W": 722456.0,
+          "time_s": 1.598859255079355,
+          "time_reduction_percent": 12.285202150095776
+        },
+        {
+          "added_mass_kg": 500,
+          "auxiliary_dc_W": 300000,
+          "total_mass_kg": 2500.0,
+          "low_speed_force_cap_N": 41082.35294117647,
+          "drive_dc_W": 700000.0,
+          "wheel_power_W": 632149.0,
+          "time_s": 1.890796362336519,
+          "time_reduction_percent": -3.7307193680724993
+        }
+      ]
+    },
+    "one_second_feasibility": {
+      "mass_kg": 2000.0,
+      "duration_s": 1,
+      "target_speed_m_s": 26.8224,
+      "map_domain": {
+        "effective_force_cap_kN": [
+          25,
+          100
+        ],
+        "wheel_power_MW": [
+          0.4,
+          1.8
+        ]
+      },
+      "minimum_effective_force_cap_N": 53644.799999999996,
+      "infinite_force_power_infimum_W": 719441.1417599999,
+      "existing_G12_torque_only_time_lower_bound_s": 1.305786941580756,
+      "interpretation": "All points on/above the boundary and at/right of the minimum-force boundary meet the one-second ideal time. C requires both tyre force and torque-derived wheel force at least C; it is not a command or average force. Baseline 1200 Nm, mu=1.5 and 1 MW DC are not held fixed when designing capacities.",
+      "uniform_acceleration_corner": {
+        "force_cap_N": 53644.799999999996,
+        "wheel_power_W": 1438882.2835199998,
+        "time_s": 1
+      },
+      "variable_acceleration_example": {
+        "force_cap_N": 70000.0,
+        "wheel_power_W": 876075.4765948907,
+        "dc_power_at_assumed_efficiency_W": 970108.0498686599,
+        "transition_speed_m_s": 12.515363951355582,
+        "initial_acceleration_m_s2": 35.0,
+        "final_acceleration_m_s2": 16.331041901449737,
+        "time_s": 1.0,
+        "minimum_mu_without_downforce": 3.567787971457696,
+        "required_aggregate_torque_G9_Nm": 2726.2313860252
+      },
+      "boundary_samples": [
+        {
+          "force_cap_N": 50000,
+          "minimum_wheel_power_W": null
+        },
+        {
+          "force_cap_N": 53644.8,
+          "minimum_wheel_power_W": 1438882.2835199998
+        },
+        {
+          "force_cap_N": 60000,
+          "minimum_wheel_power_W": 993766.8515472708
+        },
+        {
+          "force_cap_N": 70000,
+          "minimum_wheel_power_W": 876075.4765948907
+        },
+        {
+          "force_cap_N": 80000,
+          "minimum_wheel_power_W": 826063.0394351241
+        },
+        {
+          "force_cap_N": 100000,
+          "minimum_wheel_power_W": 780333.1194986491
+        }
+      ]
+    }
+  }
+}

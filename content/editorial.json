@@ -21,6 +21,22 @@
   },
   "series": [
     {
+      "id": "roadster-engineering",
+      "audience": {
+        "en": "For readers who want to work backward from Roadster's demonstrations to the forces and hardware they require.",
+        "zh": "适合希望从 Roadster 的演示动作出发，反推受力条件与硬件要求的读者。"
+      },
+      "prerequisites": {
+        "en": "Newton's laws, energy and power. Each new quantity is introduced with its units and a concrete example.",
+        "zh": "需要牛顿定律、能量与功率的基础；新的物理量随具体算例引入，并交代单位。"
+      },
+      "outcomes": {
+        "en": "The first two installments connect the force budget to the electric drivetrain: distinguish grip, suction and direct thrust, then compare how power, gearing, mass and downforce change acceleration under explicit assumptions.",
+        "zh": "前两期把整车受力接到电驱系统：先区分抓地力、吸附与直接推力，再在明确假设下比较功率、减速比、质量与下压力如何改变加速。"
+      },
+      "paths": []
+    },
+    {
       "id": "pytorch-internals",
       "audience": {
         "en": "For readers who use tensor operations and want to understand what happens underneath a Python call.",

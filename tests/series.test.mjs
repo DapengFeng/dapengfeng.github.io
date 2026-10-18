@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {load} from 'cheerio';
 import {collectSeries,renderSeriesPreviews} from '../scripts/series.mjs';
-import {seriesNavigation} from '../scripts/templates.mjs';
+import {seriesNavigation,seriesPage} from '../scripts/templates.mjs';
 
 const first={slug:'first',url:'/blog/first.html',series:{id:'example-series',title:'示例专题',titleEn:'Example series',part:1}};
 const third={slug:'third',url:'/blog/third.html',series:{...first.series,part:3}};
@@ -114,4 +114,49 @@ test('roadmap links, titles and dates follow publication and removal automatical
  assert.equal(page('[data-series-part=3]').attr('href'),undefined);
  assert.equal(page('[data-series-part=3] time').length,0);
  assert.throws(()=>renderSeriesPreviews({...post,html:'<div data-series-preview="missing"></div>'},[post]),/unknown preview series/);
+});
+
+test('series landing plans stay unlinked and become published episodes without duplicate rows',()=>{
+ const planned={part:3,titleEn:'A planned question',title:'待解决的问题',descriptionEn:'How much force?',description:'需要多少力？'};
+ const owner={...first,titleEn:'First',title:'第一期',descriptionEn:'First step',description:'第一步',date:'2026-10-17',series:{...first.series,roadmap:[planned]}};
+ let page=load(seriesPage(collectSeries([owner])[0]));
+ assert.equal(page('.series-episodes a').attr('href'),owner.url);
+ assert.equal(page('.series-roadmap [data-series-part=3] p').text(),'How much force?需要多少力？');
+ assert.equal(page('.series-roadmap a,.series-roadmap time').length,0,'plans have neither links nor invented publication dates');
+ const published={...third,titleEn:'Published answer',title:'已发布的解答',descriptionEn:'Answer',description:'解答',date:'2026-10-18'};
+ page=load(seriesPage(collectSeries([owner,published])[0]));
+ assert.equal(page('.series-upcoming').length,0);
+ assert.equal(page('.series-episodes a').last().attr('href'),published.url);
+ assert.equal(page('.series-episodes h2').last().text(),'Published answer已发布的解答');
+ assert.throws(()=>collectSeries([{...owner,series:{...owner.series,roadmap:[{...planned,description:undefined}]}}]),/both languages/);
+});
+
+test('Roadster series preserves its article URL and does not take over PyTorch discovery',async()=>{
+ const articleUrl='/blog/tesla-roadster-2-physics.html',secondUrl='/blog/roadster-02-battery-to-wheel-power.html',seriesUrl='/series/roadster-engineering/';
+ const page=load(await fs.readFile('dist'+articleUrl,'utf8'));
+ assert.equal(page('.article-series > a').attr('href'),seriesUrl);
+ assert.equal(page('.series-directory [aria-current=page]').attr('href'),articleUrl);
+ assert.equal(page('.series-directory [data-state=planned]').length,4);
+ assert.equal(page('.series-directory [data-state=planned] a').length,0);
+ assert.equal(page('a[rel=next]').attr('href'),secondUrl);
+ assert.equal(page('.series-directory [data-series-part=2]').attr('href'),secondUrl);
+ assert.equal(page('.series-directory [data-series-part=2] time').attr('datetime'),'2026-10-18');
+ const second=load(await fs.readFile('dist'+secondUrl,'utf8'));
+ assert.equal(second('a[rel=prev]').attr('href'),articleUrl);
+ assert.equal(second('a[rel=next]').length,0,'planned parts are not navigable articles');
+ assert.equal(second('.series-directory [aria-current=page]').attr('href'),secondUrl);
+ const landing=load(await fs.readFile('dist'+seriesUrl+'index.html','utf8'));
+ assert.deepEqual(landing('.series-episodes a').map((_,el)=>landing(el).attr('href')).get(),[articleUrl,secondUrl]);
+ assert.deepEqual(landing('.series-roadmap [data-series-part]').map((_,el)=>Number(landing(el).attr('data-series-part'))).get(),[3,4,5,6]);
+ const home=load(await fs.readFile('dist/index.html','utf8'));
+ assert.equal(home('.reading-routes a').filter((_,el)=>home(el).text().includes('Inside PyTorch')).attr('href'),'/series/pytorch-internals/');
+ const library=load(await fs.readFile('dist/blog/index.html','utf8'));
+ assert.equal(library(`.series-links a[href="${seriesUrl}"]`).length,1);
+ const index=JSON.parse(await fs.readFile('dist/search-index.json','utf8'));
+ const roadster=index.find(p=>p.url===seriesUrl),pytorch=index.find(p=>p.url==='/series/pytorch-internals/');
+ assert.equal(roadster.category,'physics');
+ assert.ok(roadster.tags.includes('Roadster'));
+ assert.ok(!roadster.tags.includes('PyTorch'));
+ assert.ok(pytorch.tags.includes('PyTorch'));
+ assert.ok((await fs.readFile('dist/sitemap.xml','utf8')).includes(seriesUrl));
 });
