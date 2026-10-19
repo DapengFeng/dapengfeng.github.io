@@ -1,0 +1,110 @@
+{
+  "kind": "illustrative arithmetic, not a benchmark or measured hardware memory limit",
+  "units": {
+    "GB": 1000000000,
+    "GiB": 1073741824
+  },
+  "model_assumptions": {
+    "parameters": 70000000000,
+    "weight_bits": 4,
+    "metadata_fraction_of_raw_weights": 0.1,
+    "layers": 80,
+    "kv_heads": 8,
+    "head_dimension": 128,
+    "kv_element_bytes": 2,
+    "kv_bytes_per_token_per_sequence": 327680,
+    "runtime_and_os_reserve_GiB": 16
+  },
+  "memory_cases": [
+    {
+      "tokens_per_sequence": 8192,
+      "concurrent_sequences": 1,
+      "bytes": {
+        "weights": 35000000000,
+        "quantization_metadata": 3500000000,
+        "kv_cache": 2684354560,
+        "runtime_and_os_reserve": 17179869184
+      },
+      "GiB": {
+        "weights": 32.59629011154175,
+        "quantization_metadata": 3.259629011154175,
+        "kv_cache": 2.5,
+        "runtime_and_os_reserve": 16.0
+      },
+      "total_bytes": 58364223744,
+      "total_GiB": 54.35591912269592
+    },
+    {
+      "tokens_per_sequence": 32768,
+      "concurrent_sequences": 1,
+      "bytes": {
+        "weights": 35000000000,
+        "quantization_metadata": 3500000000,
+        "kv_cache": 10737418240,
+        "runtime_and_os_reserve": 17179869184
+      },
+      "GiB": {
+        "weights": 32.59629011154175,
+        "quantization_metadata": 3.259629011154175,
+        "kv_cache": 10.0,
+        "runtime_and_os_reserve": 16.0
+      },
+      "total_bytes": 66417287424,
+      "total_GiB": 61.85591912269592
+    },
+    {
+      "tokens_per_sequence": 8192,
+      "concurrent_sequences": 4,
+      "bytes": {
+        "weights": 35000000000,
+        "quantization_metadata": 3500000000,
+        "kv_cache": 10737418240,
+        "runtime_and_os_reserve": 17179869184
+      },
+      "GiB": {
+        "weights": 32.59629011154175,
+        "quantization_metadata": 3.259629011154175,
+        "kv_cache": 10.0,
+        "runtime_and_os_reserve": 16.0
+      },
+      "total_bytes": 66417287424,
+      "total_GiB": 61.85591912269592
+    },
+    {
+      "tokens_per_sequence": 32768,
+      "concurrent_sequences": 4,
+      "bytes": {
+        "weights": 35000000000,
+        "quantization_metadata": 3500000000,
+        "kv_cache": 42949672960,
+        "runtime_and_os_reserve": 17179869184
+      },
+      "GiB": {
+        "weights": 32.59629011154175,
+        "quantization_metadata": 3.259629011154175,
+        "kv_cache": 40.0,
+        "runtime_and_os_reserve": 16.0
+      },
+      "total_bytes": 98629542144,
+      "total_GiB": 91.85591912269592
+    }
+  ],
+  "decode_bandwidth_rooflines": [
+    {
+      "memory_bandwidth_GB_s": 273,
+      "weights_read_GB_per_token": 35,
+      "ideal_tokens_s": 7.8
+    },
+    {
+      "memory_bandwidth_GB_s": 1200,
+      "weights_read_GB_per_token": 35,
+      "ideal_tokens_s": 34.285714285714285
+    }
+  ],
+  "decode_assumptions": [
+    "Dense model, one sequence, one token per decoding step",
+    "Every step streams 35 GB of raw weights at the stated peak bandwidth",
+    "Ignores metadata, KV traffic, compute, synchronization and operating-system traffic",
+    "Not a measured or expected token rate; not applicable to MoE, batching or speculative decoding"
+  ]
+}
