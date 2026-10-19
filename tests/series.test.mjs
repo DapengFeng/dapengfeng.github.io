@@ -5,6 +5,18 @@ import {load} from 'cheerio';
 import {collectSeries,renderSeriesPreviews} from '../scripts/series.mjs';
 import {seriesNavigation,seriesPage} from '../scripts/templates.mjs';
 
+async function publishedSeries(id){
+ const published=[];
+ for(const file of await fs.readdir('content/posts')){
+  if(!file.endsWith('.html'))continue;
+  const doc=load(await fs.readFile('content/posts/'+file,'utf8')),raw=doc('#article-metadata').text();
+  if(!raw)continue;
+  const metadata=JSON.parse(raw);
+  if(!metadata.draft&&metadata.series?.id===id)published.push({...metadata,part:metadata.series.part,url:'/blog/'+file});
+ }
+ return published.sort((a,b)=>a.part-b.part);
+}
+
 const first={slug:'first',url:'/blog/first.html',series:{id:'example-series',title:'示例专题',titleEn:'Example series',part:1}};
 const third={slug:'third',url:'/blog/third.html',series:{...first.series,part:3}};
 test('series order and neighboring links follow published installment numbers',()=>{
@@ -21,15 +33,7 @@ test('series order and neighboring links follow published installment numbers',(
 });
 test('PyTorch series is discoverable and contains only published episodes',async()=>{
  const $=load(await fs.readFile('dist/series/pytorch-internals/index.html','utf8'));
- const published=[];
- for(const file of await fs.readdir('content/posts')){
-  if(!file.endsWith('.html'))continue;
-  const doc=load(await fs.readFile('content/posts/'+file,'utf8')),raw=doc('#article-metadata').text();
-  if(!raw)continue;
-  const metadata=JSON.parse(raw);
-  if(!metadata.draft&&metadata.series?.id==='pytorch-internals')published.push({part:metadata.series.part,url:'/blog/'+file});
- }
- published.sort((a,b)=>a.part-b.part);
+ const published=await publishedSeries('pytorch-internals');
  assert.deepEqual($('.series-episodes a').map((_,el)=>$(el).attr('href')).get(),published.map(p=>p.url));
  assert.equal($('.series-episodes li').eq(1).attr('value'),'2');
  assert.equal($('.series-episodes a').eq(1).attr('href'),'/blog/pytorch-02-tensor-strides-storage.html');
@@ -132,22 +136,33 @@ test('series landing plans stay unlinked and become published episodes without d
 });
 
 test('Roadster series preserves its article URL and does not take over PyTorch discovery',async()=>{
- const articleUrl='/blog/tesla-roadster-2-physics.html',secondUrl='/blog/roadster-02-battery-to-wheel-power.html',seriesUrl='/series/roadster-engineering/';
+ const articleUrl='/blog/tesla-roadster-2-physics.html',secondUrl='/blog/roadster-02-battery-to-wheel-power.html',thirdUrl='/blog/roadster-03-four-contact-patches.html',seriesUrl='/series/roadster-engineering/';
+ const published=await publishedSeries('roadster-engineering');
+ const publishedParts=new Set(published.map(p=>p.part));
+ const plannedParts=[...new Set(published.flatMap(p=>p.series.roadmap||[]).map(p=>p.part))].filter(part=>!publishedParts.has(part)).sort((a,b)=>a-b);
  const page=load(await fs.readFile('dist'+articleUrl,'utf8'));
  assert.equal(page('.article-series > a').attr('href'),seriesUrl);
  assert.equal(page('.series-directory [aria-current=page]').attr('href'),articleUrl);
- assert.equal(page('.series-directory [data-state=planned]').length,4);
- assert.equal(page('.series-directory [data-state=planned] a').length,0);
+ assert.deepEqual(page('.series-directory [data-state=planned]').map((_,el)=>Number(page(el).attr('data-series-part'))).get(),plannedParts);
+ assert.equal(page('.series-directory a[data-state=planned],.series-directory [data-state=planned] a').length,0);
  assert.equal(page('a[rel=next]').attr('href'),secondUrl);
  assert.equal(page('.series-directory [data-series-part=2]').attr('href'),secondUrl);
  assert.equal(page('.series-directory [data-series-part=2] time').attr('datetime'),'2026-10-18');
+ assert.equal(page('.series-directory [data-series-part=3]').attr('href'),thirdUrl);
+ assert.equal(page('.series-directory [data-series-part=3] time').attr('datetime'),'2026-10-19');
  const second=load(await fs.readFile('dist'+secondUrl,'utf8'));
  assert.equal(second('a[rel=prev]').attr('href'),articleUrl);
- assert.equal(second('a[rel=next]').length,0,'planned parts are not navigable articles');
+ assert.equal(second('a[rel=next]').attr('href'),thirdUrl);
  assert.equal(second('.series-directory [aria-current=page]').attr('href'),secondUrl);
+ const thirdPage=load(await fs.readFile('dist'+thirdUrl,'utf8'));
+ assert.equal(thirdPage('a[rel=prev]').attr('href'),secondUrl);
+ assert.equal(thirdPage('a[rel=next]').attr('href'),published.find(p=>p.part>3)?.url,'only published parts are navigable articles');
+ assert.equal(thirdPage('.series-directory [aria-current=page]').attr('href'),thirdUrl);
+ assert.equal(thirdPage('.series-directory [aria-current=page] time').attr('datetime'),'2026-10-19');
  const landing=load(await fs.readFile('dist'+seriesUrl+'index.html','utf8'));
- assert.deepEqual(landing('.series-episodes a').map((_,el)=>landing(el).attr('href')).get(),[articleUrl,secondUrl]);
- assert.deepEqual(landing('.series-roadmap [data-series-part]').map((_,el)=>Number(landing(el).attr('data-series-part'))).get(),[3,4,5,6]);
+ assert.deepEqual(landing('.series-episodes a').map((_,el)=>landing(el).attr('href')).get(),published.map(p=>p.url));
+ assert.deepEqual(landing('.series-roadmap [data-series-part]').map((_,el)=>Number(landing(el).attr('data-series-part'))).get(),plannedParts);
+ assert.equal(landing('.series-roadmap a,.series-roadmap time').length,0,'remaining plans have no links or publication dates');
  const home=load(await fs.readFile('dist/index.html','utf8'));
  assert.equal(home('.reading-routes a').filter((_,el)=>home(el).text().includes('Inside PyTorch')).attr('href'),'/series/pytorch-internals/');
  const library=load(await fs.readFile('dist/blog/index.html','utf8'));
