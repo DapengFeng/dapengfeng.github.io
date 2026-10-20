@@ -1,0 +1,129 @@
+{
+  "boundary": "Illustrative ideal-air calculation, not Tesla specifications or real-air prediction.",
+  "parameters": {
+    "gamma": 1.4,
+    "R_J_kg_K": 287.0,
+    "initial_temperature_K": 300.0,
+    "initial_pressure_Pa_abs": 30000000.0,
+    "regulator_pressure_Pa_abs": 3000000.0,
+    "ambient_pressure_Pa_abs": 101325.0,
+    "tank_internal_volume_m3": 0.1,
+    "initial_thrust_N": 10000.0
+  },
+  "assumptions": [
+    "Calorically perfect ideal air even at 30 MPa and down to 155 K; real-air deviations not calculated",
+    "Rigid, well-mixed tank; adiabatic primary model, isothermal alternative requires heat input",
+    "Ideal regulator with no pressure headroom or line losses; no post-regulation tail",
+    "Ideal converging nozzle, exit equals throat, choked isentropic expansion, pressure thrust retained",
+    "Different nozzle throat areas chosen to give the same initial force; not a shared-hardware comparison",
+    "8 kN is an illustrative service threshold; neither a standard nor a nominal 10 kN rating"
+  ],
+  "initial_gas_mass_kg": 34.84320557491289,
+  "critical_pressure_ratio": 0.5282817877171742,
+  "checks": {
+    "regulated": {
+      "ode_max_relative_error": 1.117587089538574e-14,
+      "mass_integral_relative_error": 1.5874896881484802e-10,
+      "energy_integral_relative_error": 1.0652281343936918e-10,
+      "impulse_integral_relative_error": 0.0
+    },
+    "direct": {
+      "ode_max_relative_error": 2.4835268656412754e-15,
+      "mass_integral_relative_error": 9.524929971860273e-10,
+      "energy_integral_relative_error": 1.5339305003484087e-09,
+      "impulse_integral_relative_error": 1.4543620165038823e-09
+    },
+    "isothermal_refill_integral_relative_error": 1.3819728834280547e-10
+  },
+  "regulated_one_second": {
+    "time_s": 1,
+    "tank_pressure_Pa_abs": 8778578.813593497,
+    "tank_temperature_K": 211.17202548224336,
+    "gas_remaining_kg": 14.484580784746647,
+    "mass_flow_kg_s": 22.537738320056558,
+    "thrust_N": 9999.999999999998,
+    "jet_velocity_m_s": 265.90869334974957,
+    "pressure_thrust_N": 4007.0194522551797
+  },
+  "cases": {
+    "regulated_adiabatic": {
+      "throat_area_m2": 0.0027010208634702204,
+      "throat_diameter_mm": 58.64338474649122,
+      "initial_mass_flow_kg_s": 18.90897107498086,
+      "end_mass_flow_kg_s": 26.273930111917892,
+      "end_time_s": 1.3222012336701323,
+      "end_thrust_N": 10000.0,
+      "end_tank_temperature_K": 155.38424037693636,
+      "gas_remaining_kg": 6.727169787049653,
+      "total_impulse_until_3MPa_N_s": 13222.012336701324
+    },
+    "direct_adiabatic": {
+      "throat_area_m2": 0.0002636090566729096,
+      "throat_diameter_mm": 18.32041143932857,
+      "initial_mass_flow_kg_s": 18.454415125571998,
+      "end_mass_flow_kg_s": 2.5642326668273774,
+      "end_time_s": 3.6769714695915936,
+      "end_thrust_N": 975.9608310993558,
+      "end_tank_temperature_K": 155.38424037693636,
+      "gas_remaining_kg": 6.727169787049653,
+      "total_impulse_until_3MPa_N_s": 13485.661013866978
+    },
+    "regulated_isothermal": {
+      "throat_area_m2": 0.0027010208634702204,
+      "throat_diameter_mm": 58.64338474649122,
+      "initial_mass_flow_kg_s": 18.90897107498086,
+      "end_mass_flow_kg_s": 18.90897107498086,
+      "end_time_s": 1.6584130830319832,
+      "end_thrust_N": 10000.0,
+      "end_tank_temperature_K": 300.0,
+      "gas_remaining_kg": 3.4843205574912894,
+      "total_impulse_until_3MPa_N_s": 16584.13083031983
+    },
+    "direct_isothermal": {
+      "throat_area_m2": 0.0002636090566729096,
+      "throat_diameter_mm": 18.32041143932857,
+      "initial_mass_flow_kg_s": 18.454415125571998,
+      "end_mass_flow_kg_s": 1.8454415125572,
+      "end_time_s": 4.347439092650991,
+      "end_thrust_N": 975.9608310993556,
+      "end_tank_temperature_K": 300.0,
+      "gas_remaining_kg": 3.4843205574912894,
+      "total_impulse_until_3MPa_N_s": 16921.885966081965
+    }
+  },
+  "volume_per_second_L": {
+    "adiabatic": 75.63145265144139,
+    "isothermal": 60.29860776132786
+  },
+  "direct_adiabatic_80_percent_service": {
+    "threshold_N": 8000.0,
+    "duration_s": 0.30485703943528647,
+    "impulse_N_s": 2730.805374476748,
+    "tank_pressure_Pa_abs": 24015983.420584098,
+    "gas_remaining_kg": 29.723721894423758
+  },
+  "isothermal_regulated_heat_input_W": 1628062.4095558522,
+  "ideal_isothermal_refill_after_warming": {
+    "full_regulated_burst": {
+      "warm_residual_pressure_Pa_abs": 5792093.186649751,
+      "work_J": 12307635.620039957,
+      "work_kWh": 3.4187876722333215,
+      "time_at_5kW_s": 2461.5271240079915,
+      "boundary": "Ideal reversible compression from ambient into a tank held at 300 K; excludes actual compressor losses, electrical efficiency and finite-rate heat transfer."
+    },
+    "one_second_regulated": {
+      "warm_residual_pressure_Pa_abs": 12471224.055666862,
+      "work_J": 9316772.76215126,
+      "work_kWh": 2.5879924339309057,
+      "time_at_5kW_s": 1863.354552430252,
+      "boundary": "Ideal reversible compression from ambient into a tank held at 300 K; excludes actual compressor losses, electrical efficiency and finite-rate heat transfer."
+    }
+  },
+  "illustrative_added_mass_penalty": {
+    "assumed_hardware_mass_kg": 100.0,
+    "initial_added_mass_kg": 134.8432055749129,
+    "reference_acceleration_m_s2": 26.8224,
+    "initial_force_penalty_N": 3616.8183972125435,
+    "boundary": "Chosen 100 kg hardware budget plus modeled 100 L initial gas. Not a Tesla mass estimate or a complete variable-mass vehicle trajectory."
+  }
+}

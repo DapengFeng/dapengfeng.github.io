@@ -31,8 +31,8 @@
         "zh": "需要牛顿定律、能量与功率的基础；新的物理量随具体算例引入，并交代单位。"
       },
       "outcomes": {
-        "en": "The first three installments connect the force budget, electric drivetrain and four tyre contact patches: distinguish grip, suction and direct thrust; compare power and gearing; then examine how load transfer and force allocation determine how much grip the car can use.",
-        "zh": "前三期串起整车受力、电驱系统与四个轮胎接触区：区分抓地力、吸附与直接推力，比较功率与减速比，再考察载荷转移和受力分配如何决定车辆能用上多少抓地力。"
+        "en": "The first four installments connect the force budget, electric drivetrain, four tyre contact patches and a finite gas supply: compare power and grip, place downforce, then derive how tank cooling and regulation limit useful thrust and its refill cost.",
+        "zh": "前四期串起整车受力、电驱系统、四个轮胎接触区与有限储气：比较功率和抓地力，分配下压力，再推导储罐降温与稳压如何限制可用推力，以及恢复供气的代价。"
       },
       "paths": []
     },
