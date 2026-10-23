@@ -1,0 +1,150 @@
+{
+  "boundary": "Illustrative frozen planar force-allocation problem; not Tesla data or a production controller.",
+  "parameters": {
+    "half_track_m": 0.8,
+    "jet_lateral_offset_m": 0.6,
+    "forward_jet_N": 10000.0,
+    "same_fully_installed_mass_kg": 2000.0,
+    "assumed_yaw_inertia_kg_m2": 3000.0
+  },
+  "sign_convention": "x forward, y left, z up; left wheel group y=+b, right=-b; forward jet y=d gives yaw moment -dT.",
+  "equations": {
+    "forward_force": "Fx=L+R+T",
+    "yaw_moment": "Mz=b(R-L)-dT",
+    "feasible_set": "abs(Fx-T)+abs(Mz+dT)/b <= 2C",
+    "maximum_forward_force": "Fx_max=T+2C-abs(Mz+dT)/b, provided abs(Mz+dT)<=2bC"
+  },
+  "assumptions": [
+    "Independent signed side forces in [-C,C] permit braking; optimistic relaxed envelope, not a claim about Tesla motor topology",
+    "Chosen C=12 or 8 kN is residual longitudinal capacity after any prescribed lateral forces; not a tyre measurement or corner simulation",
+    "Prescribed lateral-force yaw moments are already accounted for; Mz is the remaining moment request",
+    "Loads, geometry, capacity and jet thrust frozen; all comparisons retain the same installed mass",
+    "No axle coupling, power/speed limits, force slew, slip or wheel dynamics in the static envelope",
+    "Delay integrates constant unmatched moment with constant inertia and zero initial increments; not a closed-loop trajectory",
+    "Restoring zero net moment stops the incremental angular acceleration, not the already accumulated yaw rate"
+  ],
+  "checks": {
+    "edge_intersection_cases": 50,
+    "inverse_feasibility_cases": 3000,
+    "fixed_forward_force_moment_slice_checked_N": 26000.0,
+    "maximum_balance_residual_N_or_Nm": 0.0,
+    "delay_integration_absolute_error_rad_or_rad_s": 1.184607967275042e-13
+  },
+  "snapshots": [
+    {
+      "residual_capacity_per_side_N": 12000.0,
+      "cases": [
+        {
+          "name": "no_jet",
+          "left_force_N": 12000.0,
+          "right_force_N": 12000.0,
+          "jet_force_N": 0.0,
+          "total_forward_N": 24000.0,
+          "net_yaw_Nm": 0.0,
+          "instantaneous_acceleration_m_s2_if_no_other_longitudinal_force": 12.0
+        },
+        {
+          "name": "centred_jet",
+          "left_force_N": 12000.0,
+          "right_force_N": 12000.0,
+          "jet_force_N": 10000.0,
+          "total_forward_N": 34000.0,
+          "net_yaw_Nm": 0.0,
+          "instantaneous_acceleration_m_s2_if_no_other_longitudinal_force": 17.0
+        },
+        {
+          "name": "offset_jet",
+          "left_force_N": 4500.0,
+          "right_force_N": 12000.0,
+          "jet_force_N": 10000.0,
+          "total_forward_N": 26500.0,
+          "net_yaw_Nm": 0.0,
+          "instantaneous_acceleration_m_s2_if_no_other_longitudinal_force": 13.25
+        }
+      ]
+    },
+    {
+      "residual_capacity_per_side_N": 8000.0,
+      "cases": [
+        {
+          "name": "no_jet",
+          "left_force_N": 8000.0,
+          "right_force_N": 8000.0,
+          "jet_force_N": 0.0,
+          "total_forward_N": 16000.0,
+          "net_yaw_Nm": 0.0,
+          "instantaneous_acceleration_m_s2_if_no_other_longitudinal_force": 8.0
+        },
+        {
+          "name": "centred_jet",
+          "left_force_N": 8000.0,
+          "right_force_N": 8000.0,
+          "jet_force_N": 10000.0,
+          "total_forward_N": 26000.0,
+          "net_yaw_Nm": 0.0,
+          "instantaneous_acceleration_m_s2_if_no_other_longitudinal_force": 13.0
+        },
+        {
+          "name": "offset_jet",
+          "left_force_N": 500.0,
+          "right_force_N": 8000.0,
+          "jet_force_N": 10000.0,
+          "total_forward_N": 18500.0,
+          "net_yaw_Nm": 0.0,
+          "instantaneous_acceleration_m_s2_if_no_other_longitudinal_force": 9.25
+        }
+      ]
+    }
+  ],
+  "delay_samples": [
+    {
+      "delay_s": 0.05,
+      "delta_yaw_rate_rad_s": -0.1,
+      "delta_heading_rad": -0.0025000000000000005,
+      "delta_yaw_rate_deg_s": -5.729577951308232,
+      "delta_heading_deg": -0.14323944878270584
+    },
+    {
+      "delay_s": 0.1,
+      "delta_yaw_rate_rad_s": -0.2,
+      "delta_heading_rad": -0.010000000000000002,
+      "delta_yaw_rate_deg_s": -11.459155902616464,
+      "delta_heading_deg": -0.5729577951308233
+    },
+    {
+      "delay_s": 0.2,
+      "delta_yaw_rate_rad_s": -0.4,
+      "delta_heading_rad": -0.04000000000000001,
+      "delta_yaw_rate_deg_s": -22.91831180523293,
+      "delta_heading_deg": -2.2918311805232934
+    }
+  ],
+  "asymmetric_right_capacity_reduction": {
+    "new_right_cap_N": 8000.0,
+    "unchanged_left_cap_N": 12000.0,
+    "clipped_only": {
+      "left_N": 4500.0,
+      "right_N": 8000.0,
+      "jet_N": 10000.0,
+      "forward_N": 22500.0,
+      "yaw_Nm": -3200.0
+    },
+    "jointly_reallocated": {
+      "left_N": 500.0,
+      "right_N": 8000.0,
+      "jet_N": 10000.0,
+      "forward_N": 18500.0,
+      "yaw_Nm": 0.0
+    }
+  },
+  "fixed_26kN_operating_point": {
+    "forward_N": 26000.0,
+    "yaw_Nm": 0.0,
+    "left_N": 4250.0,
+    "right_N": 11750.0,
+    "right_unused_forward_N": 250.0,
+    "at_fixed_forward_force_yaw_min_Nm": -12400.0,
+    "at_fixed_forward_force_yaw_max_Nm": 400.0,
+    "boundary": "Moment increments measured from zero moment while total forward force remains 26 kN; signed independent side forces bounded ±12 kN."
+  }
+}

@@ -86,23 +86,23 @@ html[data-language="both"] .section-heading h2 .i18n > [data-lang="zh"] { font-s
  }
 }
 @supports selector(:has(*)) {
- .article-page:has(:is(.rg-article,.dr-article)) > .article-heading > h1 { max-width: 100%; font-size: clamp(30px,3vw,44px); }
- .article-page:has(:is(.rg-article,.dr-article)) > .article-heading > h1 [data-lang="zh"] { word-break: keep-all; overflow-wrap: anywhere; }
+ .article-page:has(:is(.rg-article,.dr-article,.rv-article)) > .article-heading > h1 { max-width: 100%; font-size: clamp(30px,3vw,44px); }
+ .article-page:has(:is(.rg-article,.dr-article,.rv-article)) > .article-heading > h1 [data-lang="zh"] { word-break: keep-all; overflow-wrap: anywhere; }
 }
 /* Keep engineering and deployment-economics figures wide on tablets and small laptops. */
 @supports selector(:has(*)) {
  @media (max-width: 1023px) {
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) > .reading-layout { grid-template-columns: minmax(0,1fr); gap: 28px; }
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) .article-toc { position: relative; top: 0; max-height: none; border: 1px solid var(--border); border-radius: 5px; padding: 16px; }
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) .article-toc nav { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) .article-toc summary { display: flex; align-items: center; gap: 10px; margin: 0; }
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) .article-toc summary::after { content: '+'; margin-left: auto; font: 22px/1 var(--mono); color: var(--muted); }
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) .article-toc details[open] summary { margin-bottom: 14px; }
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) .article-toc details[open] summary::after { content: '−'; }
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) .toc-bottom { display: none; }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) > .reading-layout { grid-template-columns: minmax(0,1fr); gap: 28px; }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) .article-toc { position: relative; top: 0; max-height: none; border: 1px solid var(--border); border-radius: 5px; padding: 16px; }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) .article-toc nav { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) .article-toc summary { display: flex; align-items: center; gap: 10px; margin: 0; }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) .article-toc summary::after { content: '+'; margin-left: auto; font: 22px/1 var(--mono); color: var(--muted); }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) .article-toc details[open] summary { margin-bottom: 14px; }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) .article-toc details[open] summary::after { content: '−'; }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) .toc-bottom { display: none; }
  }
  @media (max-width: 560px) {
-  .article-page:has(:is(.rc-article,.rg-article,.dr-article)) .article-toc nav { grid-template-columns: minmax(0,1fr); }
+  .article-page:has(:is(.rc-article,.rg-article,.dr-article,.rv-article)) .article-toc nav { grid-template-columns: minmax(0,1fr); }
  }
 }
 .article-travel .article-heading { max-width: 860px; margin-inline: auto; }
