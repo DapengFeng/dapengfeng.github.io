@@ -27,9 +27,8 @@ test('documentation-only changes skip site jobs; mixed article edits retain rele
 
 test('analytics and daily publications keep basic coverage without unrelated article suites',()=>{
  assert.deepEqual(new Set(plan(['src/scripts/analytics.js']).suites),new Set(['browser','language','reading','analytics']));
- for(const selection of [plan(null,'daily'),plan(['content/daily-math/topics.json'])]){
-  assert.deepEqual(new Set(selection.suites),new Set(['daily-math','browser','language','reading']));
- }
+ assert.deepEqual(new Set(plan(null,'daily').suites),new Set(['daily-math','browser','language','reading','economics']));
+ assert.deepEqual(new Set(plan(['content/daily-math/topics.json']).suites),new Set(['daily-math','browser','language','reading']));
  assert.ok(plan(['content/assets/vision/eye-cutaway.webp']).suites.includes('vision'));
  assert.ok(plan(['content/assets/chaoshan/new-photo.webp']).suites.includes('sharing'));
  assert.ok(plan(['tests/compile.mjs']).suites.includes('compile'));

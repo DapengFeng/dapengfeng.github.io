@@ -1,0 +1,32 @@
+// A blank worksheet with editable calendar/financial conventions, no inherited
+// supplier tariff, model demand, hardware capacity, cost or discount assumption.
+export const customDefaults = Object.freeze({
+  monthlyInputTokens: 0,
+  monthlyOutputTokens: 0,
+  inputTokensPerSecond: 0,
+  outputTokensPerSecond: 0,
+  capacityMultiplier: 1,
+  inputPeakShare: 0.5,
+  outputPeakShare: 0.5,
+  inputAnnualGrowth: 0,
+  outputAnnualGrowth: 0,
+  opexAnnualGrowth: 0,
+  perMillionLocalInputCost: 0,
+  perMillionLocalOutputCost: 0,
+  apiCacheHit: 0,
+  fallbackCacheHit: null,
+  peakHours: 360,
+  offHours: 360,
+  availability: 1,
+  headroom: 1,
+  capex: 0,
+  monthlyOpex: 0,
+  horizon: 36,
+  annualDiscount: 0,
+  terminalResidual: 0,
+  apiAnnualChange: 0,
+  prices: Object.freeze({
+    peak: Object.freeze({ hit: 0, miss: 0, output: 0 }),
+    off: Object.freeze({ hit: 0, miss: 0, output: 0 }),
+  }),
+});

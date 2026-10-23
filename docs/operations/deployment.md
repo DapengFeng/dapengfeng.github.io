@@ -11,7 +11,7 @@ In the repository, go to Settings → Pages → Build and deployment → Source 
 | `README.md`, root `AGENTS.md`, `docs/**/*.md` only / 仅文档（含根目录 `AGENTS.md`） | UTF-8, local link targets, code fences, merge conflicts; no dependency installation.<br>检查编码、本地链接目标、代码围栏和冲突标记，无需安装依赖。 |
 | Known articles or their photos / 已知文章或配图 | Full build and unit tests; reading, language, layout, accessibility, formulas, copying, sharing, and relevant article suites.<br>完整构建与单元测试；阅读、语言、排版、无障碍、公式、复制、分享及相关专题检查。 |
 | Analytics script / 统计脚本 | Full build and unit tests; basic browser, language, reading, and analytics suites.<br>完整构建与单元测试；基础浏览、语言、阅读及统计检查。 |
-| Daily mathematics content/code or daily timer / 每日数学内容、代码或每日定时任务 | Full build, unit tests, history/inventory checks; basic browsing/language/reading plus the daily-math suite, which covers formulas and responsive layouts.<br>完整构建与单元测试、历史与库存检查；基础浏览、语言、阅读及每日数学套件，后者包含公式与响应式排版验证。 |
+| Daily mathematics content/code or daily timer / 每日数学内容、代码或每日定时任务 | Full build, unit tests, history/inventory checks; basic browsing/language/reading plus the daily-math suite, which covers formulas and responsive layouts. Daily timer runs also include the economics calculator suite.<br>完整构建与单元测试、历史与库存检查；基础浏览、语言、阅读及每日数学套件，后者包含公式与响应式排版验证；每日定时运行另含经济性计算器套件。 |
 | Shared styles/templates, dependencies, workflows, unknown paths or unavailable diff / 公共样式、模板、依赖、工作流、未知路径或无法比较改动 | All checks / 全部检查。 |
 
 The daily publication is scheduled for **00:23 Asia/Shanghai**. `regression.yml` runs all suites every **Sunday at 02:17 Asia/Shanghai**, without deployment, and also supports manual runs from Actions → Full site regression → Run workflow. A manual run of Build and deploy knowledge lab runs all checks and can publish from `main` or `master`. GitHub may delay scheduled jobs; these are target times, not publication guarantees.
@@ -26,10 +26,14 @@ For branch protection, require the deployment workflow's stable **CI result** ch
 
 设置分支保护时，应选择 PR 中发布工作流的固定 **CI result** 汇总检查，不要要求文档改动时会跳过的单个浏览器分组。工作流本身不使用路径过滤。运行摘要会显示测试范围和回退全量检查的原因。映射维护在 `scripts/ci-plan.mjs` 中；未登记的新文章会先运行完整检查。
 
-The site uses the root path `/` and targets `https://dapengfeng.github.io`. A project site under a subpath requires a consistent path prefix. Historical date-based article URLs retain redirects.
+The site uses the root path `/` and targets `https://dapengfeng.github.io`. A project site under a subpath requires a consistent path prefix. Historical date-based article URLs retain redirects. The renamed economics article redirects from `/blog/deepseek-v4-1-flash-roi.html` to `/blog/llm-deployment-roi.html`; redirects preserve query strings and section anchors when JavaScript is enabled, with a meta-refresh and link fallback.
 
-站点使用根路径 `/`，目标地址为 `https://dapengfeng.github.io`。若改成项目子路径站点，需要统一配置路径前缀。历史日期式文章链接保留跳转。
+站点使用根路径 `/`，目标地址为 `https://dapengfeng.github.io`。若改成项目子路径站点，需要统一配置路径前缀。历史日期式文章链接保留跳转。经济性文章从 `/blog/deepseek-v4-1-flash-roi.html` 跳转到 `/blog/llm-deployment-roi.html`；启用 JavaScript 时保留查询参数与章节锚点，并保留 meta-refresh 与链接作为回退。
 
 See [testing](../development/testing.md) for failed check reports, [search configuration](discoverability.md) for Actions verification variables, and [Web Analytics](analytics.md) for the optional Cloudflare beacon variable.
 
 检查失败时的报告位置见[测试与验证](../development/testing.md)，Actions 中的站点验证变量见[搜索配置](discoverability.md)，可选的 Cloudflare 统计变量见[访问统计](analytics.md)。
+
+The model price directory refresh and snapshot caching run before the build; the same checked artifact carries those prices to Pages. See [model pricing](model-pricing.md) for the CC Switch upstream, imported billing scope, cache isolation and dated fallback behavior.
+
+模型报价目录刷新与快照缓存发生在构建前，这些价格随同一份已检查的产物发布到 Pages。CC Switch 同源数据、计费支持范围、缓存隔离与带日期回退行为见[模型报价](model-pricing.md)。

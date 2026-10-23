@@ -49,6 +49,16 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - name: Restore last model price snapshot
+        if: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: content/assets/llm-economics/model-prices.json
+          key: models-dev-prices-v2-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            models-dev-prices-v2-${{ github.ref_name }}-
+      - name: Refresh CC Switch upstream model prices
+        run: node scripts/sync-model-pricing.mjs
       - name: Check daily mathematics history and inventory
         run: npm run math:check -- --require-today
         env:
@@ -62,6 +72,12 @@ jobs:
           CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
           PAYPAL_ME_URL: ${{ vars.PAYPAL_ME_URL }}
       - run: npm test
+      - name: Save validated model price snapshot
+        if: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+        uses: actions/cache/save@v4
+        with:
+          path: content/assets/llm-economics/model-prices.json
+          key: models-dev-prices-v2-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
       # The tar preserves .nojekyll and is reused by every browser job and deployment.
       - name: Pack site
         run: tar -cf site.tar -C dist .

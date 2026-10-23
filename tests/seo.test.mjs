@@ -13,6 +13,21 @@ for (const file of files) {
   if (!$('meta[http-equiv="refresh"]').length) pages.push({file, $});
 }
 
+test('the renamed economics article has one indexed URL and a canonical legacy redirect', async () => {
+  const oldURL = '/blog/deepseek-v4-1-flash-roi.html';
+  const newURL = '/blog/llm-deployment-roi.html';
+  const redirect = cheerio.load(await fs.readFile(`dist${oldURL}`, 'utf8'));
+  assert.equal(redirect('meta[http-equiv="refresh"]').attr('content'), `0;url=${newURL}`);
+  assert.equal(redirect('link[rel="canonical"]').attr('href'), site.url + newURL);
+  assert.equal(redirect('a').attr('href'), newURL);
+  assert.equal(redirect('.article-body').length, 0);
+  for (const file of ['sitemap.xml', 'feed.xml', 'search-index.json']) {
+    const content = await fs.readFile(`dist/${file}`, 'utf8');
+    assert.ok(content.includes(newURL), file);
+    assert.ok(!content.includes(oldURL), file);
+  }
+});
+
 test('every published page has unique bilingual metadata and a real raster sharing image', async () => {
   const titles = new Set(), descriptions = new Set();
   assert.ok(pages.length >= 16);

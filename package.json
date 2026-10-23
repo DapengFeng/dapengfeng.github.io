@@ -33,6 +33,7 @@
     "test:support": "node tests/support.mjs",
     "test:daily-math": "node tests/daily-math.mjs",
     "test:analytics": "node tests/analytics.mjs",
+    "test:economics": "node tests/llm-economics.mjs",
     "math:check": "node scripts/daily-math-cli.mjs check",
     "math:plan": "node scripts/daily-math-cli.mjs plan",
     "test:cross-browser": "node tests/cross-browser.mjs"

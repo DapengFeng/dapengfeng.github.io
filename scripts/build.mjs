@@ -61,10 +61,10 @@ export async function build(){
  await write('feed.xml',`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>FENG / Knowledge Lab</title><link>${site.url}</link><description>${e(site.description)}</description><language>en</language>${items}</channel></rss>`);
  await write('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['/','/blog/','/categories/','/archive/','/about/','/math/',...years.filter(y=>y<=today.slice(0,4)).map(y=>`/math/${y}/`),...entries.filter(t=>t.date<=today).map(t=>`/math/${t.date}/`),...series.map(group=>group.url),...posts.map(p=>p.url)].map(url=>`<url><loc>${site.url}${url}</loc>${posts.find(p=>p.url===url)?`<lastmod>${posts.find(p=>p.url===url).updated||posts.find(p=>p.url===url).date}</lastmod>`:''}</url>`).join('')}</urlset>`);
  await write('robots.txt',`User-agent: *\nAllow: /\nSitemap: ${site.url}/sitemap.xml\n`);await write('.nojekyll','');
- // Preserve historical Jekyll permalinks and old section URLs.
- const redirects=[['search/index.html','/blog/'],['publications/index.html','/about/']];
+ // Preserve historical Jekyll permalinks, renamed articles and old section URLs.
+ const redirects=[['search/index.html','/blog/'],['publications/index.html','/about/'],['blog/deepseek-v4-1-flash-roi.html','/blog/llm-deployment-roi.html']];
  for(const p of posts.filter(p=>p.date<'2026-01-01')){const date=p.date.replaceAll('-','/');redirects.push([`${date}/${p.slug}/index.html`,p.url]);}
- for(const [file,to]of redirects)await write(file,`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${to}"><link rel="canonical" href="${site.url}${to}"><title>Moved · FENG</title><a href="${to}">Continue / 继续阅读</a></html>`);
+ for(const [file,to]of redirects)await write(file,`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${to}"><link rel="canonical" href="${site.url}${to}"><title>Moved · FENG</title><script>location.replace(${JSON.stringify(to)}+location.search+location.hash)</script><a href="${to}">Continue / 继续阅读</a></html>`);
  console.log(`Built ${posts.length} bilingual notes and ${pages.length} pages → dist/`);return posts;
 }
 if(process.argv[1]===fileURLToPath(import.meta.url))await build();

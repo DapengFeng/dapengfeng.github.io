@@ -7,6 +7,7 @@ const core=['browser','language','reading'];
 const article=[...core,'layout','accessibility','math','code-copy','sharing','support','cross-browser'];
 // daily-math itself checks formulas, language modes, responsive layouts and static fallback.
 const daily=[...core,'daily-math'];
+const publication=[...daily,'economics'];
 const posts={
  'pytorch-01-what-is-pytorch':['pytorch','reading-demos'],
  'pytorch-02-tensor-strides-storage':['tensor','reading-demos','process-demos'],
@@ -61,7 +62,7 @@ export function planChecks({files=null,mode='auto',suites}){
  };
  const full=reason=>finish('full',all,reason);
  if(mode==='full')return full('Full regression requested');
- if(mode==='daily')return finish('daily',daily,'Daily mathematics publication');
+ if(mode==='daily')return finish('daily',publication,'Daily mathematics and model price catalogue publication');
  if(!files?.length)return full('No reliable changed-file range; use full regression');
  const selected=new Set();
  for(const file of files){

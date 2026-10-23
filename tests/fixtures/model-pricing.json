@@ -1,0 +1,52 @@
+{
+  "first": {
+    "id": "first",
+    "name": "First provider",
+    "doc": "https://example.com/first/pricing",
+    "models": {
+      "shared/model": {
+        "id": "shared/model",
+        "name": "Open model",
+        "open_weights": true,
+        "modalities": { "input": ["text", "image"], "output": ["text"] },
+        "limit": { "context": 131072 },
+        "release_date": "2026-09-01",
+        "last_updated": "2026-10-20",
+        "canonical_model_id": "original/shared",
+        "cost": { "input": 1, "output": 4, "cache_read": 0.1, "cache_write": 0, "reasoning": 4 }
+      },
+      "no-cache": {
+        "name": "No cache",
+        "open_weights": true,
+        "modalities": { "output": ["text"] },
+        "cost": { "input": 0.2, "output": 0.8 }
+      },
+      "free": {
+        "name": "Free tokens",
+        "open_weights": true,
+        "modalities": { "output": ["text"] },
+        "cost": { "input": 0, "output": 0, "cache_read": 0 }
+      },
+      "closed": {
+        "name": "Closed model",
+        "open_weights": false,
+        "modalities": { "output": ["text"] },
+        "cost": { "input": 1, "output": 4 }
+      }
+    }
+  },
+  "second": {
+    "id": "second",
+    "name": "Second provider",
+    "doc": "https://example.com/second/pricing",
+    "models": {
+      "shared/model": {
+        "id": "shared/model",
+        "name": "Open model",
+        "open_weights": true,
+        "modalities": { "output": ["text"] },
+        "cost": { "input": 2, "output": 8, "cache_read": 0.2 }
+      }
+    }
+  }
+}
