@@ -1,0 +1,153 @@
+{
+  "boundary": "Illustrative design calculations, not Tesla specifications, measurements or a validated vehicle simulation.",
+  "thermal": {
+    "heat_J": 300000.0,
+    "heat_capacity_J_K": 60000.0,
+    "conductance_W_K": 500.0,
+    "ambient_C": 25.0,
+    "limit_C": 45.0,
+    "time_constant_s": 120.0,
+    "instantaneous_rise_K": 5.0,
+    "drive_electrical_input_W": 1000000.0,
+    "pulse_duration_s": 3.0,
+    "port_to_wheel_efficiency": 0.9,
+    "drive_input_J": 3000000.0,
+    "wheel_work_J": 2700000.0,
+    "period_definition": "start to start; impulse approximation deposits heat at each 3 s pulse end; consecutive deposits remain one period apart",
+    "minimum_period_s": 34.52184869421371,
+    "cases": [
+      {
+        "period_s": 20.0,
+        "peak_temperatures_C": [
+          30.0,
+          34.23240862445307,
+          37.81506517732202,
+          40.84771847588518,
+          43.41480407104814,
+          45.58779511358354,
+          47.42719231944075,
+          48.98420843901374,
+          50.302194129592365,
+          51.41784493033451
+        ],
+        "periodic_peak_C": 57.56941231548729
+      },
+      {
+        "period_s": 60.0,
+        "peak_temperatures_C": [
+          30.0,
+          33.03265329856317,
+          34.87205050442038,
+          35.98770130516253,
+          36.664377721345595,
+          37.074802714465086,
+          37.32373805630441,
+          37.474724973415995,
+          37.56630316785967,
+          37.62184815055088
+        ],
+        "periodic_peak_C": 37.70747041268399
+      }
+    ],
+    "design_comparisons": [
+      {
+        "name": "base",
+        "capacity_J_K": 60000.0,
+        "conductance_W_K": 500.0,
+        "period_s": 20.0,
+        "peak10_C": 51.41784493033451,
+        "periodic_peak_C": 57.56941231548729,
+        "minimum_period_s": 34.52184869421371
+      },
+      {
+        "name": "double_C",
+        "capacity_J_K": 120000.0,
+        "conductance_W_K": 500.0,
+        "period_s": 20.0,
+        "peak10_C": 42.678620851554655,
+        "periodic_peak_C": 56.26735910205544,
+        "minimum_period_s": 32.04753422988543
+      },
+      {
+        "name": "double_G",
+        "capacity_J_K": 60000.0,
+        "conductance_W_K": 1000.0,
+        "period_s": 20.0,
+        "peak10_C": 42.00939191211398,
+        "periodic_peak_C": 42.63863236578565,
+        "minimum_period_s": 17.260924347106855
+      }
+    ]
+  },
+  "gas": {
+    "impulse_N_s": 5000.0,
+    "effective_exhaust_velocity_m_s": 500.0,
+    "specific_gas_constant_J_kg_K": 287.0,
+    "cooled_endpoint_temperature_K": 300.0,
+    "low_absolute_pressure_Pa": 10000000.0,
+    "high_absolute_pressure_Pa": 30000000.0,
+    "inlet_absolute_pressure_Pa": 100000.0,
+    "overall_isothermal_efficiency": 0.65,
+    "compressor_electrical_power_W": 20000.0,
+    "consumed_kg": 10.0,
+    "volume_m3": 0.04305,
+    "cooled_low_mass_kg": 5.0,
+    "cooled_high_mass_kg": 15.0,
+    "ideal_adiabatic_residual_temperature_K": 193.31820449317627,
+    "ideal_adiabatic_residual_pressure_Pa": 6443940.149772543,
+    "conditioning_time_s": null,
+    "reversible_work_J": 4522909.30095061,
+    "electrical_input_J": 6958322.001462477,
+    "electrical_input_kWh": 1.932867222628466,
+    "refill_wait_s": 347.91610007312386,
+    "start_to_start_gas_period_s": 350.91610007312386
+  },
+  "equations": {
+    "thermal_ODE": "C*dtheta/dt=P_heat-G*theta",
+    "pulse_recurrence": "theta_n=exp(-Delta/tau)*theta_(n-1)+Q/C, theta_0=0",
+    "periodic_peak": "theta_inf=(Q/C)/(1-exp(-Delta/tau))",
+    "minimum_period": "-tau*ln(1-Q/(C*theta_limit)); Q/C < theta_limit",
+    "gas_mass": "m=p*V/(R*T)",
+    "reversible_refill": "V*[p*ln(p/p_atm)-p] evaluated from p_low to p_high",
+    "gas_period": "pulse_duration+conditioning_time+reversible_refill/(efficiency*compressor_power); conditioning_time unknown; plotted reference sets it to zero"
+  },
+  "assumptions": [
+    "Drive-loss heat node only; battery I^2R and compressor heat are outside this node",
+    "Constant C,G,ambient; no internal gradients, active chiller, coolant transients, speed dependence or thermal derating",
+    "Instantaneous heat approximation ignores cooling during the 3 s pulse; finite-pulse RK4 comparison is reported",
+    "Thermal and gas examples use independent temperature assumptions: 25 deg C reservoir and 300 K cooled gas",
+    "Ideal gas and fixed effective exhaust velocity; real air at 10-30 MPa needs real-gas properties",
+    "Reversible isothermal compression into a tank maintained at 300 K; 65% efficiency refers to this minimum work, including electrical losses",
+    "Defined reference path: after 3 s pulse, residual gas must first be conditioned to 300 K before isothermal refill. Conditioning time is unknown and set to zero only in the optimistic plotted reference",
+    "Adiabatic ideal-gas discharge of 15 to 5 kg would leave about 193 K and 6.44 MPa, not 300 K and 10 MPa. This separate limiting model is not a real discharge prediction",
+    "Maximum of recovery bounds valid only for concurrent independent resources; no vehicle-wide sufficiency claim",
+    "Drive input already includes Q; compressor electrical input is not all battery heat and must not be double counted"
+  ],
+  "checks": {
+    "recurrence_cases": 1440,
+    "maximum_recurrence_residual_K": 1.1368683772161603e-13,
+    "finite_pulse_RK4_max_residual_K": 8.526512829121202e-14,
+    "finite_pulse_peak_results": [
+      {
+        "period_s": 20.0,
+        "peak10_C": 51.09035661407306
+      },
+      {
+        "period_s": 60.0,
+        "peak10_C": 37.465381648085135
+      }
+    ],
+    "finite_pulse_effective_jump_K": 4.938017594333466,
+    "finite_pulse_lower_peak_rise_percent": 1.2396481133306714,
+    "finite_pulse_minimum_period_s": 34.02701112033818,
+    "refill_work_midpoint_relative_error": 1.0577713916989502e-12,
+    "checks": [
+      "energy partition",
+      "gas mass and impulse conservation",
+      "zero heat",
+      "zero cooling",
+      "isolated pulse limit",
+      "thermal feasibility boundary"
+    ]
+  }
+}
