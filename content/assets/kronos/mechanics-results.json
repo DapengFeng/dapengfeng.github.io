@@ -1,0 +1,191 @@
+{
+  "scope": "Offline mechanics only; tiny randomly initialized CPU models; no pretrained weights or financial accuracy measured.",
+  "source_sha": "67b630e67f6a18c9e9be918d9b4337c960db1e9a",
+  "seed": 20261026,
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+    "torch": "2.10.0+cpu",
+    "device": "cpu",
+    "threads": 1,
+    "packages": {
+      "numpy": "2.2.6",
+      "pandas": "2.2.2",
+      "einops": "0.8.1",
+      "huggingface_hub": "0.33.1",
+      "safetensors": "0.6.2",
+      "tqdm": "4.67.1"
+    }
+  },
+  "checks": {
+    "tokenizer_causal_prefix": {
+      "prefix_length": 4,
+      "suffix_changed": 2,
+      "prefix_ids_exactly_equal": true,
+      "prefix_reconstruction_max_abs_diff": 0.0,
+      "full_reconstruction_max_abs_diff": 0.0
+    },
+    "bit_roundtrip": {
+      "all_16_pairs_roundtrip_exact": true,
+      "quantized_equals_decode_unpacked_bits": true,
+      "full_id_relation": "s1 + 4*s2",
+      "decode_vs_forward_max_abs_diff": 0.0,
+      "optional_composite_embedding_route_swaps_halves": true,
+      "quantized_unique_values": [
+        -0.5,
+        0.5
+      ]
+    },
+    "shapes_and_backbone_causality": {
+      "input": [
+        2,
+        6,
+        6
+      ],
+      "quantized": [
+        2,
+        6,
+        4
+      ],
+      "pair_ids": [
+        [
+          2,
+          6
+        ],
+        [
+          2,
+          6
+        ]
+      ],
+      "tokenizer_reconstructions": [
+        [
+          2,
+          6,
+          6
+        ],
+        [
+          2,
+          6,
+          6
+        ]
+      ],
+      "forward_logits": [
+        [
+          2,
+          6,
+          4
+        ],
+        [
+          2,
+          6,
+          4
+        ]
+      ],
+      "context": [
+        2,
+        6,
+        16
+      ],
+      "decode_s2_single_query_result": [
+        2,
+        6,
+        4
+      ],
+      "backbone_prefix_max_abs_diff": 0.0,
+      "s1_prefix_logits_max_abs_diff": 0.0,
+      "decoder_prefix_max_abs_diff": 0.0
+    },
+    "analytical_entropy_branch": {
+      "actual_avg_prob_shape": [
+        4,
+        2
+      ],
+      "group_code_probability_shape_would_be": [
+        2,
+        4
+      ],
+      "avg_prob_vs_per_bit_reference_max_abs_diff": 0.0,
+      "marginal_entropy_vs_per_bit_reference_abs_diff": 0.0,
+      "sample_entropy": 2.376418352127075,
+      "marginal_entropy": 2.7248804569244385
+    },
+    "single_query_train_vs_eval_attention": {
+      "dropout": 0,
+      "query_length": 1,
+      "key_length": 6,
+      "train_vs_first_key_only_reference_max_abs_diff": 1.1920928955078125e-07,
+      "train_change_when_keys_1_to_5_perturbed": 0.0,
+      "eval_change_when_keys_1_to_5_perturbed": 3.072819948196411,
+      "train_vs_eval_max_abs_diff": 0.6457703709602356,
+      "inference_rope_cos": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "inference_rope_sin": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "full_sequence_s2_prefix_dependence": {
+      "fixed_sibling_queries": true,
+      "train_prefix_change_from_future_context": 0.0,
+      "eval_prefix_change_from_future_context": 0.24691104888916016
+    },
+    "generation_horizon_and_timestamp_alignment": {
+      "history_length": 6,
+      "max_context": 8,
+      "normal_forecast_shape": [
+        3,
+        6
+      ],
+      "last_consumed_minutes_each_step": [
+        25,
+        30,
+        35
+      ],
+      "target_minutes": [
+        30,
+        35,
+        40
+      ],
+      "pred_len_9_low_level_shape": [
+        1,
+        8,
+        6
+      ],
+      "pred_len_9_predict_error": "Shape of passed values is (8, 6), indices imply (9, 6)"
+    },
+    "local_safetensors_eval_mode": {
+      "saved_checkpoint_origin": "locally initialized tiny random model",
+      "training_after_from_pretrained": true,
+      "training_after_predictor_constructor": true,
+      "training_after_explicit_eval": false
+    }
+  },
+  "tiny_config": {
+    "B": 2,
+    "L": 6,
+    "features": 6,
+    "bits": [
+      2,
+      2
+    ],
+    "d_model": 16,
+    "n_heads": 4,
+    "tokenizer_config_layers": [
+      4,
+      4
+    ],
+    "tokenizer_actual_blocks": [
+      3,
+      3
+    ],
+    "backbone_blocks": 2,
+    "dropout": 0
+  },
+  "all_assertions_passed": true
+}
