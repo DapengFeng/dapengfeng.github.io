@@ -1,0 +1,139 @@
+{
+  "kind": "synthetic OHLC teaching example; no historical returns",
+  "bar_index": "1-based; each bar available at its close",
+  "pivot_k": 2,
+  "bars": [
+    {
+      "bar": 1,
+      "open": 103,
+      "high": 105,
+      "low": 102,
+      "close": 104
+    },
+    {
+      "bar": 2,
+      "open": 104,
+      "high": 104.5,
+      "low": 100,
+      "close": 101
+    },
+    {
+      "bar": 3,
+      "open": 101,
+      "high": 102,
+      "low": 98,
+      "close": 99
+    },
+    {
+      "bar": 4,
+      "open": 99,
+      "high": 103,
+      "low": 99,
+      "close": 102
+    },
+    {
+      "bar": 5,
+      "open": 102,
+      "high": 105,
+      "low": 101,
+      "close": 104
+    },
+    {
+      "bar": 6,
+      "open": 104,
+      "high": 107,
+      "low": 103,
+      "close": 106
+    },
+    {
+      "bar": 7,
+      "open": 106,
+      "high": 106.5,
+      "low": 102,
+      "close": 103
+    },
+    {
+      "bar": 8,
+      "open": 103,
+      "high": 104,
+      "low": 99.5,
+      "close": 100
+    },
+    {
+      "bar": 9,
+      "open": 100,
+      "high": 101,
+      "low": 97,
+      "close": 100.5
+    },
+    {
+      "bar": 10,
+      "open": 100.5,
+      "high": 102,
+      "low": 99.5,
+      "close": 101.5
+    },
+    {
+      "bar": 11,
+      "open": 101.5,
+      "high": 109,
+      "low": 101,
+      "close": 108.5
+    },
+    {
+      "bar": 12,
+      "open": 108.5,
+      "high": 110,
+      "low": 105,
+      "close": 109
+    }
+  ],
+  "events": {
+    "reference_low": {
+      "bar": 3,
+      "price": 98,
+      "confirmed_at": 5
+    },
+    "reference_high": {
+      "bar": 6,
+      "price": 107,
+      "confirmed_at": 8
+    },
+    "sweep": {
+      "bar": 9,
+      "low": 97,
+      "close": 100.5
+    },
+    "upward_break": {
+      "bar": 11,
+      "close": 108.5,
+      "level": 107
+    },
+    "bullish_fvg": {
+      "confirmed_at": 12,
+      "first_bar": 10,
+      "middle_bar": 11,
+      "last_bar": 12,
+      "lower": 102,
+      "upper": 105
+    },
+    "order_block_candidate": {
+      "bar": 8,
+      "range": [
+        99.5,
+        104
+      ],
+      "known_at": 11
+    }
+  },
+  "separate_risk_example": {
+    "entry": 100,
+    "stop": 98,
+    "target": 104,
+    "gross_risk_per_unit": 2,
+    "all_in_cost_per_unit": 0.1,
+    "net_win_r": 1.95,
+    "net_loss_r": -1.05,
+    "break_even_win_rate": 0.35
+  }
+}

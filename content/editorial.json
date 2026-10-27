@@ -289,6 +289,22 @@
         "en": "A launch time needs a timing boundary and repeatable conditions. Follow the same measurement discipline through warm-up, repeated samples and raw results.",
         "zh": "加速成绩也需要明确计时边界与可重复条件；继续看预热、重复采样与原始结果怎样支撑性能判断。"
       }
+    },
+    {
+      "source": "smart-money-concepts",
+      "target": "kronos-financial-foundation-model",
+      "reason": {
+        "en": "Compare hand-defined price patterns with learned forecasts. Both need executable signals, costs and independent evaluation.",
+        "zh": "把人工定义的价格形态与学习模型的预测对照：二者都需要可执行信号、成本与独立评价。"
+      }
+    },
+    {
+      "source": "kronos-financial-foundation-model",
+      "target": "smart-money-concepts",
+      "reason": {
+        "en": "Examine how liquidity, information and execution affect prices, then distinguish a forecast advantage from compensation for risk.",
+        "zh": "从流动性、信息与成交机制理解价格，再区分预测优势与承担风险得到的补偿。"
+      }
     }
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "ohlc_valid": true,
+  "pivot_confirmation_checked": true,
+  "strict_fvg_checked": true,
+  "retrospective_ob_candidate_checked": true,
+  "risk_arithmetic_checked": true,
+  "market_profitability_tested": false,
+  "assumed_impact_paths_checked": true,
+  "figure_text_bounds_checked": true
+}
