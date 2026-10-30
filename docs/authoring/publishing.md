@@ -51,7 +51,12 @@ Use `cardDescriptionEn` and `cardDescription` for the short English and Chinese 
 | `systems` | Systems & Performance<br>系统与性能 |
 | `benchmark` | Benchmarks<br>基准测试 |
 | `biology` | Life & Neuroscience<br>生命与神经科学 |
+| `finance` | Finance & Decisions<br>金融与决策 |
 | `travel` | Travel & Observation<br>旅行与观察 |
+
+The `finance` category groups financial-statement reading, market mechanisms, quantitative research and investment economics. Classify by the reader’s main question; using code does not by itself make a financial article a systems article. The homepage includes a fixed reading route to `reading-financial-statements`, alongside the existing PyTorch, mathematics and travel routes.
+
+`finance` 归集财报阅读、市场机制、量化研究与投资经济性。按读者的主要问题归类，使用代码不意味着金融文章应归为系统文章。首页在原有 PyTorch、数学与旅行路径之外，增加了指向 `reading-financial-statements` 的固定财报阅读入口。
 
 `draft: true` hides a draft. `archiveOnly: true` includes an article in the archive and search, but excludes it from the homepage, notebook and category listings. A numeric `featured` is a secondary ordering key for articles with the same publication date; it does not select or order the homepage's recommendations. See [recommendation behavior](#recommendation-behavior--推荐的实际行为) below. Choose `spike`, `rust`, `gpu`, `matrix`, `math`, `wave`, `benchmark`, or `vision` for `art` to generate local SVG illustrations.
 
@@ -93,6 +98,10 @@ The series landing page can add an editorial reading guide from `content/editori
 Series search records inherit tags from their published installments. A series whose published articles share one category uses that category; mixed-topic series use `series`. Do not assign another series' subject tags to a new series.
 
 专题搜索条目从已发布各期汇总标签。各期同属一个分类时采用该分类，跨分类专题使用 `series`；新增专题不沿用其他专题的主题标签。
+
+The financial-statements series has seven lessons: connected statements, sustainable owner cash, capital returns, incentives, liquidity, value versus price, and an annual-report research memo. Its filename prefixes match `series.part`: part 4 is `financial-statements-04-management-incentives.html`, and part 7 is `financial-statements-07-annual-report-practice.html`. Internal links use these names. At the author’s explicit request, the superseded financial-series addresses have no redirects. Each lesson pairs a central idea with a real case; the first six build toward the final exercise.
+
+财报专题目前分为七期：三表连接、可持续所有者现金、资本回报、激励、流动性、价值与价格、年报研究笔记。文件名前缀与 `series.part` 一致：第四期为 `financial-statements-04-management-incentives.html`，第七期为 `financial-statements-07-annual-report-practice.html`，站内链接统一使用这些名称。按作者明确要求，不为本次财报专题替换掉的旧地址保留重定向。每期围绕一个核心知识点配合真实案例，前六期为最终实战作准备。
 
 ## Site copy and reading entry points / 站点文案与阅读入口
 

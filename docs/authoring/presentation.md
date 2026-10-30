@@ -81,6 +81,18 @@ An article-specific outer header can be styled in `src/styles/editorial.css` usi
 
 文章专属的外层标题区可在 `src/styles/editorial.css` 中用绑定该文章根类的选择器设计，例如 Roadster 文章的 `.article-page:has(.rd-article)`。保持共用模板与其他文章不受影响，保留可读的回退布局，并核对各语言模式。承担解释任务的主图放在可访问的文章标记中，带上标注与假设；不把关键信息只放进 CSS 背景，也不为填充标题区重复视频封面。
 
+The financial-statements series uses warm paper-colored analytical figures within the site's dark reading surface, with serif section titles and tabular numeric columns. Keep comparison charts on a shared scale and retain the underlying figures, periods, units and sources. The Apple case's three-year ledger stacks by item on small screens; its reading-order list is a full-width list, separate from numeric reconciliation rows. Below 1101px, the native contents panel starts collapsed when JavaScript is available; it stays usable and expanded without JavaScript.
+
+财报专题在深色阅读背景中使用暖纸色分析图版，章节标题使用衬线字体，数字按列对齐。对照图保持同一尺度，并保留计算底表、期间、单位与来源。Apple 案例的三年数据在窄屏按项目展开；阅读顺序采用完整宽度的列表，不复用数字勾稽行的布局。1101px 以下，启用 JavaScript 时原生目录默认收起；无 JavaScript 时仍可操作并保持展开。
+
+Use `.fs-lenses` for brief, paired reading questions and `.fs-quote` for a relevant quotation: a semantic `blockquote` followed by attribution and a primary-source link in `figcaption`. Identify the Chinese translation and any secondhand attribution. Quote only what advances the explanation, then connect it to the case. These elements stay in the reading column; narrow screens stack the questions without shrinking the text.
+
+简短的两种阅读追问使用 `.fs-lenses`；贴合论点的引用使用 `.fs-quote`，以语义化 `blockquote` 承载原话，在 `figcaption` 标明人物、出处并链接原始资料。标明中文译文与转述关系，只引用能推进讲解的短句，并接回当前案例。这些元素保留在阅读栏内；窄屏纵向排布追问，不靠缩小字体容纳。
+
+Use `.fs-decisions` for full-width prose choices. Reserve `.fs-bridge` for reconciliations: a direct numeric `strong` child followed by a bilingual description. Only that structure receives a narrow numeric column; never place a whole language paragraph in it. In the incentives comparison, align the heading, metric and explanation rows on desktop, then stack the two periods with a divider on mobile.
+
+文字型决策列表使用 `.fs-decisions`，每项占满阅读栏。`.fs-bridge` 仅用于数值勾稽：直接子元素 `strong` 承载数字，之后接双语说明；仅此结构启用窄数字栏，不把整段语言文本放入其中。薪酬对比图在桌面对齐标题、指标和解释三行，手机上将两种考核期间纵向排列，以细线分隔。
+
 ## Code blocks / 代码块
 
 All block code (including plain `pre`, highlighted fragments, editable examples, and compiler output) receives a compact toolbar with one copy icon on the right, matching display equations. Named code languages appear on the left; plain text omits that label. Copying preserves the current source and indentation without line numbers. Labels follow the language setting; if clipboard access is blocked, a selected text field allows manual copying. Inline code has no button. Do not add article-specific copy controls.

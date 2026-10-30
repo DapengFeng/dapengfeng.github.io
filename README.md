@@ -25,6 +25,7 @@ Choose the form that serves the subject. In an explanatory article, diagrams can
 | Systems & Performance<br>系统与性能 | How do data layout, execution, and hardware affect a program?<br>数据布局、执行过程与硬件如何影响程序？ |
 | Benchmarks<br>基准测试 | What was measured, under what conditions, and can the result be reproduced?<br>测量了什么、条件是什么、结果能否复现？ |
 | Life & Neuroscience<br>生命与神经科学 | How do biological structures and cellular processes support signal processing?<br>生物结构与细胞过程如何实现信号处理？ |
+| Finance & Decisions<br>金融与决策 | What do cash flows, returns on capital and market mechanisms tell us about a business or an investment?<br>现金流、资本回报与市场机制，能怎样帮助我们理解生意和投资？ |
 | Travel & Observation<br>旅行与观察 | What do a place, its everyday life and its food reveal when we slow down?<br>慢下来之后，一个地方的景色、日常与滋味会显出什么？ |
 
 ## Reading principles / 阅读原则

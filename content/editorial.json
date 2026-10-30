@@ -53,8 +53,15 @@
       "paths": [
         {
           "id": "runtime",
-          "title": { "en": "Follow one operation", "zh": "跟踪一次运算" },
-          "parts": [1, 2, 3],
+          "title": {
+            "en": "Follow one operation",
+            "zh": "跟踪一次运算"
+          },
+          "parts": [
+            1,
+            2,
+            3
+          ],
           "description": {
             "en": "Start with matmul, locate tensor elements in storage, then see how the dispatcher chooses an implementation.",
             "zh": "从 matmul 出发，找到张量元素的存储位置，再看调度器怎样选择实现。"
@@ -62,8 +69,14 @@
         },
         {
           "id": "training",
-          "title": { "en": "Gradients and GPU execution", "zh": "梯度与 GPU 执行" },
-          "parts": [4, 5],
+          "title": {
+            "en": "Gradients and GPU execution",
+            "zh": "梯度与 GPU 执行"
+          },
+          "parts": [
+            4,
+            5
+          ],
           "description": {
             "en": "After the runtime path, follow gradient accumulation and CUDA dependencies to choose a meaningful timing boundary.",
             "zh": "了解运行时后，继续看梯度怎样汇合、CUDA 工作怎样建立依赖，以及计时边界如何选择。"
@@ -71,12 +84,81 @@
         },
         {
           "id": "compile",
-          "title": { "en": "Distinguish two kinds of code generation", "zh": "分清两种代码生成" },
-          "parts": [6, 7],
+          "title": {
+            "en": "Distinguish two kinds of code generation",
+            "zh": "分清两种代码生成"
+          },
+          "parts": [
+            6,
+            7
+          ],
           "description": {
             "en": "Follow graph capture, cached-code reuse and kernel fusion in torch.compile, then compare them with torchgen's build-time generation of operator interfaces and registrations from schemas.",
             "zh": "先理解 torch.compile 的图捕获、缓存代码复用与内核融合，再与 torchgen 在构建时根据 Schema 生成算子接口及注册代码的过程对照。"
           }
+        }
+      ]
+    },
+    {
+      "id": "reading-financial-statements",
+      "audience": {
+        "en": "For readers starting without an accounting background who want to judge a business with Buffett’s and Munger’s shared owner perspective.",
+        "zh": "适合尚无会计基础，希望结合巴菲特与芒格的所有者视角判断生意的读者。"
+      },
+      "prerequisites": {
+        "en": "Addition, subtraction and percentages. Each accounting term is introduced through a transaction before it is used in a ratio.",
+        "zh": "会加减法和百分比即可；先通过具体交易理解会计术语，再使用财务比率。"
+      },
+      "outcomes": {
+        "en": "Each lesson teaches one central idea through a real case and a checkable exercise. Connect cash, capital, incentives, resilience and price, then write a research memo with explicit evidence gaps.",
+        "zh": "每期一个核心知识点，配真实案例与可核对练习。把现金、资本、激励、韧性与价格连起来，最后写出明确证据缺口的研究判断。"
+      },
+      "paths": [
+        {
+          "id": "cash",
+          "title": {
+            "en": "Read the accounts",
+            "zh": "先读通数字"
+          },
+          "description": {
+            "en": "Connect three statements, then test which cash can sustainably belong to owners. Apple’s cash-flow disclosures anchor both lessons.",
+            "zh": "先连通三张报表，再检验什么现金可以持续归股东。两期都落到 Apple 的真实现金披露。"
+          },
+          "parts": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "business",
+          "title": {
+            "en": "Explain the business",
+            "zh": "再辨清生意"
+          },
+          "description": {
+            "en": "See’s explains capital productivity; Apple’s compensation disclosures show how to examine decision incentives.",
+            "zh": "用喜诗解释资本效率，用 Apple 薪酬披露学习检查决策激励。"
+          },
+          "parts": [
+            3,
+            4
+          ]
+        },
+        {
+          "id": "practice",
+          "title": {
+            "en": "Reach a defensible judgment",
+            "zh": "形成有依据的判断"
+          },
+          "description": {
+            "en": "Map obligations, separate value from price, then complete an Apple research memo. Retain uncertainty when the evidence cannot settle it.",
+            "zh": "排查付款义务，区分价值与价格，再完成 Apple 研究笔记。证据不足的地方，明确保留判断。"
+          },
+          "parts": [
+            5,
+            6,
+            7
+          ]
         }
       ]
     }
@@ -304,6 +386,30 @@
       "reason": {
         "en": "Examine how liquidity, information and execution affect prices, then distinguish a forecast advantage from compensation for risk.",
         "zh": "从流动性、信息与成交机制理解价格，再区分预测优势与承担风险得到的补偿。"
+      }
+    },
+    {
+      "source": "financial-statements-06-value-and-price",
+      "target": "llm-deployment-roi",
+      "reason": {
+        "en": "Apply cash-flow discounting and capital allocation to a concrete equipment investment, using deployment costs and API savings.",
+        "zh": "把现金流折现与资本配置应用到具体设备投资，核算本地部署成本与节省的 API 账单。"
+      }
+    },
+    {
+      "source": "smart-money-concepts",
+      "target": "financial-statements-01-three-statements",
+      "reason": {
+        "en": "Move from how market prices form to the business being priced: start with the relation between earnings, assets and cash.",
+        "zh": "从市场价格如何形成，转向被定价的生意本身：先理解利润、资产与现金的联系。"
+      }
+    },
+    {
+      "source": "llm-deployment-roi",
+      "target": "financial-statements-02-owner-earnings",
+      "reason": {
+        "en": "Investment cash flows are not the same as accounting earnings. Trace working-capital needs and sustaining equipment expenditure.",
+        "zh": "投资现金流与会计利润不同；继续追踪营运资本需求和维持经营所需的设备开支。"
       }
     }
   ]

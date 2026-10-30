@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import { escape as e, site } from './config.mjs';
 export const dictionary = {
+ '金融与决策':'Finance & Decisions','从现金流、风险到投资决策':'Cash flows, risk and investment decisions',
  '旅行与见闻':'Travel & Journals','沿途的风景，与日常之外的观察':'Landscapes and observations beyond the everyday','九寨沟':'Jiuzhaigou','游记':'Travel journal','山水':'Landscapes','摄影':'Photography',
  '潮汕':'Chaoshan','汕头':'Shantou','南澳岛':'Nan’ao Island','潮州':'Chaozhou','美食':'Food',
  '生命与神经科学':'Life & Neuroscience','从细胞结构到神经计算':'From cell structure to neural computation','视网膜':'Retina','神经科学':'Neuroscience','视觉':'Vision','信号处理':'Signal processing',

@@ -71,6 +71,7 @@ export function home(posts,scene,date) {
  const routes=[
   {url:series?.url||'/blog/?category=systems',symbol:'⌘',en:'Inside PyTorch',zh:'沿着 PyTorch 深入',descriptionEn:'From tensor storage to dispatch, gradients and compiled kernels.',description:'从张量存储到算子调度、梯度与编译内核。'},
   {url:'/math/',symbol:'∿',en:'One mathematical idea',zh:'每天理解一个数学想法',descriptionEn:'A drawing, a relation, and the principle that connects them.',description:'从一幅图、一个关系式，读懂它们背后的原理。'},
+  {url:'/series/reading-financial-statements/',symbol:'≋',en:'Read a business through its accounts',zh:'和巴菲特、芒格一起读财报',descriptionEn:'Connect cash, business quality and price through real disclosures and worked examples.',description:'用真实披露与算例，把现金、生意质量和买入价格连起来。'},
   {url:'/blog/?category=travel',symbol:'⌁',en:'Places & observations',zh:'在路上的观察',descriptionEn:'Places, everyday life, and moments worth keeping in words and photographs.',description:'用照片与文字，留下一个地方的风景、日常与片刻。'}
  ];
  return shell({title:'让知识，变得可见',active:'home',body:`
