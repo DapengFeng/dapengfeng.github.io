@@ -110,8 +110,8 @@
         "zh": "会加减法和百分比即可；先通过具体交易理解会计术语，再使用财务比率。"
       },
       "outcomes": {
-        "en": "Each lesson teaches one central idea through a real case and an exercise with an explained answer. Connect cash flow, capital, incentives, financial resilience and price, then write a research memo stating what evidence is still missing.",
-        "zh": "每期围绕一个核心知识点，配合真实案例和附有解析的练习。理解现金流、资本、激励、偿付能力与价格之间的关系，最后写一份研究笔记，明确仍需补充哪些证据。"
+        "en": "Learn one central idea at a time through a real case and an explained exercise. Apply the first seven lessons to five Chinese insurers, then compare full-year 2024–2025 and like-for-like 2026 year-to-date disclosures without confusing accounting profit with distributable cash.",
+        "zh": "每期围绕一个核心知识点，配合真实案例和附有解析的练习。学完前七期后，研究五家中国保险公司，纵向核对 2024、2025 全年与 2026 同期数据，横向比较业务质量、资本约束与股东现金回报。"
       },
       "paths": [
         {
@@ -158,6 +158,38 @@
             5,
             6,
             7
+          ]
+        },
+        {
+          "id": "insurance-cases",
+          "title": {
+            "en": "Apply the method to insurers",
+            "zh": "把方法用于保险公司"
+          },
+          "description": {
+            "en": "Study CPIC’s profit quality, New China Life’s valuation assumptions, Ping An’s capital allocation, China Life’s asset–liability matching and PICC’s underwriting discipline.",
+            "zh": "依次研究太保的利润质量、新华的新业务价值、平安的资本分配、国寿的资产负债匹配，以及人保的承保纪律。"
+          },
+          "parts": [
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "id": "insurance-comparison",
+          "title": {
+            "en": "Compare through time and across companies",
+            "zh": "做纵向与横向对比"
+          },
+          "description": {
+            "en": "Bring the five companies into one period-aligned comparison, separate life and P&C metrics, and identify what the evidence supports and what still needs investigation.",
+            "zh": "将五家公司放进同期间的对照表，区分寿险、财险指标，并写清哪些结论有依据、哪些问题还需补证据。"
+          },
+          "parts": [
+            13
           ]
         }
       ]

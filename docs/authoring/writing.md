@@ -56,6 +56,10 @@ Prefer named objects and precise verbs to abstract praise. Replace “greatly im
 
 用明确对象与准确动词替代抽象赞美。“大幅提升体验”应改成读者或系统具体发生什么变化；“众所周知”应改成论述需要的解释或来源。如果下一句已经能直接说明问题，就删掉只起铺垫作用的“这一点非常重要”“接下来深入探讨”“值得注意的是”。并列信息适合列表，因果与叙事展开适合连续文字。
 
+State conclusions directly, with their evidence and conditions. Do not label them as a named person's “perspective,” “framework,” or hypothetical judgment. Explain an adopted method where it is introduced, and retain accurate attribution for actual quotations and source discussions; the case conclusion should stand on its reasoning.
+
+结论直接写判断、依据与成立条件，不用“某某视角”“某某式结论”“用某某的框架判断”等标签，也不代拟名人的判断。采用的方法在引入处说明，真实引文与来源讨论保留准确归属；案例结论应由推理本身支撑。
+
 Make transitions explain the dependency. “We know where the image forms; the next question is how a cell changes its electrical state” connects two problems. “Next, we introduce phototransduction” only announces a section. Headings should help readers recover the argument when scanning, without turning every paragraph into a numbered subsection.
 
 过渡要交代前后依赖。“知道像落在哪里之后，还需要解释细胞怎样改变电状态”连接了两个问题；“接下来介绍光转导”只是宣布章节。小标题应让读者扫读时找回思路，不必把每段都切成编号小节。

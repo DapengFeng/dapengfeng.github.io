@@ -1,0 +1,145 @@
+{
+  "asOf": "2026-10-31",
+  "unit": "RMB million",
+  "metric": "Net profit attributable to owners of the listed parent",
+  "periods": {
+    "fy2024": {
+      "start": "2024-01-01",
+      "end": "2024-12-31",
+      "months": 12,
+      "audited": true,
+      "basis": "Comparative column in the 2025 annual disclosure"
+    },
+    "fy2025": {
+      "start": "2025-01-01",
+      "end": "2025-12-31",
+      "months": 12,
+      "audited": true
+    },
+    "m92025": {
+      "start": "2025-01-01",
+      "end": "2025-09-30",
+      "months": 9,
+      "audited": false,
+      "basis": "Comparative column in the 2026 third-quarter disclosure"
+    },
+    "m92026": {
+      "start": "2026-01-01",
+      "end": "2026-09-30",
+      "months": 9,
+      "audited": false
+    }
+  },
+  "companies": [
+    {
+      "id": "cpic",
+      "en": "CPIC",
+      "zh": "中国太保",
+      "part": 8,
+      "slug": "financial-statements-08-cpic-profit-quality",
+      "scope": "China Pacific Insurance (Group) Co., Ltd.; consolidated listed group",
+      "profit": {
+        "fy2024": 44960,
+        "fy2025": 53505,
+        "m92025": 45700,
+        "m92026": 36403
+      },
+      "annualSource": {
+        "url": "https://www.cpic.com.cn/upload/resources/file/2026/03/26/93802.pdf",
+        "pages": "19–22"
+      },
+      "quarterSource": {
+        "url": "https://www.cpic.com.cn/upload/resources/file/2026/10/28/107480.pdf",
+        "pages": "3, 5–7, 11–12"
+      }
+    },
+    {
+      "id": "nci",
+      "en": "New China Life",
+      "zh": "新华保险",
+      "part": 9,
+      "slug": "financial-statements-09-nci-new-business-value",
+      "scope": "New China Life Insurance Co., Ltd.; consolidated listed life insurer",
+      "profit": {
+        "fy2024": 26229,
+        "fy2025": 36284,
+        "m92025": 32857,
+        "m92026": 22282
+      },
+      "annualSource": {
+        "url": "https://static-cdn.newchinalife.com/ncl/pdf/20260327/d5c70560-e595-4188-a006-643ad4766e0d.pdf",
+        "pages": "18–19, 27–29"
+      },
+      "quarterSource": {
+        "url": "https://static-cdn.newchinalife.com/ncl/pdf/20261030/ebdb1388-a55e-4157-bcd4-488c7a244800.pdf",
+        "pages": "1–5, 12–13"
+      }
+    },
+    {
+      "id": "pingan",
+      "en": "Ping An",
+      "zh": "中国平安",
+      "part": 10,
+      "slug": "financial-statements-10-pingan-capital-allocation",
+      "scope": "Ping An Insurance (Group) Company of China, Ltd.; consolidated listed group including banking",
+      "profit": {
+        "fy2024": 126607,
+        "fy2025": 134778,
+        "m92025": 132856,
+        "m92026": 96645
+      },
+      "annualSource": {
+        "url": "https://pagroup.pingan.com/resource/pingan/IR-Docs/2026/pingan-ar25-report.pdf",
+        "pages": "36–40, 79–87"
+      },
+      "quarterSource": {
+        "url": "https://www.eqs-news.com/news/media/unaudited-results-for-the-nine-months-ended-september-30-2026/764678ae-3694-49c4-a79a-57323d6a3d3d_en",
+        "pages": "Issuer announcement, section 1.2"
+      }
+    },
+    {
+      "id": "chinalife",
+      "en": "China Life",
+      "zh": "中国人寿",
+      "part": 11,
+      "slug": "financial-statements-11-china-life-asset-liability",
+      "scope": "China Life Insurance Company Limited; consolidated listed life insurer, not the unlisted parent group",
+      "profit": {
+        "fy2024": 106935,
+        "fy2025": 154078,
+        "m92025": 167804,
+        "m92026": 89430
+      },
+      "annualSource": {
+        "url": "https://www.e-chinalife.com/upload/resources/file/2026/03/25/2025%E5%B9%B4%E5%B9%B4%E5%BA%A6%E6%8A%A5%E5%91%8A%E6%91%98%E8%A6%81.pdf",
+        "pages": "3–4, 8–9, 17–22"
+      },
+      "quarterSource": {
+        "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000966.pdf",
+        "pages": "6, 11–13"
+      }
+    },
+    {
+      "id": "picc",
+      "en": "PICC Group",
+      "zh": "中国人保",
+      "part": 12,
+      "slug": "financial-statements-12-picc-underwriting-discipline",
+      "scope": "The People's Insurance Company (Group) of China Limited; consolidated listed group, not PICC P&C alone",
+      "profit": {
+        "fy2024": 42869,
+        "fy2025": 46646,
+        "m92025": 46822,
+        "m92026": 31817
+      },
+      "annualSource": {
+        "url": "https://www.picc.com.cn/jttzzgx/dqbg/202603/P020260326740062299792.pdf",
+        "pages": "12, 23, 42"
+      },
+      "quarterSource": {
+        "url": "https://www.picc.com.cn/jttzzgx/dqbg/202610/P020261030638265404094.pdf",
+        "pages": "4–5, 9–10"
+      }
+    }
+  ]
+}
