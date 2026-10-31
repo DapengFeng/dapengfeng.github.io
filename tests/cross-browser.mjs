@@ -29,7 +29,7 @@ try {
    for (const width of [1440, 390]) {
     await page.setViewportSize({width, height: 900});
     for (const [name, path, body] of [
-     ['home', '/', '#featured'],
+     ['home', '/', '#recent'],
      ['technical', '/blog/human-visual-system.html', '#vision-eye-3d'],
      ['journal', '/blog/chaoshan-streets-and-sea.html', '#shantou-arcades']
     ]) {
@@ -38,7 +38,7 @@ try {
      await page.clock.runFor(32);
      if (name === 'home') {
       await page.waitForSelector('[data-rendered="true"]');
-      assert.equal(await page.locator('.featured-card').count(), 3);
+      assert.equal(await page.locator('.recent-notes > a').count(), 4);
      }
      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${engine}: ${path} fits ${width}`);
      await page.screenshot({path: `${directory}/${engine}-${name}-${width}-top.png`});

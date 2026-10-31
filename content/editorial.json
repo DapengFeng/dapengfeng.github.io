@@ -102,16 +102,16 @@
     {
       "id": "reading-financial-statements",
       "audience": {
-        "en": "For readers starting without an accounting background who want to judge a business with Buffett’s and Munger’s shared owner perspective.",
-        "zh": "适合尚无会计基础，希望结合巴菲特与芒格的所有者视角判断生意的读者。"
+        "en": "For readers with no accounting background who want to assess businesses from the owner perspective shared by Buffett and Munger.",
+        "zh": "适合尚无会计基础，希望从巴菲特与芒格共同的所有者视角评估企业的读者。"
       },
       "prerequisites": {
         "en": "Addition, subtraction and percentages. Each accounting term is introduced through a transaction before it is used in a ratio.",
         "zh": "会加减法和百分比即可；先通过具体交易理解会计术语，再使用财务比率。"
       },
       "outcomes": {
-        "en": "Each lesson teaches one central idea through a real case and a checkable exercise. Connect cash, capital, incentives, resilience and price, then write a research memo with explicit evidence gaps.",
-        "zh": "每期一个核心知识点，配真实案例与可核对练习。把现金、资本、激励、韧性与价格连起来，最后写出明确证据缺口的研究判断。"
+        "en": "Each lesson teaches one central idea through a real case and an exercise with an explained answer. Connect cash flow, capital, incentives, financial resilience and price, then write a research memo stating what evidence is still missing.",
+        "zh": "每期围绕一个核心知识点，配合真实案例和附有解析的练习。理解现金流、资本、激励、偿付能力与价格之间的关系，最后写一份研究笔记，明确仍需补充哪些证据。"
       },
       "paths": [
         {
@@ -121,8 +121,8 @@
             "zh": "先读通数字"
           },
           "description": {
-            "en": "Connect three statements, then test which cash can sustainably belong to owners. Apple’s cash-flow disclosures anchor both lessons.",
-            "zh": "先连通三张报表，再检验什么现金可以持续归股东。两期都落到 Apple 的真实现金披露。"
+            "en": "Connect the three statements, then assess how much cash can sustainably be distributed to shareholders. Both lessons use Apple’s cash-flow disclosures as a case study.",
+            "zh": "先理清三张报表的关系，再判断有多少现金可以持续分配给股东。两期都以 Apple 的现金流披露为案例。"
           },
           "parts": [
             1,
@@ -136,8 +136,8 @@
             "zh": "再辨清生意"
           },
           "description": {
-            "en": "See’s explains capital productivity; Apple’s compensation disclosures show how to examine decision incentives.",
-            "zh": "用喜诗解释资本效率，用 Apple 薪酬披露学习检查决策激励。"
+            "en": "Use See’s Candies to understand capital productivity and Apple’s compensation disclosures to examine how incentives shape decisions.",
+            "zh": "通过喜诗糖果理解资本效率，结合 Apple 的薪酬披露，分析激励机制如何影响决策。"
           },
           "parts": [
             3,
@@ -151,8 +151,8 @@
             "zh": "形成有依据的判断"
           },
           "description": {
-            "en": "Map obligations, separate value from price, then complete an Apple research memo. Retain uncertainty when the evidence cannot settle it.",
-            "zh": "排查付款义务，区分价值与价格，再完成 Apple 研究笔记。证据不足的地方，明确保留判断。"
+            "en": "Identify payment obligations, distinguish value from price, then write a research memo on Apple. State what remains uncertain when the evidence is insufficient.",
+            "zh": "排查付款义务，区分价值与价格，再完成一份关于 Apple 的研究笔记。证据不足时，写清尚不能确定的部分。"
           },
           "parts": [
             5,

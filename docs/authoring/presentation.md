@@ -10,12 +10,12 @@ Start from the reader's intended gain: understanding an idea or noticing a speci
 
 | Page / 页面 | Reader's task and design priority / 读者任务与设计重点 |
 | --- | --- |
-| Homepage / 首页 | Understand the site's purpose and choose a first read. Pair a brief mission with representative work whose subjects show the range.<br>理解网站方向并选择阅读起点。简短使命配合代表作，由作品的具体问题体现内容跨度。 |
+| Homepage / 首页 | Understand the site's purpose and choose a reading route or recent article. Pair a brief mission with topic paths and recent notes.<br>理解网站方向，选择阅读路径或近期文章。简短使命配合主题路径与最近更新。 |
 | Notebook / 知识库 | Find material relevant to a question through scannable titles, useful summaries and topic groupings.<br>通过便于浏览的标题、有信息量的简介与主题分组，找到与问题相关的内容。 |
 | Series / 专题 | Understand the learning goal, prerequisites and order, including what each part contributes.<br>了解学习目标、所需基础、阅读顺序与每一期的作用。 |
 | Technical article / 技术文章 | Follow a phenomenon through its mechanism and a checkable example; keep each explanation near its figure, equation or code.<br>从现象理解机制与可检验的例子，让解释靠近对应图示、公式或代码。 |
 | Travel essay / 游记 | Follow an account of places, people and moments through prose and photographs.<br>通过文字与照片进入叙述，留意其中的地方、人物与片刻。 |
-| About / 关于 | Understand who writes, why and where to begin. Support the mission with factual author information and representative work, leaving room for future subjects.<br>理解谁在写、为什么写、从哪里读起。真实作者信息与代表作支撑使命，为未来主题留出空间。 |
+| About / 关于 | Understand who writes, why and how. Explain the author's purpose, approach, use of sources and ways to discuss the work.<br>理解谁在写、为什么写、怎样展开思考。说明写作目的、方法、来源与交流方式。 |
 
 New page types may serve another reader task. Share navigation and control meanings while allowing content structure to differ. Actual recommendation and grouping rules belong in [publishing](publishing.md); this table adds no selection or filtering features.
 

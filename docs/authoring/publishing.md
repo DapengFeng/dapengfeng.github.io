@@ -58,9 +58,9 @@ The `finance` category groups financial-statement reading, market mechanisms, qu
 
 `finance` 归集财报阅读、市场机制、量化研究与投资经济性。按读者的主要问题归类，使用代码不意味着金融文章应归为系统文章。首页在原有 PyTorch、数学与旅行路径之外，增加了指向 `reading-financial-statements` 的固定财报阅读入口。
 
-`draft: true` hides a draft. `archiveOnly: true` includes an article in the archive and search, but excludes it from the homepage, notebook and category listings. A numeric `featured` is a secondary ordering key for articles with the same publication date; it does not select or order the homepage's recommendations. See [recommendation behavior](#recommendation-behavior--推荐的实际行为) below. Choose `spike`, `rust`, `gpu`, `matrix`, `math`, `wave`, `benchmark`, or `vision` for `art` to generate local SVG illustrations.
+`draft: true` hides a draft. `archiveOnly: true` includes an article in the archive and search, but excludes it from the homepage, notebook and category listings. A numeric `featured` is a secondary ordering key for articles with the same publication date. See [recommendation behavior](#recommendation-behavior--推荐的实际行为) below for the current reading entry points. Choose `spike`, `rust`, `gpu`, `matrix`, `math`, `wave`, `benchmark`, or `vision` for `art` to generate local SVG illustrations.
 
-`draft: true` 隐藏草稿。`archiveOnly: true` 让文章进入归档与搜索，不进入首页、知识库和分类列表。数字形式的 `featured` 是同一发布日期文章的次级排序依据，不决定首页推荐的入选与顺序。具体见下方[推荐规则](#recommendation-behavior--推荐的实际行为)。`art` 可选 `spike`、`rust`、`gpu`、`matrix`、`math`、`wave`、`benchmark` 或 `vision`，用于生成本地 SVG 配图。
+`draft: true` 隐藏草稿。`archiveOnly: true` 让文章进入归档与搜索，不进入首页、知识库和分类列表。数字形式的 `featured` 是同一发布日期文章的次级排序依据。现有阅读入口的取文逻辑见下方[推荐规则](#recommendation-behavior--推荐的实际行为)。`art` 可选 `spike`、`rust`、`gpu`、`matrix`、`math`、`wave`、`benchmark` 或 `vision`，用于生成本地 SVG 配图。
 
 ## Learning series / 学习专题
 
@@ -117,9 +117,7 @@ These lists are generated at build time. They do not vary by visitor or require 
 
 | Entry point / 入口 | Selection / 取文逻辑 | Source / 修改位置 |
 | --- | --- | --- |
-| Homepage “Three places to begin” / 首页“从这里读起” | Three fixed slugs: PyTorch part 1, the visual system and the Chaoshan essay. Missing or archive-only entries are omitted; no automatic replacement.<br>固定选取 PyTorch 第一期、人类视觉与潮汕游记；条目缺失或仅归档时省略，不自动补位。 | `home()` → `choices`, `scripts/templates.mjs` |
-| Homepage “Recent notes” / 首页“最近更新” | Up to four visible articles ordered by publication `date`, excluding the fixed choices. An `updated` value does not move an article to the front.<br>按发布 `date` 排序，排除固定精选后取最多四篇；`updated` 不改变排序。 | `scripts/content.mjs`, `home()` in `scripts/templates.mjs` |
-| About-page reading links / 关于页推荐 | Fixed links to the PyTorch series, visual-system article and Chaoshan essay. New articles do not replace them.<br>固定链接到 PyTorch 专题、人类视觉与潮汕游记，新文章不会自动替换。 | `about()` in `scripts/templates.mjs` |
+| Homepage “Recent notes” / 首页“最近更新” | Up to four visible articles ordered by publication `date`. An `updated` value does not move an article to the front.<br>按发布 `date` 排序，取最多四篇；`updated` 不改变排序。 | `scripts/content.mjs`, `home()` in `scripts/templates.mjs` |
 | Article “Continue exploring” / 文末“继续探索” | Curated directed links first, then relevant automatic matches, up to three distinct articles.<br>人工指定的有向联系优先，再用自动相关结果补充，最多三篇且不重复。 | `content/editorial.json` → `related`; [related-reading rules / 相关阅读规则](#related-reading--相关阅读) |
 | Daily-math further reading / 每日数学延伸阅读 | Optional explicit links for that topic, preserved on its dated page.<br>按知识点填写可选的明确链接，日期页面保留对应关系。 | `content/daily-math/topics.json` → `related`; [daily mathematics / 每日数学](daily-mathematics.md) |
 

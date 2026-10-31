@@ -64,9 +64,7 @@ export function categoryCards(posts) {return `<div class="category-grid">${categ
 export function filters(posts) {return `<div class="library-controls"><div class="filter-tabs" role="group" aria-label="按知识分类筛选"><button class="active" data-category-filter="all" aria-pressed="true">全部 <span>${posts.length}</span></button>${categories.map(c=>`<button data-category-filter="${c.id}" aria-pressed="false">${c.name}</button>`).join('')}</div><label class="sort-label"><span class="sr-only">文章排序</span><select id="article-sort"><option value="newest">最新发布</option><option value="oldest">最早发布</option><option value="title">标题 A–Z</option></select></label></div>`;}
 export function home(posts,scene,date) {
  const visible=posts.filter(p=>!p.archiveOnly);
- const choices=['pytorch-01-what-is-pytorch','human-visual-system','chaoshan-streets-and-sea'];
- const selected=choices.map(slug=>visible.find(p=>p.slug===slug)).filter(Boolean);
- const latest=visible.filter(p=>!choices.includes(p.slug)).slice(0,4);
+ const latest=visible.slice(0,4);
  const series=collectSeries(posts).find(group=>group.id==='pytorch-internals');
  const routes=[
   {url:series?.url||'/blog/?category=systems',symbol:'⌘',en:'Inside PyTorch',zh:'沿着 PyTorch 深入',descriptionEn:'From tensor storage to dispatch, gradients and compiled kernels.',description:'从张量存储到算子调度、梯度与编译内核。'},
@@ -81,20 +79,16 @@ export function home(posts,scene,date) {
     <div class="hero-copy"><div class="overline home-overline"><span class="status-dot"></span>${pair('A PERSONAL KNOWLEDGE LAB','个人知识实验室')}<span class="hero-serial" data-current-month>VOL. ${new Intl.DateTimeFormat('en',{month:'numeric',timeZone:'Asia/Shanghai'}).format(new Date()).padStart(3,'0')}</span></div><h1 id="home-title">让知识，<br><em>变得可见。</em></h1></div>
     <div class="hero-profile">
      <div class="home-intro"><p class="home-intro-name">${pair(editorial.mission.title.en,editorial.mission.title.zh)}</p><p class="hero-description">${pair(editorial.mission.summary.en,editorial.mission.summary.zh)}</p></div>
-     <div class="hero-actions"><a class="lime-button" href="#featured">${pair('Start with a note','从一篇笔记开始')}</a><a class="quiet-link" href="/blog/">${pair('Browse the notebook','浏览知识库')}</a></div>
+     <div class="hero-actions"><a class="lime-button" href="#recent">${pair('Start with a note','从一篇笔记开始')}</a><a class="quiet-link" href="/blog/">${pair('Browse the notebook','浏览知识库')}</a></div>
     </div>
    </div>
    <div class="daily-math-background"><canvas id="surface-canvas" aria-hidden="true"></canvas><aside class="daily-math-note site-width" aria-labelledby="daily-math-title">${mathNote(scene)}</aside></div>${mathInitial(scene,date)}
-  </section>
-  <section class="site-width featured-section" id="featured" aria-labelledby="featured-title">
-   <div class="section-heading"><h2 id="featured-title">${pair('Three places to begin','从这里读起')}</h2><a class="quiet-link" href="/blog/">${pair('All notes','全部文章')}</a></div>
-   <div class="featured-grid">${selected.map(p=>card(p,true)).join('')}</div>
   </section>
   <section class="site-width category-section home-routes" aria-labelledby="explore-title">
    <div class="section-heading"><h2 id="explore-title">${pair('Follow a thread','沿着一个问题深入')}</h2><a class="quiet-link" href="/categories/">${pair('All topics','全部分类')}</a></div>
    <nav class="reading-routes" aria-label="Reading paths / 阅读路径">${routes.map(route=>`<a href="${route.url}"><span class="route-symbol" aria-hidden="true">${route.symbol}</span><h3>${pair(route.en,route.zh)}</h3><p>${pair(route.descriptionEn,route.description)}</p></a>`).join('')}</nav>
   </section>
-  <section class="site-width recent-section" aria-labelledby="recent-title">
+  <section class="site-width recent-section" id="recent" aria-labelledby="recent-title">
    <div class="section-heading"><h2 id="recent-title">${pair('Recent notes','最近更新')}</h2><a class="quiet-link" href="/archive/">${pair('Timeline','时间线')}</a></div>
    <div class="recent-notes">${latest.map(p=>`<a href="${p.url}"><time datetime="${p.date}">${p.date.replaceAll('-','.')}</time><div><h3>${pair(p.titleEn,p.title)}</h3><p>${pair(p.cardDescriptionEn||p.descriptionEn,p.cardDescription||p.description)}</p></div></a>`).join('')}</div>
   </section>
@@ -114,7 +108,6 @@ export function about() {
   <div class="about-grid"><div class="about-mark" aria-hidden="true">f<span>.</span><small>FENG</small></div><div class="prose">
    <h2>${pair('Why I write','我为什么写')}</h2><p>${pair(editorial.about.mission.en,editorial.about.mission.zh)}</p>
    <h2>${pair('How I work through an idea','怎样把一个问题想明白')}</h2><p>${pair(editorial.about.approach.en,editorial.about.approach.zh)}</p>
-   <h2>${pair('A few places to begin','从这些文章开始')}</h2><ul class="about-reading"><li><a href="/series/pytorch-internals/">${pair('Trace one operation through PyTorch','跟踪一次 PyTorch 运算')}</a></li><li><a href="/blog/human-visual-system.html">${pair('Follow a red cup from light to neural signals','从红杯的光，读到神经信号')}</a></li><li><a href="/blog/chaoshan-streets-and-sea.html">${pair('Walk through Chaoshan, in photographs and words','在照片与文字中走过潮汕')}</a></li></ul>
    <h2>${pair('Sources and conversation','来源与交流')}</h2><p>${pair('Technical notes link to their sources and record assumptions and reproduction conditions. Questions and corrections belong with the article, where the explanation can be improved in context.','技术笔记链接原始来源，记录假设与复现条件。文章下的讨论区可以提问、纠错，把解释中尚未说清的地方继续补全。')}</p>
    <a class="lime-button" href="https://github.com/DapengFeng">${pair('Find me on GitHub','在 GitHub 找到我')}</a><a class="quiet-link about-rss" href="/feed.xml">${pair('Subscribe via RSS','通过 RSS 订阅')}</a>
   </div></div>

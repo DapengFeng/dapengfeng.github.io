@@ -183,7 +183,7 @@ try{
  await page.clock.resume();
  await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
  assert.deepEqual(await page.evaluate(async()=>{const result=await axe.run(document.querySelector('[data-daily-math]'),{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}});return result.violations;}),[]);
- await page.locator('.hero-actions .lime-button').click();assert.ok(page.url().endsWith('#featured'));
+ await page.locator('.hero-actions .lime-button').click();assert.ok(page.url().endsWith('#recent'));
  assert.deepEqual(errors,[]);
  // End of stock: clear the old topic rather than loop it or call it today's entry.
  const exhausted=addDays(scenes.at(-1).date,1);
