@@ -1,0 +1,85 @@
+{
+  "kind": "hypothetical teaching examples; not market data or a backtest",
+  "units": {
+    "money": "CNY",
+    "price": "CNY/tonne",
+    "quantity": "tonnes"
+  },
+  "cash_and_carry": {
+    "quantity": 10,
+    "spot_entry": 2000,
+    "futures_entry": 2060,
+    "locked_gross_delivery_spread": 600,
+    "assumed_complete_carrying_cost": 300,
+    "assumed_delivery_net_profit": 300,
+    "initial_futures_account_cash": 3060,
+    "initial_required_margin": 2060,
+    "initial_cash_buffer": 1000,
+    "margin_rate": 0.1,
+    "interim_path": [
+      {
+        "step": 0,
+        "spot_price": 2000,
+        "futures_settlement": 2060,
+        "spot_unrealized_pnl": 0,
+        "futures_cumulative_pnl": 0,
+        "interim_combined_price_pnl": 0,
+        "futures_account_equity": 3060,
+        "required_margin": 2060,
+        "available_funds": 1000
+      },
+      {
+        "step": 1,
+        "spot_price": 2070,
+        "futures_settlement": 2130,
+        "spot_unrealized_pnl": 700,
+        "futures_cumulative_pnl": -700,
+        "interim_combined_price_pnl": 0,
+        "futures_account_equity": 2360,
+        "required_margin": 2130,
+        "available_funds": 230
+      },
+      {
+        "step": 2,
+        "spot_price": 2140,
+        "futures_settlement": 2200,
+        "spot_unrealized_pnl": 1400,
+        "futures_cumulative_pnl": -1400,
+        "interim_combined_price_pnl": 0,
+        "futures_account_equity": 1660,
+        "required_margin": 2200,
+        "available_funds": -540
+      }
+    ],
+    "shortfall_before_a_deposit_or_forced_close": 540,
+    "notes": [
+      "Interim marks hold futures minus spot at 60; they do not model expiry convergence.",
+      "Interim combined price P&L of zero excludes the initially locked gross delivery spread of 600.",
+      "Futures account values omit fees, interest, deposits and withdrawals.",
+      "Negative available funds shows a hypothetical shortfall before a deposit or forced close.",
+      "Unrealized spot gains cannot automatically fund the futures account."
+    ]
+  },
+  "calendar_spread": {
+    "quantity_each_leg": 10,
+    "position": "long near month, short far month",
+    "entry": {
+      "near": 4000,
+      "far": 4100,
+      "far_minus_near": 100
+    },
+    "exit": {
+      "near": 4050,
+      "far": 4110,
+      "far_minus_near": 60
+    },
+    "near_leg_pnl": 500,
+    "far_leg_pnl": -100,
+    "gross_pnl": 400,
+    "assumed_total_trading_cost": 40,
+    "net_pnl": 360,
+    "notes": [
+      "Only entry and exit observations are given; connecting lines are schematic."
+    ]
+  }
+}

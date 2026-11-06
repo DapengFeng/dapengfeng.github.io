@@ -1,4 +1,6 @@
 import {fourier} from './daily-math.js';
+import {drawGeometryConstruction} from './daily-math-geometry.js';
+import {drawDynamicsConstruction} from './daily-math-dynamics.js';
 import {taylorSine,convolution,lerp,bezier,normal,uniformSumDensity,poissonPMF,binomialPMF,betaPDF,randomWalk} from './daily-math-models.js';
 const TAU=Math.PI*2,GREEN='#c5ec96',GOLD='#e5bf82',CYAN='#83bec8',FAINT='#9ab79d45';
 const walks=Array.from({length:8},(_,i)=>randomWalk(41+i*97));
@@ -117,5 +119,7 @@ export function drawDailyConstruction(ctx,w,h,id,time){
   for(let k=0;k<8;k++)dot([-3+k*.8,2.8],k<n?(sequence[k]?GREEN:CYAN):FAINT,4);
   label([-4,-2.2],'0');label([4,-2.2],'1');
  }
+ const helpers={id,time,line,dot,label,curve,circle,axes,plot,phase,progress};
+ if(!drawGeometryConstruction(helpers))drawDynamicsConstruction(helpers);
  ctx.restore();
 }

@@ -687,5 +687,322 @@
     "descriptionZh": "伯努利成功概率的均匀先验是 Beta(1,1) 分布。观察到 \\(h\\) 次成功和 \\(t\\) 次失败后，将先验乘以似然，得到 Beta(1+h,1+t)，描述对同一概率的不确定性。",
     "readingEn": "The gold line is the initial prior. The green posterior changes as the fixed sequence 1,1,0,1,0,1,1,1 arrives; green observation dots indicate successes and cyan dots failures.",
     "readingZh": "金色线是初始先验。固定序列 1、1、0、1、0、1、1、1 依次出现时，绿色后验随之更新；绿色观测点表示成功，青色点表示失败。"
+  },
+  {
+    "id": "pythagorean-area",
+    "concept": "right-triangle-square-area-identity",
+    "status": "ready",
+    "renderer": "pythagorean-area",
+    "source": {
+      "url": "https://mathworld.wolfram.com/PythagoreanTheorem.html",
+      "en": "MathWorld · Pythagorean theorem",
+      "zh": "MathWorld · 勾股定理"
+    },
+    "en": "Pythagoras as an area identity",
+    "zh": "勾股定理的面积关系",
+    "descriptionEn": "For a right triangle with legs \\(a,b\\) and hypotenuse \\(c\\), the squares on the two legs have the same combined area as the square on the hypotenuse. The right angle is essential; arbitrary triangles do not obey this identity.",
+    "descriptionZh": "直角三角形的两条直角边为 \\(a,b\\)，斜边为 \\(c\\)。以两条直角边为边长的正方形，面积之和等于斜边上正方形的面积。直角是必要条件，一般三角形不满足这个等式。",
+    "formula": "a^2+b^2=c^2",
+    "readingEn": "The green and cyan squares sit on the legs; the gold square sits on the hypotenuse. The legs change while the angle stays right. Below, the green and cyan area bars together always match the gold bar at the same scale.",
+    "readingZh": "绿色和青色正方形分别对应两条直角边，金色正方形对应斜边。边长变化时，夹角始终保持直角。下方使用同一比例尺：绿色与青色面积条拼接后的长度，始终等于金色面积条。",
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "logistic-growth",
+    "concept": "capacity-limited-continuous-growth",
+    "renderer": "logistic-growth",
+    "status": "ready",
+    "en": "Logistic growth",
+    "zh": "有容量约束的增长",
+    "formula": "\\dot N=rN(1-N/K),\\qquad N(t)=\\frac{K}{1+(K/N_0-1)e^{-rt}}",
+    "compactFormula": "\\begin{aligned}\\dot N&=rN(1-N/K)\\\\N(t)&=\\frac{K}{1+(K/N_0-1)e^{-rt}}\\end{aligned}",
+    "descriptionEn": "With positive growth rate \\(r\\) and capacity \\(K\\), the logistic model reduces per-capita growth as the population rises. Starting from \\(0<N_0<K\\), the population approaches \\(K\\). Its absolute growth rate peaks at \\(N=K/2\\), then slows; this is a continuous differential equation, not the discrete logistic map.",
+    "descriptionZh": "在增长率 \\(r>0\\)、容量 \\(K>0\\) 的 Logistic 模型中，数量越多，每个个体的增长贡献越小。从 \\(0<N_0<K\\) 出发，总量逐渐接近 \\(K\\)。总量的增长速度在 \\(N=K/2\\) 时最大，此后减慢；这里讨论连续微分方程，不是离散的 Logistic 映射。",
+    "readingEn": "The green curve uses \\(r=K=1\\) and \\(N_0=0.08\\). Gold marks the capacity, while the moving cyan tangent shows the instantaneous growth rate. The tangent steepens near half capacity and flattens as the curve approaches the upper line.",
+    "readingZh": "绿色曲线取 \\(r=K=1\\)、\\(N_0=0.08\\)。金线标出容量，移动的青色切线表示瞬时增长速度。接近容量一半时，切线最陡；越接近上方金线，切线越平。",
+    "source": {
+      "url": "https://mathworld.wolfram.com/LogisticEquation.html",
+      "en": "MathWorld · Logistic equation",
+      "zh": "MathWorld · Logistic 方程"
+    },
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "roots-of-unity",
+    "concept": "complex-unity-roots-regular-polygon",
+    "status": "ready",
+    "renderer": "roots-of-unity",
+    "source": {
+      "url": "https://mathworld.wolfram.com/RootofUnity.html",
+      "en": "MathWorld · Roots of unity",
+      "zh": "MathWorld · 单位根"
+    },
+    "en": "Roots of unity",
+    "zh": "单位根与等分圆周",
+    "descriptionEn": "The \\(n\\) complex solutions of \\(z^n=1\\) lie on the unit circle, separated by an angle of \\(2\\pi/n\\). Multiplication by \\(e^{2\\pi i/n}\\) advances from one root to the next; after \\(n\\) steps it returns to the starting point.",
+    "descriptionZh": "方程 \\(z^n=1\\) 的 \\(n\\) 个复数解都在单位圆上，相邻两根的夹角为 \\(2\\pi/n\\)。乘以 \\(e^{2\\pi i/n}\\) 就转到下一个根，连续进行 \\(n\\) 次后回到起点。",
+    "formula": "z_k=e^{2\\pi i k/n},\\qquad k=0,1,\\ldots,n-1",
+    "readingEn": "The diagram uses seven roots. Cyan vertices form a regular heptagon; the green radius highlights successive roots, starting with the gold radius at \\(1\\). The short gold arc marks the angle between neighbors. Every highlighted vertex still has seventh power \\(1\\).",
+    "readingZh": "图中取七个单位根。青色顶点构成正七边形，绿色半径依次指向各个根；起点 \\(1\\) 由金色半径标出，短金弧表示相邻两根的夹角。无论点亮哪个顶点，它的七次方都等于 \\(1\\)。",
+    "compactFormula": "\\begin{aligned}z_k&=e^{2\\pi i k/n}\\\\k&=0,1,\\ldots,n-1\\end{aligned}",
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "markov-equilibrium",
+    "concept": "two-state-transition-stationary-convergence",
+    "renderer": "markov-equilibrium",
+    "status": "ready",
+    "en": "A Markov chain forgets its start",
+    "zh": "马尔可夫链怎样趋于稳态",
+    "formula": "p_n-\\pi_0=(1-a-b)^n(p_0-\\pi_0),\\qquad\\pi_0=\\frac{b}{a+b}",
+    "compactFormula": "\\begin{aligned}p_n-\\pi_0&=(1-a-b)^n\\\\&\\quad\\cdot(p_0-\\pi_0)\\\\\\pi_0&=\\frac{b}{a+b}\\end{aligned}",
+    "descriptionEn": "Let \\(a\\) be the probability of moving from state 0 to 1, and \\(b\\) the reverse probability. The probability \\(p_n\\) of occupying state 0 follows \\(p_{n+1}=b+(1-a-b)p_n\\). For \\(0<a,b<1\\), its distance from equilibrium contracts because \\(|1-a-b|<1\\); the limiting distribution does not depend on the initial state.",
+    "descriptionZh": "设从状态 0 转到状态 1 的概率为 \\(a\\)，反向转移的概率为 \\(b\\)。处于状态 0 的概率 \\(p_n\\) 满足 \\(p_{n+1}=b+(1-a-b)p_n\\)。当 \\(0<a,b<1\\) 时，\\(|1-a-b|<1\\)，它与稳态概率的差距逐步缩小，极限分布不依赖初始状态。",
+    "readingEn": "With \\(a=0.2\\) and \\(b=0.3\\), green starts at probability one and cyan at zero. Both approach the gold line at \\(\\pi_0=0.6\\). Dots mark integer steps; connecting segments guide the eye and do not add intermediate transitions.",
+    "readingZh": "图中取 \\(a=0.2\\)、\\(b=0.3\\)。绿色从概率一出发，青色从零出发，最后都接近金线 \\(\\pi_0=0.6\\)。光点表示整数步，连接线仅帮助观察走势，不表示步与步之间还有额外转移。",
+    "source": {
+      "url": "https://www.probabilitycourse.com/chapter11/11_2_6_stationary_and_limiting_distributions.php",
+      "en": "Pishro-Nik · Stationary and limiting distributions",
+      "zh": "Pishro-Nik 概率教材 · 平稳分布与极限分布"
+    },
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "orthogonal-projection",
+    "concept": "line-projection-minimum-distance-residual",
+    "status": "ready",
+    "renderer": "orthogonal-projection",
+    "source": {
+      "url": "https://textbooks.math.gatech.edu/ila/projections.html",
+      "en": "Georgia Tech · Orthogonal projection",
+      "zh": "佐治亚理工学院 · 正交投影"
+    },
+    "en": "Orthogonal projection",
+    "zh": "正交投影与最短距离",
+    "descriptionEn": "For a nonzero direction \\(u\\), the projection \\(p\\) of \\(v\\) onto its line is the closest vector on that line. Choosing the multiple of \\(u\\) so that the residual \\(v-p\\) is perpendicular to \\(u\\) determines \\(p\\) uniquely.",
+    "descriptionZh": "给定非零方向向量 \\(u\\)，向量 \\(v\\) 在这条直线上的正交投影 \\(p\\)，是直线上距离 \\(v\\) 最近的向量。令 \\(p\\) 为 \\(u\\) 的倍数，再要求残差 \\(v-p\\) 与 \\(u\\) 垂直，就能唯一确定 \\(p\\)。",
+    "formula": "p=\\frac{v\\cdot u}{u\\cdot u}u,\\qquad (v-p)\\cdot u=0",
+    "readingEn": "The cyan vector moves while the line stays fixed. Its green projection slides along the line; the gold residual connects the projection to the cyan tip. The small right-angle marker follows the projection, showing why this distance is the shortest.",
+    "readingZh": "青色向量不断转动，投影直线保持不变。绿色投影沿直线移动，金色残差从投影端点连到青色端点。小直角标记始终跟着投影移动，表明这段距离为什么最短。",
+    "compactFormula": "\\begin{aligned}p&=\\frac{v\\cdot u}{u\\cdot u}u\\\\(v-p)\\cdot u&=0\\end{aligned}",
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "binary-entropy",
+    "concept": "binary-uncertainty-maximum-at-equal-probabilities",
+    "renderer": "binary-entropy",
+    "status": "ready",
+    "en": "One bit of uncertainty",
+    "zh": "二元熵为什么最多是一比特",
+    "formula": "H(p)=-p\\log_2p-(1-p)\\log_2(1-p)\\leq1",
+    "compactFormula": "\\begin{aligned}H(p)&=-p\\log_2p\\\\&\\quad-(1-p)\\log_2(1-p)\\\\H(p)&\\leq1\\end{aligned}",
+    "descriptionEn": "For two outcomes with probabilities \\(p\\) and \\(1-p\\), Shannon entropy measures average uncertainty in bits. We use the continuous endpoint convention \\(0\\log_2 0=0\\). Entropy is zero for a certain outcome and reaches one bit at \\(p=1/2\\), where neither outcome is more predictable than the other.",
+    "descriptionZh": "当两个结果的概率分别为 \\(p\\) 和 \\(1-p\\) 时，香农熵以比特度量平均不确定性。端点按连续极限定义为 \\(0\\log_2 0=0\\)。结果确定时熵为零；在 \\(p=1/2\\) 时达到一比特，因为两个结果都没有更高的可预测性。",
+    "readingEn": "The lower strip divides a total probability of one into green \\(p\\) and cyan \\(1-p\\). The moving gold point reads the entropy on the upper curve. Equal-length segments correspond to the maximum; moving toward either certain outcome lowers entropy.",
+    "readingZh": "下方长条将总概率一分为绿色的 \\(p\\) 和青色的 \\(1-p\\)。移动的金色点在上方曲线上标出对应熵值。两段等长时熵最大；无论向哪一侧的确定结果靠近，熵都会下降。",
+    "source": {
+      "url": "https://mathworld.wolfram.com/ShannonEntropy.html",
+      "en": "MathWorld · Shannon entropy",
+      "zh": "MathWorld · 香农熵"
+    },
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "cauchy-schwarz",
+    "concept": "inner-product-bound-by-vector-lengths",
+    "status": "ready",
+    "renderer": "cauchy-schwarz",
+    "source": {
+      "url": "https://mathworld.wolfram.com/CauchysInequality.html",
+      "en": "MathWorld · Cauchy’s inequality",
+      "zh": "MathWorld · 柯西不等式"
+    },
+    "en": "Cauchy–Schwarz inequality",
+    "zh": "柯西–施瓦茨不等式",
+    "descriptionEn": "For real vectors, the magnitude of the dot product cannot exceed the product of their lengths. For nonzero vectors, the ratio is \\(|\\cos\\theta|\\), where \\(\\theta\\) is their angle. Equality holds when their directions are parallel or opposite; a zero vector also gives equality.",
+    "descriptionZh": "实向量点积的绝对值，不会超过两向量长度的乘积。对于非零向量，两者之比等于夹角的 \\(|\\cos\\theta|\\)。两个方向相同或相反时取等号；任一向量为零时也取等号。",
+    "formula": "|u\\cdot v|\\leq\\|u\\|\\,\\|v\\|",
+    "readingEn": "The gold vector stays horizontal and the green vector rotates with fixed length. On the right, the green bar shows the absolute dot product and the gold bar shows the fixed product of lengths. They meet only when the two vectors line up.",
+    "readingZh": "金色向量保持水平，绿色向量在长度不变的情况下转动。右侧绿条表示点积的绝对值，金条表示固定的长度乘积。只有两个向量处于同一直线方向时，两条才一样长。",
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "exponential-memoryless",
+    "concept": "exponential-residual-waiting-time-invariance",
+    "renderer": "exponential-memoryless",
+    "status": "ready",
+    "en": "A wait with no memory",
+    "zh": "指数分布的无记忆性",
+    "formula": "\\Pr(T>s+u\\mid T>s)=e^{-\\lambda u}=\\Pr(T>u)",
+    "compactFormula": "\\begin{aligned}\\Pr(T>s+u\\mid T>s)\\\\=e^{-\\lambda u}=\\Pr(T>u)\\end{aligned}",
+    "descriptionEn": "An exponential waiting time has survival probability \\(S(t)=e^{-\\lambda t}\\), with constant rate \\(\\lambda>0\\). Conditioning on already having waited \\(s\\) divides the tail by \\(S(s)\\), leaving the same distribution for the additional wait \\(u\\). This follows from the exponential model; it is not a rule for every real queue or device lifetime.",
+    "descriptionZh": "指数等待时间的生存概率为 \\(S(t)=e^{-\\lambda t}\\)，其中速率 \\(\\lambda>0\\) 恒定。已等待 \\(s\\) 而事件尚未发生时，把剩余尾部除以 \\(S(s)\\)，得到的额外等待时间 \\(u\\) 仍服从原分布。这是指数模型的性质，不是所有现实队列或设备寿命都满足的规律。",
+    "readingEn": "The upper curve uses \\(\\lambda=0.7\\) and marks elapsed times \\(s\\) and \\(s+2\\). Their survival-probability ratio stays near 0.247 as \\(s\\) moves. Below, the normalized green tail overlaps the gold original survival curve when both are plotted against additional waiting time \\(u\\).",
+    "readingZh": "上图取 \\(\\lambda=0.7\\)，标出已等待时间 \\(s\\) 与 \\(s+2\\)。随着 \\(s\\) 移动，两处生存概率的比值始终约为 0.247。下图改用额外等待时间 \\(u\\) 为横轴，归一化后的绿色尾部与金色的原生存曲线重合。",
+    "source": {
+      "url": "https://www.probabilitycourse.com/chapter4/4_2_2_exponential.php",
+      "en": "Pishro-Nik · Exponential distribution",
+      "zh": "Pishro-Nik 概率教材 · 指数分布"
+    },
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "geometric-remainder",
+    "concept": "geometric-series-exact-truncation-remainder",
+    "status": "ready",
+    "renderer": "geometric-remainder",
+    "source": {
+      "url": "https://mathworld.wolfram.com/GeometricSeries.html",
+      "en": "MathWorld · Geometric series",
+      "zh": "MathWorld · 几何级数"
+    },
+    "en": "The remainder of a geometric series",
+    "zh": "几何级数还差多少",
+    "descriptionEn": "When \\(|r|<1\\), the series beginning with \\(1\\) sums to \\(1/(1-r)\\). Keeping only the first \\(n\\) terms leaves the exact remainder \\(R_n=r^n/(1-r)\\). Each extra term multiplies the remainder by \\(r\\), so its magnitude contracts geometrically.",
+    "descriptionZh": "当 \\(|r|<1\\) 时，从 \\(1\\) 开始的几何级数总和为 \\(1/(1-r)\\)。只保留前 \\(n\\) 项，剩余部分恰好是 \\(R_n=r^n/(1-r)\\)。每多取一项，余项就乘以 \\(r\\)，因此余项的绝对值按固定比例缩小。",
+    "formula": "S_n=\\sum_{k=0}^{n-1}r^k=\\frac{1-r^n}{1-r},\\qquad R_n=\\frac{r^n}{1-r}",
+    "readingEn": "With \\(r=1/2\\), the full strip represents a sum of \\(2\\). Green blocks show retained terms and the gold block shows everything still missing. Each cycle adds one through seven terms, halving the gold remainder at each step; the displayed decimals are rounded.",
+    "readingZh": "图中取 \\(r=1/2\\)，整条矩形代表总和 \\(2\\)。绿色分块表示已保留的各项，金色部分表示尚未加入的余项。每轮从一项增加到七项，每增加一项，金色余项就减半；显示的小数经过四舍五入。",
+    "compactFormula": "\\begin{aligned}S_n&=\\sum_{k=0}^{n-1}r^k=\\frac{1-r^n}{1-r}\\\\R_n&=\\frac{r^n}{1-r}\\end{aligned}",
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "jensen-convexity",
+    "concept": "convex-function-expectation-jensen-gap",
+    "renderer": "jensen-convexity",
+    "status": "ready",
+    "en": "Averages through a convex curve",
+    "zh": "先平均还是先变换",
+    "formula": "f\\!\\left(\\mathbb E[X]\\right)\\leq\\mathbb E\\!\\left[f(X)\\right]",
+    "descriptionEn": "For a convex function, averaging inputs before applying the function cannot exceed averaging the transformed inputs, provided the expectations exist. Geometrically, each chord lies above the graph. For \\(f(x)=x^2\\), the difference is variance: spread in the inputs raises the average squared value.",
+    "descriptionZh": "对于凸函数，在相关期望存在时，先对输入求平均、再代入函数，结果不会超过先计算函数值、再求平均。几何上，这对应曲线上的弦位于图像上方。取 \\(f(x)=x^2\\) 时，两种计算结果之差就是方差：输入越分散，平方值的平均就越大。",
+    "readingEn": "The green parabola is \\(x^2\\); the gold chord joins inputs \\(a=-2\\) and \\(b=1.5\\). A weight \\(w\\) moves the mean \\((1-w)a+wb\\). The cyan segment measures the gap \\(w(1-w)(a-b)^2\\), which vanishes when all weight is placed on either endpoint.",
+    "readingZh": "绿色抛物线表示 \\(x^2\\)，金色弦连接输入 \\(a=-2\\) 与 \\(b=1.5\\)。权重 \\(w\\) 改变时，均值 \\((1-w)a+wb\\) 随之移动。青色线段表示差值 \\(w(1-w)(a-b)^2\\)；全部权重落在任一端点时，这个差值为零。",
+    "source": {
+      "url": "https://mathworld.wolfram.com/JensensInequality.html",
+      "en": "MathWorld · Jensen's inequality",
+      "zh": "MathWorld · Jensen 不等式"
+    },
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "circle-inversion",
+    "concept": "circle-inversion-reciprocal-radius-map",
+    "status": "ready",
+    "renderer": "circle-inversion",
+    "source": {
+      "url": "https://mathworld.wolfram.com/Inversion.html",
+      "en": "MathWorld · Inversion",
+      "zh": "MathWorld · 反演"
+    },
+    "en": "Circle inversion",
+    "zh": "圆反演的倒数距离",
+    "descriptionEn": "Inversion in a circle of radius \\(R\\) sends a point \\(P\\ne O\\) along the same ray to \\(P'\\), with \\(OP\\,OP'=R^2\\). Points inside and outside exchange places; points on the circle stay fixed. Applying the map twice recovers the original point.",
+    "descriptionZh": "半径为 \\(R\\) 的圆反演，把圆心以外的点 \\(P\\) 沿同一射线映到 \\(P'\\)，并满足 \\(OP\\,OP'=R^2\\)。圆内、圆外的点互相交换，圆周上的点保持不动。连续反演两次，就会回到原来的点。",
+    "formula": "P'=\\frac{R^2}{\\|P\\|^2}P,\\qquad P\\ne O",
+    "readingEn": "The cyan circle is fixed, with its center as the origin. Green \\(P\\) moves radially and around the center; gold \\(P'\\) stays on the same ray. When one approaches the center, the other moves outward. Their radial distances have a constant product.",
+    "readingZh": "青色圆保持不变，圆心就是原点。绿色点 \\(P\\) 一边绕圆心移动，一边改变到圆心的距离；金色像点 \\(P'\\) 始终与它处于同一射线。一点靠近圆心时，另一点就向外移动，两段距离的乘积保持不变。",
+    "compactFormula": "\\begin{aligned}P'&=\\frac{R^2}{\\|P\\|^2}P\\\\P&\\ne O\\end{aligned}",
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "euler-global-error",
+    "concept": "forward-euler-fixed-horizon-first-order-error",
+    "renderer": "euler-global-error",
+    "status": "ready",
+    "en": "Small steps, accumulated error",
+    "zh": "Euler 法的误差怎样累积",
+    "formula": "y_{n+1}=(1-h)y_n,\\qquad\\left|e^{-T}-(1-h)^{T/h}\\right|=O(h)",
+    "compactFormula": "\\begin{gathered}y_{n+1}=(1-h)y_n\\\\\\left|e^{-T}-(1-h)^{T/h}\\right|=O(h)\\end{gathered}",
+    "descriptionEn": "Euler's method advances using the slope at the start of each step. For a smooth ODE with a suitable Lipschitz bound, one step started from the exact value has error \\(O(h^2)\\), while the accumulated error over fixed time is \\(O(h)\\). Halving a sufficiently small step therefore approximately halves global error; it does not quarter it.",
+    "descriptionZh": "Euler 法用每一步起点处的斜率向前推进。对于足够光滑、满足适当 Lipschitz 条件的微分方程，从准确值出发走一步的误差是 \\(O(h^2)\\)，固定时间内累积的误差则是 \\(O(h)\\)。因此，步长足够小时，将它减半会使全局误差约减半，而不是缩小为四分之一。",
+    "readingEn": "For \\(y'=-y\\), \\(y(0)=1\\), gold shows the exact exponential decay. Green shows Euler values joined by straight segments, using 4, 8, 16 and 32 steps up to \\(T=3\\). The cyan separation compares both curves at the moving time; \\(E_3\\) is the endpoint error.",
+    "readingZh": "对 \\(y'=-y\\)、\\(y(0)=1\\)，金色曲线是准确的指数衰减。绿色依次用 4、8、16 和 32 步走到 \\(T=3\\)，离散计算值之间以直线相连。移动的青色线段比较同一时刻两条曲线的差距；\\(E_3\\) 表示终点误差。",
+    "source": {
+      "url": "https://fncbook.com/euler/",
+      "en": "Driscoll & Braun · Euler's method",
+      "zh": "Driscoll 与 Braun 数值计算教材 · Euler 法"
+    },
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "polygon-pi",
+    "concept": "inscribed-circumscribed-perimeter-pi-bounds",
+    "status": "ready",
+    "renderer": "polygon-pi",
+    "source": {
+      "url": "https://mathworld.wolfram.com/ArchimedesAlgorithm.html",
+      "en": "MathWorld · Archimedes’ algorithm",
+      "zh": "MathWorld · 阿基米德算法"
+    },
+    "en": "Bounding pi with polygons",
+    "zh": "用内外接多边形夹住圆周率",
+    "descriptionEn": "For a unit circle, an inscribed regular \\(n\\)-gon has perimeter \\(2n\\sin(\\pi/n)\\), while the circumscribed one has perimeter \\(2n\\tan(\\pi/n)\\). The circumference lies between them. Dividing by the diameter gives lower and upper bounds for \\(\\pi\\).",
+    "descriptionZh": "单位圆的内接正 \\(n\\) 边形周长为 \\(2n\\sin(\\pi/n)\\)，外切正 \\(n\\) 边形周长为 \\(2n\\tan(\\pi/n)\\)。圆周长介于两者之间，再除以直径，就得到 \\(\\pi\\) 的下界和上界。",
+    "formula": "n\\sin\\frac{\\pi}{n}<\\pi<n\\tan\\frac{\\pi}{n},\\qquad n\\geq3",
+    "readingEn": "The green polygon lies inside the cyan circle and the gold polygon surrounds it. Each cycle doubles the side count from six to ninety-six, narrowing the gap. The cyan point traces the circle; the printed bounds are rounded approximations.",
+    "readingZh": "绿色多边形内接于青色圆，金色多边形外切于圆。每轮从六边形开始，将边数逐次加倍到九十六边形，内外两侧的间隙不断缩小。青色光点沿圆周移动，右侧显示四舍五入后的上下界。",
+    "compactFormula": "\\begin{aligned}n\\sin\\frac{\\pi}{n}&<\\pi\\\\&<n\\tan\\frac{\\pi}{n},\\quad n\\geq3\\end{aligned}",
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "damped-energy",
+    "concept": "viscous-oscillator-exact-energy-dissipation",
+    "renderer": "damped-energy",
+    "status": "ready",
+    "en": "Where an oscillation's energy goes",
+    "zh": "阻尼怎样消耗振动的能量",
+    "formula": "E=\\frac12m\\dot x^2+\\frac12kx^2,\\qquad\\frac{dE}{dt}=-b\\dot x^2\\leq0",
+    "compactFormula": "\\begin{aligned}E&=\\frac12m\\dot x^2+\\frac12kx^2\\\\\\frac{dE}{dt}&=-b\\dot x^2\\leq0\\end{aligned}",
+    "descriptionEn": "Multiplying \\(m\\ddot x+b\\dot x+kx=0\\) by velocity gives this energy balance. Positive viscous damping removes mechanical energy at a rate proportional to squared speed. Underdamped displacement has an exponential amplitude envelope, but instantaneous energy is not an exact exponential: its rate of loss reaches zero at each turning point.",
+    "descriptionZh": "把 \\(m\\ddot x+b\\dot x+kx=0\\) 乘以速度，就得到这个能量关系。正的黏性阻尼持续消耗机械能，损失速率与速度平方成正比。欠阻尼位移具有指数衰减的振幅包络，但瞬时能量并非严格的指数曲线：每次运动到转折点，能量损失速率都暂时降为零。",
+    "readingEn": "Green traces displacement within the gold amplitude bounds; cyan shows exact mechanical energy divided by its initial value. The parameters are \\(m=1\\), \\(b=0.32\\), \\(k=2.89\\), with \\(x(0)=1\\) and \\(\\dot x(0)=0\\). The two moving points share time, so flattened portions of the energy curve can be compared with displacement extrema.",
+    "readingZh": "绿色位移曲线位于金色振幅包络内，青色曲线表示准确机械能与初始能量之比。参数为 \\(m=1\\)、\\(b=0.32\\)、\\(k=2.89\\)，初始条件为 \\(x(0)=1\\)、\\(\\dot x(0)=0\\)。两个移动点对应同一时刻，可对照能量曲线变平的位置与位移的极值。",
+    "source": {
+      "url": "https://openstax.org/books/university-physics-volume-1/pages/15-5-damped-oscillations",
+      "en": "OpenStax · Damped oscillations",
+      "zh": "OpenStax 大学物理 · 阻尼振动"
+    },
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "barycentric-coordinates",
+    "concept": "triangle-normalized-area-coordinates",
+    "status": "ready",
+    "renderer": "barycentric-coordinates",
+    "source": {
+      "url": "https://mathworld.wolfram.com/BarycentricCoordinates.html",
+      "en": "MathWorld · Barycentric coordinates",
+      "zh": "MathWorld · 重心坐标"
+    },
+    "en": "Barycentric coordinates",
+    "zh": "三角形的重心坐标",
+    "descriptionEn": "A point inside a triangle can be expressed as a weighted average of its vertices. The nonnegative weights sum to one. Each weight equals the area of the subtriangle opposite that vertex divided by the whole triangle’s area, linking interpolation to geometry.",
+    "descriptionZh": "三角形内部的点可以写成三个顶点的加权平均，三个权重非负且总和为一。每个权重，恰好等于该顶点对面的子三角形面积占总面积的比例，因此也能用面积来理解插值。",
+    "formula": "P=\\lambda_A A+\\lambda_B B+\\lambda_C C,\\qquad \\lambda_A+\\lambda_B+\\lambda_C=1",
+    "readingEn": "The white point moves inside the fixed triangle. Green, gold and cyan subtriangles lie opposite vertices \\(A,B,C\\), respectively. Their changing area fractions are the three weights printed below. The sum stays one even though the displayed rounded values may not sum exactly.",
+    "readingZh": "白点在固定三角形内部移动。绿色、金色和青色子三角形分别位于顶点 \\(A,B,C\\) 的对面，下方显示各自的面积占比，也就是三个权重。实际权重之和始终为一，显示值因四舍五入可能略有差异。",
+    "compactFormula": "\\begin{gathered}P=\\lambda_A A+\\lambda_B B+\\lambda_C C\\\\\\lambda_A+\\lambda_B+\\lambda_C=1\\end{gathered}",
+    "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "total-variance",
+    "concept": "within-between-group-variance-decomposition",
+    "renderer": "total-variance",
+    "status": "ready",
+    "en": "Variation within and between groups",
+    "zh": "方差来自组内还是组间",
+    "formula": "\\operatorname{Var}(X)=\\mathbb E[\\operatorname{Var}(X\\mid G)]+\\operatorname{Var}(\\mathbb E[X\\mid G])",
+    "compactFormula": "\\begin{aligned}\\operatorname{Var}(X)&=\\mathbb E[\\operatorname{Var}(X\\mid G)]\\\\&\\quad+\\operatorname{Var}(\\mathbb E[X\\mid G])\\end{aligned}",
+    "descriptionEn": "For a variable with finite second moment, total variance splits into the average variance within groups and the variance of group means. Both terms use group probabilities as weights. The decomposition separates how dispersed observations are inside each group from how far the groups' centers lie apart.",
+    "descriptionZh": "对于二阶矩有限的随机变量，总方差可以分成两项：各组内部方差的平均，以及各组均值的方差。两项都按各组的概率加权。这样就能区分，总体差异有多少来自同一组内的分散，又有多少来自不同组中心的距离。",
+    "readingEn": "Each row contains five equally weighted values with fixed offsets around its gold mean. As the means move to \\(-d\\) and \\(d\\), within-group variance \\(W=0.245\\) stays fixed while between-group variance \\(B=d^2\\) changes. The lower strip adds the two. These are population variances of the ten displayed values, not unbiased sample estimates.",
+    "readingZh": "每行有五个等权数值，与本组金色均值标记的偏移保持不变。两组均值移动到 \\(-d\\) 与 \\(d\\) 时，组内方差 \\(W=0.245\\) 不变，组间方差 \\(B=d^2\\) 随之变化，下方长条将两项相加。这里计算的是图中十个数值的总体方差，不是无偏样本方差估计。",
+    "source": {
+      "url": "https://www.probabilitycourse.com/chapter5/5_2_3_conditioning_independence.php",
+      "en": "Pishro-Nik · Law of total variance",
+      "zh": "Pishro-Nik 概率教材 · 全方差公式"
+    },
+    "reviewedOn": "2026-11-06"
   }
 ]

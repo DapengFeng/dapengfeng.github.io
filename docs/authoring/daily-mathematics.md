@@ -15,6 +15,7 @@ The homepage publishes one reviewed mathematical topic for each scheduled date i
 | `scripts/daily-math.mjs` | Validation, history protection, inventory and scheduling.<br>校验、历史保护、库存计算和排期。 |
 | `src/scripts/daily-math-models.js` | Renderer registry and numerical models.<br>绘图注册表与数值模型。 |
 | `src/scripts/daily-math-drawings.js`, `src/scripts/surface.js` | Formula-driven canvas drawings, date loading and animation lifecycle.<br>按公式绘图、按日期加载和动画生命周期。 |
+| `src/scripts/daily-math-geometry.js`, `src/scripts/daily-math-dynamics.js` | Geometry, probability and dynamics constructions with independently testable numerical functions.<br>几何、概率与动力学图示，以及可独立测试的数值函数。 |
 
 ## Add and schedule a topic / 新增与排期
 

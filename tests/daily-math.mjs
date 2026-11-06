@@ -7,6 +7,7 @@ import {serve} from '../scripts/serve.mjs';
 import {chromiumExecutable} from './browser-options.mjs';
 import {addDays,dateInfo,DAY_MS,dailySceneAt} from '../src/scripts/daily-math.js';
 import {loadDailyMath} from '../scripts/daily-math.mjs';
+import {mathArchive} from '../scripts/daily-math-views.mjs';
 const {entries:scenes}=await loadDailyMath();
 const server=serve(4236),browser=await chromium.launch({executablePath:chromiumExecutable(),headless:true,args:['--no-sandbox']});
 const require=createRequire(import.meta.url),errors=[];
@@ -205,9 +206,42 @@ try{
  assert.equal(await page.locator('[data-math-related] a').first().getAttribute('href'),'/blog/fast-matrix-vector-products.html');
  await page.clock.setSystemTime(new Date('2028-02-29T04:00:00Z'));await page.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
  assert.equal(await page.locator('[data-daily-math]').getAttribute('data-date'),'2026-10-06','an archived entry never follows the current day');
- await page.clock.setSystemTime(new Date('2026-10-08T04:00:00Z'));await page.goto('http://localhost:4236/math/');
- assert.equal(await page.locator('[data-entry-date]:visible').count(),3,'archive reveals only dates already published');
- assert.equal(await page.locator('[data-entry-date="2026-10-09"]').isVisible(),false);
+ // The real recent archive contains only the build's last 30 published entries.
+ // Turning the browser clock back cannot restore rows already omitted at build time.
+ const archiveDate=dateInfo().date;
+ await page.clock.setSystemTime(new Date(archiveDate+'T04:00:00Z'));await page.goto('http://localhost:4236/math/');
+ const listedDates=await page.locator('[data-entry-date]').evaluateAll(rows=>rows.map(row=>row.dataset.entryDate));
+ await expect(page.locator('[data-entry-date]:visible')).toHaveCount(listedDates.filter(date=>date<=archiveDate).slice(0,30).length);
+ assert.deepEqual(await page.locator('[data-entry-date]:visible').evaluateAll(rows=>rows.map(row=>row.dataset.entryDate)),listedDates.filter(date=>date<=archiveDate).slice(0,30),'recent archive filters available rows and limits published history to 30 entries');
+ // Exercise time filtering against a fixed, cross-year catalogue using the real
+ // renderer and browser module. Its coverage does not shrink as today's build ages.
+ const archiveEntries=Array.from({length:40},(_,i)=>({date:addDays('2030-12-01',i),en:`Topic ${i+1}`,zh:`主题 ${i+1}`}));
+ const fixture=await browser.newPage();
+ await fixture.clock.install({time:new Date('2030-12-03T04:00:00Z')});
+ await fixture.clock.pauseAt(new Date('2030-12-03T04:01:00Z'));
+ await fixture.route('http://localhost:4236/math/**',route=>{
+  const year=new URL(route.request().url()).pathname==='/math/2030/'?'2030':undefined;
+  return route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Archive date fixture</title></head><body>${mathArchive(archiveEntries,'2030-12-30',year)}<script type="module" src="/assets/math-archive.js"></script></body></html>`});
+ });
+ const visibleDates=()=>fixture.locator('[data-entry-date]:visible').evaluateAll(rows=>rows.map(row=>row.dataset.entryDate));
+ await fixture.goto('http://localhost:4236/math/');
+ await expect.poll(visibleDates).toEqual(['2030-12-03','2030-12-02','2030-12-01']);
+ assert.equal(await fixture.locator('[data-entry-date="2030-12-04"]').isVisible(),false,'future prepared entries stay hidden');
+ assert.equal(await fixture.locator('[data-math-year="2031"]').isVisible(),false,'future year links stay hidden');
+ await fixture.clock.setSystemTime(new Date('2030-11-30T04:00:00Z'));await fixture.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
+ await expect(fixture.locator('[data-entry-date]:visible')).toHaveCount(0);
+ await expect(fixture.locator('[data-math-archive-empty]')).toBeVisible();
+ await fixture.clock.setSystemTime(new Date('2030-12-31T15:59:59Z'));await fixture.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
+ await expect.poll(visibleDates).toEqual(archiveEntries.filter(entry=>entry.date<='2030-12-31').slice(-30).reverse().map(entry=>entry.date));
+ assert.equal(await fixture.locator('[data-math-year="2031"]').isVisible(),false);
+ await fixture.clock.runFor(1100);
+ await expect.poll(visibleDates).toEqual(archiveEntries.filter(entry=>entry.date<='2031-01-01').slice(-30).reverse().map(entry=>entry.date));
+ await expect(fixture.locator('[data-math-year="2031"]')).toBeVisible();
+ assert.equal(await fixture.locator('[data-entry-date="2031-01-02"]').isVisible(),false,'midnight reveals only the newly published date');
+ await fixture.goto('http://localhost:4236/math/2030/');
+ await expect(fixture.locator('[data-entry-date]:visible'),'year archives retain their complete published year').toHaveCount(31);
+ await fixture.close();
+ await page.clock.setSystemTime(new Date('2026-10-08T04:00:00Z'));
  await page.goto('http://localhost:4236/');await page.waitForFunction(()=>document.querySelector('[data-daily-math]').dataset.scene==='standing');
  const returned=await canvas();await page.clock.runFor(800);
  assert.notEqual(await canvas(),returned,'homepage animation continues after visiting the archive');

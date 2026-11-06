@@ -158,5 +158,85 @@
     "date": "2026-11-06",
     "id": "bayes",
     "concept": "beta-bernoulli-conjugate-update"
+  },
+  {
+    "date": "2026-11-07",
+    "id": "pythagorean-area",
+    "concept": "right-triangle-square-area-identity"
+  },
+  {
+    "date": "2026-11-08",
+    "id": "logistic-growth",
+    "concept": "capacity-limited-continuous-growth"
+  },
+  {
+    "date": "2026-11-09",
+    "id": "roots-of-unity",
+    "concept": "complex-unity-roots-regular-polygon"
+  },
+  {
+    "date": "2026-11-10",
+    "id": "markov-equilibrium",
+    "concept": "two-state-transition-stationary-convergence"
+  },
+  {
+    "date": "2026-11-11",
+    "id": "orthogonal-projection",
+    "concept": "line-projection-minimum-distance-residual"
+  },
+  {
+    "date": "2026-11-12",
+    "id": "binary-entropy",
+    "concept": "binary-uncertainty-maximum-at-equal-probabilities"
+  },
+  {
+    "date": "2026-11-13",
+    "id": "cauchy-schwarz",
+    "concept": "inner-product-bound-by-vector-lengths"
+  },
+  {
+    "date": "2026-11-14",
+    "id": "exponential-memoryless",
+    "concept": "exponential-residual-waiting-time-invariance"
+  },
+  {
+    "date": "2026-11-15",
+    "id": "geometric-remainder",
+    "concept": "geometric-series-exact-truncation-remainder"
+  },
+  {
+    "date": "2026-11-16",
+    "id": "jensen-convexity",
+    "concept": "convex-function-expectation-jensen-gap"
+  },
+  {
+    "date": "2026-11-17",
+    "id": "circle-inversion",
+    "concept": "circle-inversion-reciprocal-radius-map"
+  },
+  {
+    "date": "2026-11-18",
+    "id": "euler-global-error",
+    "concept": "forward-euler-fixed-horizon-first-order-error"
+  },
+  {
+    "date": "2026-11-19",
+    "id": "polygon-pi",
+    "concept": "inscribed-circumscribed-perimeter-pi-bounds"
+  },
+  {
+    "date": "2026-11-20",
+    "id": "damped-energy",
+    "concept": "viscous-oscillator-exact-energy-dissipation"
+  },
+  {
+    "date": "2026-11-21",
+    "id": "barycentric-coordinates",
+    "concept": "triangle-normalized-area-coordinates"
+  },
+  {
+    "date": "2026-11-22",
+    "id": "total-variance",
+    "concept": "within-between-group-variance-decomposition"
   }
 ]

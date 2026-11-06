@@ -443,6 +443,30 @@
         "en": "Investment cash flows are not the same as accounting earnings. Trace working-capital needs and sustaining equipment expenditure.",
         "zh": "投资现金流与会计利润不同；继续追踪营运资本需求和维持经营所需的设备开支。"
       }
+    },
+    {
+      "source": "futures-trading-and-arbitrage",
+      "target": "smart-money-concepts",
+      "reason": {
+        "en": "A modeled spread still needs executable orders. Examine liquidity, price formation and the difference between gross and risk-adjusted returns.",
+        "zh": "模型中的价差还需要通过委托成交；继续理解流动性、价格形成，以及毛收益与风险调整收益的区别。"
+      }
+    },
+    {
+      "source": "futures-trading-and-arbitrage",
+      "target": "financial-statements-05-liquidity-risk",
+      "reason": {
+        "en": "The same funding question applies to a business: a positive eventual payoff does not ensure cash is available when obligations fall due.",
+        "zh": "企业也面对同样的资金问题：最终能赚钱，不意味着付款到期时手中有现金。"
+      }
+    },
+    {
+      "source": "smart-money-concepts",
+      "target": "futures-trading-and-arbitrage",
+      "reason": {
+        "en": "Apply execution and cost analysis to futures: follow daily margin cash flows and derive the P&L of matched spread positions.",
+        "zh": "把成交与成本分析应用到期货：追踪每日保证金现金流，推导匹配价差组合的盈亏。"
+      }
     }
   ]
 }
