@@ -135,6 +135,10 @@ The recent mathematics archive includes only the build's latest 30 published ent
 # Documentation checks need only Node.js / 文档检查只需 Node.js
 node scripts/check-docs.mjs
 
+# Preview the inventory reminder without GitHub access or credentials / 无网络、无令牌预演库存提醒
+node scripts/daily-math-issue.mjs --dry-run
+node --test tests/daily-math-issue.test.mjs
+
 # Inspect the complete three-group plan / 查看全量检查的三个分组
 CI_CHECK_MODE=full node scripts/ci-plan.mjs
 
@@ -144,6 +148,10 @@ CI_CHECK_MODE=daily node scripts/ci-plan.mjs
 # Reproduce one group's suite list from the Actions summary / 复现 Actions 摘要中的某组测试
 npm run test:browsers -- --suites browser,language,reading,analytics
 ```
+
+The inventory issue tests mock GitHub's REST API and cover the stock boundary, gaps, Shanghai date rollover, pagination, issue creation/update/closure/reopening and failures before any write. Dry runs read and validate the real catalogue but never contact GitHub. These checks do not prove live issue delivery; do not create real issues as a test side effect. Timer and permission configuration are documented in [deployment](../operations/deployment.md).
+
+库存 issue 测试模拟 GitHub REST API，覆盖余量边界、缺档、北京时间跨日、分页、创建／更新／关闭／重新打开，以及写入前的失败处理。预演读取并校验真实题库，但不访问 GitHub。这些检查不证明线上提醒已送达，不为测试而创建真实 issue。定时与权限配置见[部署说明](../operations/deployment.md)。
 
 Documentation-only changes to README, root `AGENTS.md` or Markdown under `docs/` use the lightweight documentation job. It checks local link targets, UTF-8, conflict markers and fenced blocks, but not the truth of the prose or remote URLs. Compare behavior claims against source and distinguish existing functionality from future suggestions. With only documentation edits, this check and `git diff --check` are sufficient; no site rebuild or browser sweep is needed.
 

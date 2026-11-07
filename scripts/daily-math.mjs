@@ -3,6 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {renderers} from '../src/scripts/daily-math-models.js';
 import {parseDate,addDays,dateInfo} from '../src/scripts/daily-math.js';
 export const topicFile='content/daily-math/topics.json',publicationFile='content/daily-math/publications.json';
+export const MIN_FUTURE_DAYS=14;
 const normalized=s=>s.toLowerCase().replace(/[\s\p{P}\p{S}]/gu,'');
 export function validateCatalogue(topics,publications){
  const seen=new Map();

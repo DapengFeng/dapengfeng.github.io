@@ -13,6 +13,7 @@ The homepage publishes one reviewed mathematical topic for each scheduled date i
 | `content/daily-math/topics.json` | Bilingual topic library, sources, review status and renderer IDs.<br>双语题库、来源、核对状态和绘图标识。 |
 | `content/daily-math/publications.json` | Permanent date–topic–concept assignments, including the upcoming queue.<br>永久的日期、主题、知识点对应关系，包含待发布队列。 |
 | `scripts/daily-math.mjs` | Validation, history protection, inventory and scheduling.<br>校验、历史保护、库存计算和排期。 |
+| `scripts/daily-math-issue.mjs` | Reconciles the inventory reminder issue using the same stock calculation and threshold.<br>复用库存计算和阈值，维护余量提醒 issue。 |
 | `src/scripts/daily-math-models.js` | Renderer registry and numerical models.<br>绘图注册表与数值模型。 |
 | `src/scripts/daily-math-drawings.js`, `src/scripts/surface.js` | Formula-driven canvas drawings, date loading and animation lifecycle.<br>按公式绘图、按日期加载和动画生命周期。 |
 | `src/scripts/daily-math-geometry.js`, `src/scripts/daily-math-dynamics.js` | Geometry, probability and dynamics constructions with independently testable numerical functions.<br>几何、概率与动力学图示，以及可独立测试的数值函数。 |
@@ -64,9 +65,23 @@ Automated text checks cannot prove semantic novelty or mathematical correctness.
 
 ## Monthly preparation / 按月准备
 
-At the beginning of each month, run `npm run math:check` and inspect the final scheduled date. Prepare the next month's distinct topics as drafts, review the formulas, sources, translations and diagrams, and only then use `npm run math:plan` to append the reviewed batch. Aim to finish replenishment while at least 14 future days remain; the existing daily Actions warning is the fallback reminder, not a substitute for review. Check the queue again after scheduling and retain the original dates, IDs and concepts of published entries.
+At the beginning of each month, run `npm run math:check` and inspect the final scheduled date. Prepare the next month's distinct topics as drafts, review the formulas, sources, translations and diagrams, and only then use `npm run math:plan` to append the reviewed batch. Aim to finish replenishment before the inventory reminder below is triggered; the automated issue is a fallback reminder, not a substitute for review. Check the queue again after scheduling and retain the original dates, IDs and concepts of published entries.
 
-每月初运行 `npm run math:check`，查看排期的最后日期。提前为下个月准备不重复的草稿，核对公式、来源、翻译和图示后，再用 `npm run math:plan` 追加已审核批次。目标是在未来库存仍有至少 14 天时完成补充；已有的每日 Actions 库存警告用于兜底提醒，不能代替审核。排期后再次检查库存，保留已发布条目的日期、标识与知识点。
+每月初运行 `npm run math:check`，查看排期的最后日期。提前为下个月准备不重复的草稿，核对公式、来源、翻译和图示后，再用 `npm run math:plan` 追加已审核批次。尽量在下述余量提醒触发前完成补充；自动 issue 用于兜底提醒，不能代替审核。排期后再次检查库存，保留已发布条目的日期、标识与知识点。
+
+## Inventory reminder / 余量提醒
+
+The independent **Daily mathematics inventory** Action checks the default branch every day. Below **14 consecutive future days**, it opens a reminder issue. The threshold is owned by `MIN_FUTURE_DAYS` in `scripts/daily-math.mjs` and shared with the CLI warning. Inventory starts today, excludes today from the remaining-day count, and stops at the first missing date. If today is missing, remaining stock is zero. Drafts, unscheduled ready topics and later entries beyond a gap do not count.
+
+独立的 **Daily mathematics inventory** Action 每天检查默认分支。连续未来余量**不足 14 天**时，自动创建提醒 issue。阈值统一定义在 `scripts/daily-math.mjs` 的 `MIN_FUTURE_DAYS` 中，与命令行警告共用。库存从当天起连续计算，余量不含今天，遇到首个缺档即停止；当天缺档时余量为零。草稿、尚未排期的就绪主题，以及缺档之后的内容不计入余量。
+
+The reminder includes the Shanghai date, today's availability, remaining days, coverage end and first missing date. It identifies its issue by a hidden `daily-math-inventory:v1` marker, not the title. Subsequent checks update the same issue without adding daily comments; an identical same-day check makes no change. At or above the threshold, the next check closes the issue. A later shortage reopens it, including when someone manually closed it without replenishing stock. Keep the marker intact. Ordinary issues and pull requests are not modified.
+
+提醒列出北京时间日期、今日是否排期、余量、连续覆盖末日与首个缺档日。程序通过隐藏的 `daily-math-inventory:v1` 标记识别 issue，不按标题识别。后续检查更新同一条 issue，不每天追加评论；同一天数据未变时不修改。余量补足到阈值后，下次检查自动关闭；再次不足时重新打开，包括尚未补足却被手动关闭的情况。请保留此标记。普通 issue 和 PR 不会被修改。
+
+This check runs independently of site builds, so an empty queue can still trigger a reminder when publication fails. Invalid catalogue data or a failed GitHub API call fails the task instead of guessing the inventory or creating a replacement issue. The automation does not write topics or change the schedule. See [deployment](../operations/deployment.md) for the timer, permissions and manual run, and [testing](../development/testing.md#ci-selection-and-local-reproduction--ci-选择与本地复现) for a dry run without contacting GitHub.
+
+检查不依赖网站构建，因此即使空库存导致发布失败，仍能创建提醒。题库校验失败或 GitHub API 请求失败时，任务直接报错，不猜测库存，也不另建替代 issue。自动化不会写入主题或修改排期。定时、权限和手动触发见[部署说明](../operations/deployment.md)，不访问 GitHub 的本地预演见[测试说明](../development/testing.md#ci-selection-and-local-reproduction--ci-选择与本地复现)。
 
 ## Daily operation / 每日运行
 
@@ -82,9 +97,9 @@ If no entry exists for today or loading fails, the homepage removes the old topi
 
 当天没有内容或加载失败时，首页移除旧主题并显示往期入口，不会把昨天的内容标成今天。临时故障会在返回页面或每小时检查时重试。整个功能不需要访客标识或访问统计。
 
-The [daily deployment workflow](../operations/deployment.md) refreshes static pages, the archive and sitemap, and checks inventory. Fewer than 14 future days produces an Actions warning and job summary; no entry today fails the inventory step. There is no separate notification service. Prepared topic changes at midnight do not depend on this workflow finishing on time.
+The [daily deployment workflow](../operations/deployment.md) refreshes static pages, the archive and sitemap, and checks inventory. Low stock still produces an Actions warning and job summary; no entry today fails the inventory step. The independent inventory workflow maintains the reminder described above. Prepared topic changes at midnight do not depend on either workflow finishing on time.
 
-现有[每日部署工作流](../operations/deployment.md)刷新静态页面、归档与站点地图，并检查库存。未来不足 14 天时产生 Actions 警告和任务摘要；当天没有内容时库存检查失败。未接入额外通知服务。已准备好的主题在零点切换，不依赖工作流准时完成。
+现有[每日部署工作流](../operations/deployment.md)刷新静态页面、归档与站点地图，并检查库存。余量不足仍产生 Actions 警告和任务摘要；当天没有内容时库存检查失败。独立的库存工作流维护上述提醒。已准备好的主题在零点切换，不依赖任何一个工作流准时完成。
 
 GitHub schedules can be delayed, and scheduled workflows in public repositories are disabled after 60 days without repository activity. Keep the repository active as content is replenished; manually run the workflow after re-enabling it if necessary. See [GitHub's schedule documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 

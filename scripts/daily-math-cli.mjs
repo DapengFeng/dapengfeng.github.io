@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises';
-import {loadDailyMath,inventory,planPublications,publicationFile,previousPublications,validateHistory,similarityWarnings} from './daily-math.mjs';
+import {loadDailyMath,inventory,planPublications,publicationFile,previousPublications,validateHistory,similarityWarnings,MIN_FUTURE_DAYS} from './daily-math.mjs';
 import {dateInfo} from '../src/scripts/daily-math.js';
 const [command,...args]=process.argv.slice(2),value=flag=>args[args.indexOf(flag)+1];
 const {topics,publications,entries}=await loadDailyMath(),today=dateInfo().date;
@@ -14,6 +14,6 @@ if(command==='plan'){
  const stock=inventory(entries,today),message=`Daily mathematics: ${entries.length} unique scheduled topics; ${stock.remaining} days after today; prepared through ${stock.through||'none'}.`;
  console.log(message);
  if(process.env.GITHUB_STEP_SUMMARY)await fs.appendFile(process.env.GITHUB_STEP_SUMMARY,message+'\n');
- if(stock.remaining<14)console.warn(`${process.env.GITHUB_ACTIONS?'::warning::':''}Daily mathematics inventory is below 14 days. Add reviewed topics and run npm run math:plan.`);
+ if(stock.remaining<MIN_FUTURE_DAYS)console.warn(`${process.env.GITHUB_ACTIONS?'::warning::':''}Daily mathematics inventory is below ${MIN_FUTURE_DAYS} days. Add reviewed topics and run npm run math:plan.`);
  if(!stock.days&&args.includes('--require-today'))throw Error('No topic scheduled for today. Old topics will not be recycled.');
 }else throw Error('Use check or plan');
