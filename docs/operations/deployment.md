@@ -22,9 +22,9 @@ The daily publication is scheduled for **00:23 Asia/Shanghai**. `regression.yml`
 
 `daily-math-inventory.yml` 独立安排在北京时间 **00:17** 运行，也可通过 Actions → Daily mathematics inventory → Run workflow 手动触发。它读取当前默认分支，跳过其他分支上的手动运行；只执行原生 Node 脚本，不安装依赖、不构建网站。固定的并发组保证检查串行执行。仅此任务在 `contents: read` 之外获得 `issues: write`，使用内置 `GITHUB_TOKEN`，无需新增 Secret 或服务器。仓库须启用 Issues，仓库／组织策略须允许令牌写入 issue。工作流推送到默认分支后才会生效。库存阈值与 issue 生命周期统一见[每日数学规范](../authoring/daily-mathematics.md#inventory-reminder--余量提醒)。
 
-Browser jobs download the same `checked-site` artifact. After their checks pass, deployment unpacks that artifact and uploads it to Pages, without rebuilding. The archive preserves hidden files such as `.nojekyll`. Site artifacts are retained for one day; per-group logs and available accessibility reports for 14 days. Each suite has a five-minute timeout, build jobs 15 minutes, browser groups 25 minutes, and deployment 10 minutes. Only deployment has Pages write permissions. Local edits do not push or publish themselves.
+Browser jobs download the same `checked-site` artifact. After their checks pass, deployment unpacks that artifact and uploads it to Pages, without rebuilding. The archive preserves hidden files such as `.nojekyll`. Site artifacts are retained for one day; per-group logs and available accessibility reports for 14 days. Each suite has a five-minute timeout, build jobs 15 minutes, browser groups 35 minutes, and deployment 10 minutes. Only deployment has Pages write permissions. Local edits do not push or publish themselves.
 
-浏览器任务下载同一份 `checked-site` 构建产物。检查通过后，部署任务解包该产物并上传到 Pages，不重复构建；归档会保留 `.nojekyll` 等隐藏文件。站点产物保留一天，各组日志及可用的无障碍报告保留 14 天。每个测试套件限时五分钟，构建任务 15 分钟，浏览器分组 25 分钟，部署任务 10 分钟。只有部署任务具有 Pages 写权限。本地修改不会自行推送或发布。
+浏览器任务下载同一份 `checked-site` 构建产物。检查通过后，部署任务解包该产物并上传到 Pages，不重复构建；归档会保留 `.nojekyll` 等隐藏文件。站点产物保留一天，各组日志及可用的无障碍报告保留 14 天。每个测试套件限时五分钟，构建任务 15 分钟，浏览器分组 35 分钟，部署任务 10 分钟。只有部署任务具有 Pages 写权限。本地修改不会自行推送或发布。
 
 For branch protection, require the deployment workflow's stable **CI result** check shown in the PR, rather than individual browser matrix jobs that can be skipped on documentation changes. There are no workflow-level path filters. Test selection and the reason for a full fallback are shown in the run summary. The mapping lives in `scripts/ci-plan.mjs`; unrecognized new articles get full coverage until explicitly mapped.
 

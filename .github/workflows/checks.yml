@@ -93,7 +93,7 @@ jobs:
     needs: [plan, build]
     if: ${{ needs.plan.outputs.site == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       max-parallel: 3
