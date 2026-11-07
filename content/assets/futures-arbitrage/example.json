@@ -10,8 +10,8 @@
     "spot_entry": 2000,
     "futures_entry": 2060,
     "locked_gross_delivery_spread": 600,
-    "assumed_complete_carrying_cost": 300,
-    "assumed_delivery_net_profit": 300,
+    "assumed_complete_carrying_cost": 300.0,
+    "assumed_delivery_net_profit": 300.0,
     "initial_futures_account_cash": 3060,
     "initial_required_margin": 2060,
     "initial_cash_buffer": 1000,
@@ -52,6 +52,95 @@
       }
     ],
     "shortfall_before_a_deposit_or_forced_close": 540,
+    "basis_exits": {
+      "entry_basis_spot_minus_futures": -60,
+      "scenarios": [
+        {
+          "spot_exit": 2100,
+          "futures_exit": 2100,
+          "exit_basis_spot_minus_futures": 0,
+          "spot_pnl": 1000,
+          "futures_pnl": -400,
+          "gross_pnl": 600,
+          "illustrative_fixed_cost": 300.0,
+          "net_pnl": 300.0
+        },
+        {
+          "spot_exit": 2080,
+          "futures_exit": 2100,
+          "exit_basis_spot_minus_futures": -20,
+          "spot_pnl": 800,
+          "futures_pnl": -400,
+          "gross_pnl": 400,
+          "illustrative_fixed_cost": 300.0,
+          "net_pnl": 100.0
+        },
+        {
+          "spot_exit": 2050,
+          "futures_exit": 2100,
+          "exit_basis_spot_minus_futures": -50,
+          "spot_pnl": 500,
+          "futures_pnl": -400,
+          "gross_pnl": 100,
+          "illustrative_fixed_cost": 300.0,
+          "net_pnl": -200.0
+        }
+      ],
+      "notes": [
+        "Cost is held at 300 only to isolate exit-basis sensitivity; this is not an early-exit cost estimate.",
+        "An actual early exit must recalculate holding days, financing, storage, spot liquidation and trading costs.",
+        "These three marks are constructed scenarios, not forecasts or probabilities."
+      ]
+    },
+    "cost_breakdown": {
+      "holding_days": 60,
+      "day_count_basis": 365,
+      "annual_simple_financing_rate": 0.0365,
+      "spot_purchase_capital": 20000,
+      "futures_and_reserve_capital": 5000,
+      "total_funded_capital": 25000,
+      "spot_financing_cost": 120.0,
+      "futures_and_reserve_financing_cost": 30.0,
+      "total_financing_cost": 150.0,
+      "storage_per_tonne_per_day": 0.15,
+      "storage_cost": 90.0,
+      "other_complete_costs": 60,
+      "additional_net_tax_cost": 0,
+      "total_cost": 300.0,
+      "cost_per_tonne": 30.0,
+      "delivery_break_even_futures_price": 2030.0,
+      "notes": [
+        "All capital is assumed borrowed for the full 60 days; idle reserve earns no interest.",
+        "Other costs are an assumed complete allowance for applicable insurance, logistics, execution and delivery.",
+        "Spot and futures use a consistent tax basis, with no additional net tax cost in this constructed example.",
+        "All expenses including financing are assumed payable at the end to make the ledger explicit."
+      ]
+    },
+    "funding_ledger": {
+      "initial_borrowed_capital": 25000,
+      "initial_spot_purchase": 20000,
+      "initial_futures_account_cash": 3060,
+      "initial_external_reserve": 1940,
+      "transfer_from_reserve_to_account": 540,
+      "account_equity_after_top_up": 2200,
+      "remaining_external_reserve": 1400,
+      "assumed_delivery_price": 2100,
+      "physical_delivery_proceeds": 21000,
+      "final_futures_cumulative_pnl": -400,
+      "futures_account_cash_released": 3200,
+      "total_cash_before_costs": 25600,
+      "total_costs_paid_at_end": 300.0,
+      "cash_after_costs": 25300.0,
+      "loan_principal_repaid": 25000,
+      "net_cash_after_repayment": 300.0,
+      "net_profit_over_capital_committed_for_60_days": 0.012,
+      "notes": [
+        "The top-up is an internal cash transfer, not an additional expense or fresh borrowing.",
+        "The remaining 5000 allocation is sufficient only for this stated settlement path, not a worst-case funding ceiling.",
+        "Profit divided by total committed capital is a 60-day ratio, not ROE or a compounded annual return.",
+        "Delivery settlement accounting is summarized by physical proceeds plus cumulative futures P&L; broker details may differ."
+      ]
+    },
     "notes": [
       "Interim marks hold futures minus spot at 60; they do not model expiry convergence.",
       "Interim combined price P&L of zero excludes the initially locked gross delivery spread of 600.",
@@ -78,8 +167,108 @@
     "gross_pnl": 400,
     "assumed_total_trading_cost": 40,
     "net_pnl": 360,
+    "carry_reference": {
+      "delivery_gap_days": 30,
+      "annual_simple_financing_rate": 0.0365,
+      "financing_per_tonne": 12.0,
+      "storage_per_tonne_per_day": 0.8,
+      "storage_per_tonne": 24.0,
+      "other_verified_costs_per_tonne": 4,
+      "base_carry_per_tonne": 40.0,
+      "stress_carry_per_tonne": 60.0,
+      "round_trip_trading_cost_per_tonne": 4.0,
+      "break_even_exit_spread": 96.0,
+      "notes": [
+        "The 40 and 60 carry values are cost scenarios, not guaranteed future spreads or a no-arbitrage interval.",
+        "A physical carry route requires eligible delivery, funding, storage and matched specifications.",
+        "Pure futures legs have no assured convergence between different delivery months.",
+        "The assumed cost reference does not include the separate 4 per tonne two-leg trading cost."
+      ]
+    },
+    "exit_scenarios": [
+      {
+        "exit_far_minus_near": 40,
+        "gross_pnl": 600,
+        "net_pnl": 560
+      },
+      {
+        "exit_far_minus_near": 60,
+        "gross_pnl": 400,
+        "net_pnl": 360
+      },
+      {
+        "exit_far_minus_near": 100,
+        "gross_pnl": 0,
+        "net_pnl": -40
+      },
+      {
+        "exit_far_minus_near": 160,
+        "gross_pnl": -600,
+        "net_pnl": -640
+      }
+    ],
     "notes": [
       "Only entry and exit observations are given; connecting lines are schematic."
+    ]
+  },
+  "statistical_spread": {
+    "kind": "constructed example with assumed past-window parameters; not a fitted backtest",
+    "residual_definition": "X = A - beta * B; uncentered modeled spread, not the intercept-adjusted regression residual",
+    "position": "short A, long B",
+    "parameters_frozen_before_entry": {
+      "beta": 0.8,
+      "mean": 60,
+      "standard_deviation": 20,
+      "ar1_phi": 0.9
+    },
+    "entry": {
+      "a": 4100,
+      "b": 5000,
+      "residual": 100.0,
+      "z": 2.0
+    },
+    "positions": {
+      "a_multiplier": 10,
+      "b_multiplier": 5,
+      "a_short_lots": 5,
+      "b_long_lots": 8,
+      "a_price_pnl_coefficient": -50,
+      "b_price_pnl_coefficient": 40,
+      "short_residual_exposure": 50
+    },
+    "half_life_in_bars": 6.578813478960585,
+    "conditional_mean_at_half_life": 80.0,
+    "scenarios": [
+      {
+        "a_exit": 4150,
+        "b_exit": 5100,
+        "exit_residual": 70.0,
+        "exit_z": 0.5,
+        "short_a_pnl": -2500,
+        "long_b_pnl": 4000,
+        "gross_pnl": 1500,
+        "assumed_total_trading_cost": 200,
+        "net_pnl": 1300
+      },
+      {
+        "a_exit": 4140,
+        "b_exit": 5000,
+        "exit_residual": 140.0,
+        "exit_z": 4.0,
+        "short_a_pnl": -2000,
+        "long_b_pnl": 0,
+        "gross_pnl": -2000,
+        "assumed_total_trading_cost": 200,
+        "net_pnl": -2200
+      }
+    ],
+    "break_even_exit_residual": 96.0,
+    "notes": [
+      "Beta, mean, standard deviation and phi are assumed, not estimated from real prices.",
+      "A and B prices and contract multipliers use compatible quote and payoff units.",
+      "A fractional half-life interpolates the conditional mean; it is not a realized exit time or a guarantee.",
+      "Trading costs cover both legs and both entry and exit; funding and margin stress require separate evaluation.",
+      "Parameters must be estimated using only past observations, then frozen or updated under a declared out-of-sample rule."
     ]
   }
 }
