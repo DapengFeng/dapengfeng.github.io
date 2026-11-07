@@ -29,6 +29,7 @@ try{
  // Freeze before navigation so a slow CI page load cannot overtake the pause time.
  await page.clock.pauseAt(new Date(start+3600000));
  await page.goto('http://localhost:4236/');await page.waitForSelector('[data-rendered="true"]');
+ await page.evaluate(()=>document.fonts.ready);
  await page.clock.runFor(32);
  const root=page.locator('[data-daily-math]');
  const currentCopy=page.locator('[data-math-copy]:not([hidden])');
@@ -150,6 +151,7 @@ try{
   for(const mode of ['en','zh','both']){
    await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await page.clock.runFor(32);
    await page.locator(`[data-language-choice="${mode}"]`).click();await page.clock.runFor(32);
+   await page.evaluate(()=>document.fonts.ready);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${width}×${height} ${mode}: page overflow`);
    const title=page.locator('[data-math-title]');
    assert.equal(await title.locator('[data-lang="en"]').isVisible(),mode!=='zh');

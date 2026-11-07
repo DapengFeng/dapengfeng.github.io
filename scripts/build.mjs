@@ -43,7 +43,7 @@ export async function build(){
  }
  for(const post of posts)await renderShareAssets(post,write);
  for(const post of [null,...posts])await write(sharingImage(post).slice(1),await renderSharingImage(post));
- for(const name of ['editorial','daily-math','site','legacy','reader','discussions','giscus-theme','sharing','support'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
+ for(const name of ['editorial','daily-math','site','legacy','reader','discussions','giscus-theme','sharing','support','typography'])await fs.copyFile(`src/styles/${name}.css`,`dist/assets/${name}.css`);
  for(const name of ['analytics','daily-math','daily-math-models','daily-math-drawings','daily-math-geometry','daily-math-dynamics','math-archive','eye-viewer','eye-renderer','eye-model','sharing','support','discussions','site','surface','article','reading-demos','process-demos','process-models','labs','benchmark-worker','paired','syntax','compiler','code-copy'])await fs.copyFile(`src/scripts/${name}.js`,`dist/assets/${name}.js`);
  for(const name of ['three.module.min.js','three.core.min.js'])await fs.copyFile(`node_modules/three/build/${name}`,`dist/assets/${name}`);
  await fs.copyFile('node_modules/three/LICENSE','dist/assets/three-LICENSE');

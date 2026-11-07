@@ -31,6 +31,14 @@ Keep text, keyboard focus and controls legible over images or mathematical backg
 
 ## Typography and links / 字号与链接
 
+The shared type system in `src/styles/typography.css` pairs **LXGW WenKai** Chinese headings with **EB Garamond** English headings, and **Noto Serif SC** Chinese prose with **Source Serif 4** English prose. Headings carry a quiet handwritten and classical book character; body text keeps a steady reading rhythm. Use `--display` for headings and short quotations, `--font` for prose, and `--mono` for code and numerical readouts. Chinese heading tracking is slightly open; English uses natural word spacing. Do not introduce another font stack in an article to imitate this system, or apply display fonts to mathematical SVGs, diagram labels or code.
+
+`src/styles/typography.css` 维护统一的字体搭配：中文标题采用**霞鹜文楷**，英文标题采用 **EB Garamond**；中文正文采用 **Noto Serif SC 宋体**，英文正文采用 **Source Serif 4**。标题体现笔意与古典书卷感，正文保持稳定的阅读节奏。标题和短引用使用 `--display`，正文使用 `--font`，代码与数值读数使用 `--mono`。中文标题略留字距，英文保留自然词间距。不要在文章中另写一套字体来模仿此风格，也不把标题字体套到数学 SVG、图表标注或代码上。
+
+Font assets, subset styles and their licenses are self-hosted under `content/assets/fonts/`; the build copies them without downloading fonts. The browser loads WOFF2 subsets as needed with `font-display: swap`, with local serif/Kai fallbacks for unavailable glyphs. New font assets must retain their own upstream licenses and provenance. Font loading must finish before reviewing layout screenshots; check Chinese, English and bilingual text on desktop and mobile. Asset preparation and loading details belong in [local workflow](../development/local-workflow.md).
+
+字体资源、分包样式及许可证自托管在 `content/assets/fonts/`；构建直接复制，不在线下载字体。浏览器按需加载 WOFF2 分包，使用 `font-display: swap`，缺字或加载失败时回退到本机宋体／楷体。新增字体资源须保留各自的上游许可证与来源记录。排版截图应等待字体加载完成，并检查桌面、手机下的中文、英文及双语效果。资源制作与加载方式见[本地工作流](../development/local-workflow.md)。
+
 Use the shared reading styles: technical articles start from 18px body text and 16px code and controls, with space between content blocks. Genre-specific typography belongs in shared styles: travel prose uses 19px on desktop and 18px on narrow screens in `src/styles/editorial.css`. Use `lesson-note` for explanations and `lesson-scroll` for wide tables. Link text should name the destination document, API, or source file and symbol. Underlines, color and hover/focus feedback identify links; do not append decorative arrows to links, navigation or buttons. Retain arrows that express direction or mappings in equations, code and explanatory diagrams.
 
 使用共用阅读样式：技术文章以正文 18px、代码与控件文字 16px 为基础，内容块之间留出空隙。不同体裁的字体差异集中在共用样式中，例如 `src/styles/editorial.css` 将游记正文设为桌面 19px、窄屏 18px。说明使用 `lesson-note`，宽表格使用 `lesson-scroll`。链接文字应写明目标文档、API 或源码文件与符号。下划线、颜色及悬停和焦点反馈标识链接；链接、导航和按钮不附加装饰箭头，公式、代码与知识图示中表示方向或映射的箭头保留。

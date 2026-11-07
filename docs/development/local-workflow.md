@@ -58,6 +58,12 @@ See [testing and validation](testing.md) for browser installation, test coverage
 
   静态页面、RSS、搜索索引与站点地图。
 
+- `src/styles/typography.css`, `content/assets/fonts/`, `scripts/prepare-fonts.py`
+
+  Shared bilingual font roles and self-hosted WOFF2 assets. The font directory includes its own licenses, source hashes and generated `fonts.css`; these assets are copied by the normal build. `prepare-fonts.py` is a maintenance tool, not a build prerequisite. Its recorded Python dependencies and upstream downloads are needed only when regenerating the checked-in assets. Follow the [typography guide](../authoring/presentation.md#typography-and-links--字号与链接) when changing font roles, and preserve the font licenses in the deployed output. Font changes require a rebuilt preview and screenshots after `document.fonts.ready`.
+
+  共用的双语字体分工与自托管 WOFF2 资源。字体目录包含独立许可证、源文件哈希及生成的 `fonts.css`，正常构建会直接复制这些资源。`prepare-fonts.py` 是维护工具，不是构建前置条件；只有重新生成已入库资源时，才需要其记录的 Python 依赖与上游下载。改变字体分工时遵循[字体规范](../authoring/presentation.md#typography-and-links--字号与链接)，并保留部署产物中的字体许可证。字体修改后重新构建预览，等待 `document.fonts.ready` 再截图。
+
 - `src/scripts/surface.js`, `src/scripts/daily-math*.js`, `src/styles/daily-math.css`
 
   Mathematical backgrounds and responsive annotations. Date selection, playback, caching and archive behavior are maintained in [Daily mathematics](../authoring/daily-mathematics.md).

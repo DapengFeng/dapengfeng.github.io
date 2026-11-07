@@ -16,6 +16,7 @@ try{
    await page.setViewportSize({width,height:1000});
    for(const language of ['both','en','zh']){
     await page.locator(`[data-language-choice="${language}"]`).click();
+    await page.evaluate(()=>document.fonts.ready);
     await page.evaluate(()=>new Promise(requestAnimationFrame));
     const fits=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1);
     if(before&&!fits)console.log('OVERFLOW',url,width,language,await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(n=>n.getBoundingClientRect().right>innerWidth+1&&n.getBoundingClientRect().width>0&&!n.closest('pre,svg,.katex,.math-display,.math-inline')).slice(-20).map(n=>({tag:n.tagName,cls:n.className,id:n.id,right:n.getBoundingClientRect().right}))));
@@ -39,7 +40,7 @@ try{
  if(before)console.log(JSON.stringify(tight,null,2));else assert.deepEqual(tight,[],'content blocks need at least 12px clearance');assert.deepEqual(errors,[]);
  for(const [url,target,name]of [['/','.category-section','home'],['/blog/rust-vs-cpp-blog.html','#tradeoffs','rust'],['/blog/spike_notes.html','#article','spike'],['/blog/waves-and-phase.html','#topic-2','waves'],['/blog/band-storage-gaxpy.html','.lesson','band'],['/about/','.about-grid','about']]){
   await page.goto('http://localhost:4191'+url);await page.locator('[data-language-choice=both]').click();
-  for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.locator(target).evaluate(n=>window.scrollTo(0,Math.max(0,n.getBoundingClientRect().top+scrollY-28)));await page.screenshot({path:`/tmp/feng-layout-${before?'before':'after'}-${name}-${width}.png`});}
+  for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.evaluate(()=>document.fonts.ready);await page.locator(target).evaluate(n=>window.scrollTo(0,Math.max(0,n.getBoundingClientRect().top+scrollY-28)));await page.screenshot({path:`/tmp/feng-layout-${before?'before':'after'}-${name}-${width}.png`});}
  }
  // Open long derivations and check their expanded layouts too.
  for(const url of ['/blog/spike_notes.html','/blog/rust-vs-cpp-blog.html']){
@@ -49,6 +50,7 @@ try{
    await page.setViewportSize({width,height:1000});
    for(const mode of ['both','en','zh']){
     await page.locator(`[data-language-choice=${mode}]`).click();
+    await page.evaluate(()=>document.fonts.ready);
     await page.evaluate(()=>new Promise(requestAnimationFrame));
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`expanded content overflow: ${url}/${width}/${mode}`);
    }

@@ -1,0 +1,82 @@
+/* A bilingual book face: humanist Latin, Song prose and a quiet handwritten title. */
+:root {
+  --font: 'Feng Serif', 'Feng Song', 'Noto Serif CJK SC', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+  --display: 'Feng Garamond', 'Feng WenKai', 'Kaiti SC', KaiTi, 'STKaiti', 'Feng Song', Georgia, serif;
+  --serif: var(--font);
+  --ui: 'Feng Serif', 'Feng Song', 'Noto Serif CJK SC', 'Songti SC', Georgia, serif;
+  --sans: var(--ui); /* Compatibility with older article control styles. */
+}
+body {
+  font-family: var(--font);
+  font-kerning: normal;
+  font-optical-sizing: auto;
+}
+/* Controls keep the text face; code and numerical instruments keep their monospace. */
+button, input, select, textarea { font-family: var(--ui); }
+pre, code, kbd, samp, .mono { font-family: var(--mono); }
+
+h1, h2, h3, h4,
+.article-page.article-page > .article-heading h1,
+#article-content.article-body :is(h1, h2, h3, h4) {
+  font-family: var(--display);
+  font-synthesis: none;
+}
+.hero-copy h1, .page-heading h1, .article-heading h1,
+.section-heading h2, .knowledge-card h3, .recent-notes h3,
+.reading-routes h3, .series-path h2 {
+  font-weight: 500;
+  letter-spacing: -.015em;
+}
+/* Chinese characters need breathing room; English keeps its natural word spacing. */
+:is(h1, h2, h3, h4) [data-lang="zh"],
+#article-content.article-body :is(h1, h2, h3, h4)[data-lang="zh"],
+.article-page.article-page > .article-heading h1 [data-lang="zh"],
+.home-math-stage .hero-copy h1 [data-lang="zh"] {
+  letter-spacing: .035em;
+}
+.home-math-stage .hero-copy h1 { line-height: 1.15; font-weight: 500; }
+.home-math-stage .hero-copy h1 .i18n > [data-lang="en"] { letter-spacing: -.015em; line-height: 1.15; }
+.home-math-stage .hero-copy h1 [data-lang="zh"] { line-height: 1.4; }
+.daily-math-note h2, .math-page-heading h1 { font-family: var(--display); line-height: 1.4; }
+.daily-math-note p { line-height: 1.85; }
+.home-math-stage .hero-description { line-height: 1.85; }
+.lab-brand { font-family: var(--display); font-size: 19px; font-weight: 500; letter-spacing: .065em; }
+.brand-descriptor { letter-spacing: .035em; }
+.overline, .card-category, .article-tags, .article-byline,
+.breadcrumbs, .article-toc, .daily-math-kicker, .site-footer {
+  font-family: var(--ui);
+}
+.overline { letter-spacing: .075em; }
+.article-heading > p { line-height: 1.85; }
+
+/* Older imported articles and genre overrides use the same reading family. */
+#article-content .legacy-content,
+.article-travel #article-content .travelogue > p {
+  font-family: var(--font);
+}
+#article-content .legacy-content { --sans: var(--ui); --serif: var(--font); }
+#article-content.article-body :is(h1, h2, h3, h4) .latin { font-family: inherit; }
+#article-content.article-body :is(p, li) { font-kerning: normal; }
+#article-content.article-body > :is(p, ul, ol),
+#article-content .legacy-content :is(p, li) {
+  line-height: 1.9;
+}
+#article-content.article-body blockquote p,
+#article-content .fs-quote blockquote p {
+  font-family: var(--display);
+  font-synthesis: none;
+  line-height: 1.9;
+}
+/* Numeric columns and live code must not inherit the display face. */
+#article-content :is(pre, code, .compiler-editor),
+#article-content .fs-table td {
+  font-family: var(--mono);
+}
+table { font-variant-numeric: lining-nums tabular-nums; }
+.daily-math-kicker time, .article-byline time { font-variant-numeric: lining-nums tabular-nums; }
+
+@media (max-width: 560px) {
+  .lab-brand { font-size: 18px; }
+  .home-math-stage .hero-copy h1 [data-lang="zh"],
+  .article-page.article-page > .article-heading h1 [data-lang="zh"] { letter-spacing: .015em; }
+}
