@@ -1,7 +1,10 @@
 import {geometryRenderers} from './daily-math-geometry.js';
 import {dynamicsRenderers} from './daily-math-dynamics.js';
+import {euclideanRenderers} from './daily-math-euclidean.js';
+import {analysisRenderers} from './daily-math-analysis.js';
+import {probabilityRenderers} from './daily-math-probability.js';
 // The registry is shared by publication validation and the canvas renderer.
-export const renderers=['fourier','lissajous','standing','heat','saddle','mobius','phyllotaxis','euler','taylor','beats','gibbs','convolution','gaussian','aliasing','bezier','cycloid','spiral','ellipse','involute','determinant','eigenvectors','svd','gradient','newton','bisection','riemann','divergence','curl','walk','clt','poisson','bayes',...geometryRenderers,...dynamicsRenderers];
+export const renderers=['fourier','lissajous','standing','heat','saddle','mobius','phyllotaxis','euler','taylor','beats','gibbs','convolution','gaussian','aliasing','bezier','cycloid','spiral','ellipse','involute','determinant','eigenvectors','svd','gradient','newton','bisection','riemann','divergence','curl','walk','clt','poisson','bayes',...geometryRenderers,...dynamicsRenderers,...euclideanRenderers,...analysisRenderers,...probabilityRenderers];
 export function factorial(n){let v=1;for(let i=2;i<=n;i++)v*=i;return v;}
 export function choose(n,k){let v=1;for(let i=1;i<=k;i++)v*= (n-i+1)/i;return v;}
 export function taylorSine(x,n){let v=0;for(let k=0;k<n;k++)v+=(-1)**k*x**(2*k+1)/factorial(2*k+1);return v;}

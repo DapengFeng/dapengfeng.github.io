@@ -238,5 +238,125 @@
     "date": "2026-11-22",
     "id": "total-variance",
     "concept": "within-between-group-variance-decomposition"
+  },
+  {
+    "date": "2026-11-23",
+    "id": "thales-angle",
+    "concept": "semicircle-diameter-subtends-right-angle"
+  },
+  {
+    "date": "2026-11-24",
+    "id": "fundamental-calculus",
+    "concept": "derivative-of-accumulated-area"
+  },
+  {
+    "date": "2026-11-25",
+    "id": "law-large-numbers",
+    "concept": "bernoulli-sample-average-convergence"
+  },
+  {
+    "date": "2026-11-26",
+    "id": "angle-bisector",
+    "concept": "internal-angle-bisector-opposite-side-ratio"
+  },
+  {
+    "date": "2026-11-27",
+    "id": "trapezoid-error",
+    "concept": "composite-trapezoid-quadratic-global-error"
+  },
+  {
+    "date": "2026-11-28",
+    "id": "chebyshev-bound",
+    "concept": "variance-only-two-sided-tail-bound"
+  },
+  {
+    "date": "2026-11-29",
+    "id": "intersecting-chords",
+    "concept": "interior-chord-products-equal-radius-square-minus-distance-square"
+  },
+  {
+    "date": "2026-11-30",
+    "id": "simpson-exactness",
+    "concept": "simpson-cubic-exactness-by-cancellation"
+  },
+  {
+    "date": "2026-12-01",
+    "id": "conditional-probability",
+    "concept": "conditioning-as-restricted-sample-space"
+  },
+  {
+    "date": "2026-12-02",
+    "id": "viviani-distance",
+    "concept": "equilateral-triangle-interior-perpendicular-distance-sum"
+  },
+  {
+    "date": "2026-12-03",
+    "id": "secant-root",
+    "concept": "secant-two-point-derivative-free-rootfinding"
+  },
+  {
+    "date": "2026-12-04",
+    "id": "covariance-correlation",
+    "concept": "correlation-as-standardized-covariance"
+  },
+  {
+    "date": "2026-12-05",
+    "id": "triangle-euler-line",
+    "concept": "circumcenter-centroid-orthocenter-collinearity-one-to-two"
+  },
+  {
+    "date": "2026-12-06",
+    "id": "lagrange-interpolation",
+    "concept": "lagrange-interpolation-uniqueness"
+  },
+  {
+    "date": "2026-12-07",
+    "id": "mixture-density",
+    "concept": "weighted-density-mixtures-and-modes"
+  },
+  {
+    "date": "2026-12-08",
+    "id": "parabola-focus",
+    "concept": "parabola-equal-focus-and-directrix-distance-locus"
+  },
+  {
+    "date": "2026-12-09",
+    "id": "chebyshev-nodes",
+    "concept": "runge-phenomenon-chebyshev-node-placement"
+  },
+  {
+    "date": "2026-12-10",
+    "id": "uniform-maximum",
+    "concept": "cdf-of-independent-uniform-sample-maximum"
+  },
+  {
+    "date": "2026-12-11",
+    "id": "hyperbola-foci",
+    "concept": "hyperbola-constant-absolute-focal-distance-difference"
+  },
+  {
+    "date": "2026-12-12",
+    "id": "osculating-circle",
+    "concept": "parabola-local-osculating-circle-curvature"
+  },
+  {
+    "date": "2026-12-13",
+    "id": "inverse-cdf",
+    "concept": "uniform-sampling-through-inverse-cdf"
+  },
+  {
+    "date": "2026-12-14",
+    "id": "sine-rule",
+    "concept": "triangle-side-angle-sine-ratio-equals-circumdiameter"
+  },
+  {
+    "date": "2026-12-15",
+    "id": "arc-length",
+    "concept": "polygonal-length-convergence-to-arc-integral"
+  },
+  {
+    "date": "2026-12-16",
+    "id": "kl-divergence",
+    "concept": "bernoulli-directed-relative-entropy"
   }
 ]

@@ -17,6 +17,7 @@ The homepage publishes one reviewed mathematical topic for each scheduled date i
 | `src/scripts/daily-math-models.js` | Renderer registry and numerical models.<br>绘图注册表与数值模型。 |
 | `src/scripts/daily-math-drawings.js`, `src/scripts/surface.js` | Formula-driven canvas drawings, date loading and animation lifecycle.<br>按公式绘图、按日期加载和动画生命周期。 |
 | `src/scripts/daily-math-geometry.js`, `src/scripts/daily-math-dynamics.js` | Geometry, probability and dynamics constructions with independently testable numerical functions.<br>几何、概率与动力学图示，以及可独立测试的数值函数。 |
+| `src/scripts/daily-math-euclidean.js`, `src/scripts/daily-math-analysis.js`, `src/scripts/daily-math-probability.js` | Euclidean and conic constructions, calculus and numerical methods, and probability models; each module has independent numerical tests.<br>欧氏几何与圆锥曲线、微积分与数值方法、概率模型；各模块均有独立的数值测试。 |
 
 ## Add and schedule a topic / 新增与排期
 

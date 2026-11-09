@@ -125,9 +125,9 @@ The cross-browser suite freezes a known published date and advances a controlled
 
 跨浏览器套件固定一个已发布日期，以受控时钟推进画面，保证截图稳定。播放行为单独由 `npm run test:daily-math` 验证，包括可见时变化、30 fps 上限、忽略旧静态设置、离屏与隐藏标签页的暂停恢复、跨日切换及固定日期条目。用测试工具稳定画面，不为截图重新引入线上显示设置。
 
-The recent mathematics archive includes only the build's latest 30 published entries and a prepared queue. Moving the browser clock backwards cannot restore entries omitted by that build. Archive date tests use a fixed cross-year catalogue through the real renderer and browser module to check future-date hiding, midnight updates, the 30-entry limit and complete year archives. The actual built recent page is also checked against its available dates. The geometry and dynamics model tests check mathematical identities independently of rendered screenshots; review every new drawing and both formula layouts before scheduling it.
+The recent mathematics archive includes only the build's latest 30 published entries and a prepared queue. Moving the browser clock backwards cannot restore entries omitted by that build. Archive date tests use a fixed cross-year catalogue through the real renderer and browser module to check future-date hiding, midnight updates, the 30-entry limit and complete year archives. The actual built recent page is also checked against its available dates. The daily mathematics model tests check geometric identities, calculus and numerical errors, and probability relationships independently of rendered screenshots; review every new drawing and both formula layouts before scheduling it.
 
-数学“最近”页面仅包含构建时最新的30条已发布内容及准备队列；回拨浏览器时钟不能恢复构建时已省略的条目。归档日期测试使用固定跨年题目，通过真实生成函数与浏览器模块验证未来日期隐藏、午夜更新、30条上限与全年归档完整性，并单独核对实际构建页面中已有日期的筛选。几何与动力学模型测试独立于截图检查数学恒等式；每个新图示及两种公式布局都应审阅后再排期。
+数学“最近”页面仅包含构建时最新的30条已发布内容及准备队列；回拨浏览器时钟不能恢复构建时已省略的条目。归档日期测试使用固定跨年题目，通过真实生成函数与浏览器模块验证未来日期隐藏、午夜更新、30条上限与全年归档完整性，并单独核对实际构建页面中已有日期的筛选。每日数学模型测试独立于截图检查几何恒等式、微积分与数值误差，以及概率关系；每个新图示及两种公式布局都应审阅后再排期。
 
 ## CI selection and local reproduction / CI 选择与本地复现
 

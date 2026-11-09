@@ -1004,5 +1004,481 @@
       "zh": "Pishro-Nik 概率教材 · 全方差公式"
     },
     "reviewedOn": "2026-11-06"
+  },
+  {
+    "id": "thales-angle",
+    "concept": "semicircle-diameter-subtends-right-angle",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "thales-angle",
+    "source": {
+      "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIII/propIII31.html",
+      "en": "Euclid · Elements III.31",
+      "zh": "欧几里得 ·《几何原本》III.31"
+    },
+    "en": "A right angle on a semicircle",
+    "zh": "半圆上的直角",
+    "descriptionEn": "Fix a diameter \\(AB\\) and move \\(P\\) along either semicircle, away from its endpoints. The two sides \\(PA\\) and \\(PB\\) remain perpendicular: an inscribed angle subtends half the central angle, and the diameter spans 180 degrees.",
+    "descriptionZh": "固定直径 \\(AB\\)，让 \\(P\\) 沿半圆移动，但不与端点重合。\\(PA\\) 与 \\(PB\\) 始终垂直：同弧所对的圆周角是圆心角的一半，而直径对应的圆心角为 180 度。",
+    "formula": "\\angle APB=\\frac{1}{2}\\times180^\\circ=90^\\circ",
+    "readingEn": "The cyan segment is the fixed diameter. \\(P\\) moves along the arc; the green triangle changes shape while the gold square marks the same right angle at \\(P\\).",
+    "readingZh": "青色线段是固定的直径。\\(P\\) 沿圆弧往复移动，绿色三角形的形状随之改变，\\(P\\) 处的金色方角始终标示直角。"
+  },
+  {
+    "id": "fundamental-calculus",
+    "concept": "derivative-of-accumulated-area",
+    "en": "The derivative of accumulated area",
+    "zh": "面积累积得多快",
+    "descriptionEn": "For a continuous function, moving the upper limit of its integral changes accumulated signed area at the rate given by the function’s current value. The fundamental theorem of calculus therefore recovers the integrand by differentiating the accumulation function.",
+    "descriptionZh": "连续函数的有向面积随积分上限移动而变化，其瞬时变化率就是该位置的函数值。微积分基本定理把这两个量联系起来：对有向面积的累积函数求导，就得到原来的被积函数。",
+    "formula": "A(x)=\\int_0^x\\left(\\frac12+\\frac{t^2}{4}\\right)dt,\\qquad A'(x)=\\frac12+\\frac{x^2}{4}",
+    "compactFormula": "\\begin{aligned}A(x)&=\\int_0^x\\left(\\frac12+\\frac{t^2}{4}\\right)dt\\\\ A'(x)&=\\frac12+\\frac{x^2}{4}\\end{aligned}",
+    "readingEn": "Left: green shading accumulates under the positive green curve up to the moving gold point. Right: the cyan curve plots that accumulated area, and its gold tangent has slope equal to the gold height on the left. Both panels follow the same upper limit, shown as \\(x\\).",
+    "readingZh": "左图函数值为正，绿色区域累积到移动的金点为止。右图的青线记录这块面积，金色切线的斜率等于左图金点所在的函数高度。两图使用同一个积分上限，底部的 \\(x\\) 标出当前位置。",
+    "source": {
+      "url": "https://openstax.org/books/calculus-volume-1/pages/5-3-the-fundamental-theorem-of-calculus",
+      "en": "OpenStax · Fundamental theorem of calculus",
+      "zh": "OpenStax · 微积分基本定理"
+    },
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "fundamental-calculus"
+  },
+  {
+    "id": "law-large-numbers",
+    "concept": "bernoulli-sample-average-convergence",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "law-large-numbers",
+    "source": {
+      "url": "https://www.statlect.com/asymptotic-theory/law-of-large-numbers",
+      "en": "StatLect · Laws of large numbers",
+      "zh": "StatLect · 大数定律"
+    },
+    "en": "The law of large numbers",
+    "zh": "大数定律",
+    "descriptionEn": "For independent Bernoulli trials with success probability \\(p\\), the sample proportion approaches \\(p\\) in probability. Its variance is \\(p(1-p)/n\\), and the probability of any fixed positive error tends to zero as \\(n\\) tends to infinity. Neither a finite-sample tail probability nor an individual path must improve at every step.",
+    "descriptionZh": "独立重复进行成功概率为 \\(p\\) 的伯努利试验，样本中的成功比例会依概率趋近 \\(p\\)。其方差为 \\(p(1-p)/n\\)；当 \\(n\\) 趋于无穷时，偏离任意固定正幅度的概率趋于零。有限样本的尾部概率和单条路径，都不必逐步改善。",
+    "formula": "\\bar X_n=\\frac1n\\sum_{i=1}^n X_i\\xrightarrow{\\mathsf P}p,\\qquad\\operatorname{Var}(\\bar X_n)=\\frac{p(1-p)}n",
+    "readingEn": "Three seeded simulations reveal the running proportions through 256 trials; the gold line is \\(p=0.5\\). The same finite paths replay as an illustration, not a proof. This concerns concentration of the average; the central limit theorem instead describes its scaled fluctuations.",
+    "readingZh": "三条固定种子的模拟路径逐步显示前 256 次试验的成功比例，金线表示 \\(p=0.5\\)。动画重复的是同一组有限样本，只作示意，不构成证明。这里关注平均值的集中；中心极限定理关注经过缩放后的波动形状。",
+    "compactFormula": "\\begin{aligned}\\bar X_n&=\\frac1n\\sum_{i=1}^n X_i\\xrightarrow{\\mathsf P}p\\\\\\operatorname{Var}(\\bar X_n)&=\\frac{p(1-p)}n\\end{aligned}"
+  },
+  {
+    "id": "angle-bisector",
+    "concept": "internal-angle-bisector-opposite-side-ratio",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "angle-bisector",
+    "source": {
+      "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVI/propVI3.html",
+      "en": "Euclid · Elements VI.3",
+      "zh": "欧几里得 ·《几何原本》VI.3"
+    },
+    "en": "What an angle bisector divides",
+    "zh": "角平分线怎样分边",
+    "descriptionEn": "An internal angle bisector \\(AD\\) divides the opposite side \\(BC\\) in the ratio \\(AB:AC\\). Triangles \\(ABD\\) and \\(ACD\\) share the altitude to \\(BC\\); their areas are also proportional to \\(AB\\) and \\(AC\\) because their angles at \\(A\\) are equal.",
+    "descriptionZh": "内角平分线 \\(AD\\) 把对边 \\(BC\\) 分成两段，两段之比等于 \\(AB\\) 与 \\(AC\\) 之比。三角形 \\(ABD\\)、\\(ACD\\) 对 \\(BC\\) 的高相同；它们在 \\(A\\) 处的角相等，面积也就分别正比于 \\(AB\\)、\\(AC\\)。",
+    "formula": "\\frac{BD}{DC}=\\frac{AB}{AC}",
+    "readingEn": "\\(A\\) moves while \\(B\\) and \\(C\\) stay fixed. The gold segment keeps the two marked angles equal. Matching colors connect each adjacent side to its corresponding base segment; the two ratios on the right remain equal.",
+    "readingZh": "\\(A\\) 移动，\\(B\\)、\\(C\\) 保持不动，金线始终把顶角分成相等的两份。同色的邻边与底边线段互相对应，右侧显示的两个比值始终相等。"
+  },
+  {
+    "id": "trapezoid-error",
+    "concept": "composite-trapezoid-quadratic-global-error",
+    "en": "Why trapezoid error quarters",
+    "zh": "梯形误差为什么缩小到四分之一",
+    "descriptionEn": "Replacing a convex curve by straight chords overestimates its integral. For \\(x^2\\) on \\([0,1]\\), the composite trapezoid error is exactly \\(h^2/6\\), where \\(h=1/n\\). Doubling the subdivision count therefore quarters the total error, rather than merely halving it.",
+    "descriptionZh": "用直线弦段代替凸函数的曲线，会高估积分。对区间 \\([0,1]\\) 上的平方函数，复合梯形公式的总误差恰好是步长平方的六分之一。分段数加倍、步长减半时，总误差缩小到原来的四分之一。",
+    "formula": "T_n-\\int_0^1x^2\\,dx=\\frac{1}{6n^2}=\\frac{h^2}{6},\\qquad h=\\frac1n",
+    "compactFormula": "\\begin{aligned}T_n-\\frac13&=\\frac{h^2}{6}\\\\ h&=\\frac1n\\end{aligned}",
+    "readingEn": "Gold chords sit above the green parabola; the shaded slivers add up to the displayed error \\(E\\). A moving vertical segment inspects the local gap. The loop compares 2, 4, 8 and 16 equal subdivisions against the same exact integral, \\(I=1/3\\).",
+    "readingZh": "金色弦段位于绿色抛物线上方，夹出的阴影合起来就是底部显示的总误差 \\(E\\)。移动的竖线逐点检查两者的间隙。动画依次比较 2、4、8、16 等分，始终以精确积分 \\(I=1/3\\) 为参照。",
+    "source": {
+      "url": "https://fncbook.com/integration/",
+      "en": "Driscoll & Braun · Numerical integration",
+      "zh": "Driscoll 与 Braun · 数值积分"
+    },
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "trapezoid-error"
+  },
+  {
+    "id": "chebyshev-bound",
+    "concept": "variance-only-two-sided-tail-bound",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "chebyshev-bound",
+    "source": {
+      "url": "https://www.statlect.com/fundamentals-of-probability/Chebyshev-inequality",
+      "en": "StatLect · Chebyshev’s inequality",
+      "zh": "StatLect · 切比雪夫不等式"
+    },
+    "en": "A bound without a bell curve",
+    "zh": "不依赖钟形曲线的界",
+    "descriptionEn": "If a distribution has finite mean \\(\\mu\\) and positive finite variance \\(\\sigma^2\\), at most \\(1/k^2\\) of its probability can lie at least \\(k\\) standard deviations from the mean. This uses only variance, so the bound can be much larger than the actual tail.",
+    "descriptionZh": "只要分布具有有限均值 \\(\\mu\\) 和正的有限方差 \\(\\sigma^2\\)，偏离均值至少 \\(k\\) 个标准差的概率就不会超过 \\(1/k^2\\)。这个结论只使用方差信息，因此上界可能比实际尾部概率宽松得多。",
+    "formula": "\\Pr(|X-\\mu|\\ge k\\sigma)\\le\\min\\!\\left(1,\\frac1{k^2}\\right),\\quad k>0",
+    "readingEn": "The rectangle is the density of \\(U[-\\sqrt3,\\sqrt3]\\), with mean zero and variance one. Moving gold boundaries mark \\(\\pm k\\); green area is the exact tail. The lower bars compare the bound with that tail on the same probability scale. Beyond \\(\\sqrt3\\), the tail is zero while the bound remains positive.",
+    "readingZh": "矩形表示 \\(U[-\\sqrt3,\\sqrt3]\\) 的密度，其均值为零、方差为一。移动的金线标出 \\(\\pm k\\)，绿色面积是实际尾部概率。下方两条横线用同一概率尺度比较上界与真实值；超过 \\(\\sqrt3\\) 后，尾部已经为零，上界仍为正。",
+    "compactFormula": "\\begin{aligned}&\\Pr(|X-\\mu|\\ge k\\sigma)\\\\&\\quad\\le\\min\\!\\left(1,\\frac1{k^2}\\right),\\quad k>0\\end{aligned}"
+  },
+  {
+    "id": "intersecting-chords",
+    "concept": "interior-chord-products-equal-radius-square-minus-distance-square",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "intersecting-chords",
+    "source": {
+      "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIII/propIII35.html",
+      "en": "Euclid · Elements III.35",
+      "zh": "欧几里得 ·《几何原本》III.35"
+    },
+    "en": "Two chords, one product",
+    "zh": "两条弦，同一个乘积",
+    "descriptionEn": "Two chords intersect at \\(P\\) inside a circle with center \\(O\\) and radius \\(R\\). The products of the two segment lengths agree, regardless of chord direction, and equal \\(R\\) squared minus \\(OP\\) squared. The shared value changes only when \\(P\\) changes its distance from \\(O\\).",
+    "descriptionZh": "两条弦在半径为 \\(R\\)、圆心为 \\(O\\) 的圆内相交于 \\(P\\)。无论弦朝向哪里，两段长度的乘积都等于 \\(R\\) 的平方减去 \\(OP\\) 的平方。只有 \\(P\\) 到圆心的距离改变，这个共同值才会改变。",
+    "formula": "PA\\cdot PB=PC\\cdot PD=R^2-OP^2",
+    "compactFormula": "\\begin{aligned}PA\\cdot PB&=PC\\cdot PD\\\\&=R^2-OP^2\\end{aligned}",
+    "readingEn": "The green and gold chords turn through a moving cyan point \\(P\\). Individual segments lengthen and shorten; the two products displayed on the right track the same value throughout.",
+    "readingZh": "绿弦与金弦穿过移动的青色交点 \\(P\\)，同时转动。各段长度不断改变，右侧两个乘积却始终同步。"
+  },
+  {
+    "id": "simpson-exactness",
+    "concept": "simpson-cubic-exactness-by-cancellation",
+    "en": "Simpson’s rule is exact for cubics",
+    "zh": "辛普森公式为何能精确积分三次函数",
+    "descriptionEn": "A quadratic through an interval’s endpoints and midpoint need not equal the original cubic. Yet their signed area difference cancels across the midpoint. Integrating that quadratic yields Simpson’s \\(1:4:1\\) weights, exact for every polynomial of degree at most three.",
+    "descriptionZh": "通过区间两端和中点的二次插值曲线，并不等于原来的三次曲线，但两者在中点左右的有向面积差会抵消。将这条二次曲线积分，得到辛普森公式的 \\(1:4:1\\) 权重；它能精确积分所有次数不超过三次的多项式。",
+    "formula": "\\int_a^b p(x)\\,dx=\\frac{b-a}{6}\\left[p(a)+4p\\!\\left(\\frac{a+b}{2}\\right)+p(b)\\right],\\quad \\deg p\\le3",
+    "compactFormula": "\\begin{gathered}m=\\frac{a+b}{2},\\quad\\deg p\\le3\\\\S=p(a)+4p(m)+p(b)\\\\\\int_a^b p(x)\\,dx=\\frac{b-a}{6}S\\end{gathered}",
+    "readingEn": "Green is \\(x^3\\); gold is its quadratic interpolant \\(q_2(x)=1.5x^2-0.5x\\) at \\(0,1/2,1\\). The moving segment checks their pointwise difference. The two shaded regions have opposite signs and equal area, so both integrals are \\(1/4\\) despite the different curves.",
+    "readingZh": "绿线是三次函数，金线是它在 \\(0,1/2,1\\) 三点的二次插值曲线，满足 \\(q_2(x)=1.5x^2-0.5x\\)。移动线段比较逐点差异。两侧阴影的有向面积大小相等、符号相反，因此两条曲线不同，积分却都等于 \\(1/4\\)。",
+    "source": {
+      "url": "https://dlmf.nist.gov/3.5#ii",
+      "en": "NIST DLMF · Simpson’s rule",
+      "zh": "NIST DLMF · 辛普森公式"
+    },
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "simpson-exactness"
+  },
+  {
+    "id": "conditional-probability",
+    "concept": "conditioning-as-restricted-sample-space",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "conditional-probability",
+    "source": {
+      "url": "https://www.probabilitycourse.com/chapter1/1_4_0_conditional_probability.php",
+      "en": "Pishro-Nik · Conditional probability",
+      "zh": "Pishro-Nik · 条件概率"
+    },
+    "en": "Change the sample space",
+    "zh": "换一个样本空间",
+    "descriptionEn": "Once event \\(B\\) is known to have occurred, only outcomes in \\(B\\) remain possible. The part also belonging to \\(A\\) is \\(A\\cap B\\); dividing its probability by \\(\\Pr(B)>0\\) makes the reduced sample space have probability one.",
+    "descriptionZh": "已知事件 \\(B\\) 发生后，只考虑 \\(B\\) 内的结果。其中也属于 \\(A\\) 的部分就是交集 \\(A\\cap B\\)。将交集概率除以 \\(\\Pr(B)>0\\)，相当于把缩小后的样本空间重新归一化为一。",
+    "formula": "\\Pr(A\\mid B)=\\frac{\\Pr(A\\cap B)}{\\Pr(B)},\\qquad\\Pr(B)>0",
+    "readingEn": "Choose \\(U\\) uniformly from \\([0,1]\\). Cyan marks \\(A=\\{U\\le0.6\\}\\), the gold frame marks \\(B=\\{U\\ge b\\}\\), and green is their overlap. As \\(b\\) moves, the lower bar shows overlap divided by the width of \\(B\\), not by the original unit interval.",
+    "readingZh": "在 \\([0,1]\\) 内均匀抽取 \\(U\\)。青色表示 \\(A=\\{U\\le0.6\\}\\)，金框表示 \\(B=\\{U\\ge b\\}\\)，绿色是两者交集。随着 \\(b\\) 移动，下方横线显示交集宽度除以 \\(B\\) 的宽度，而不是除以原来的单位区间。",
+    "compactFormula": "\\begin{gathered}\\Pr(A\\mid B)=\\frac{\\Pr(A\\cap B)}{\\Pr(B)}\\\\\\Pr(B)>0\\end{gathered}"
+  },
+  {
+    "id": "viviani-distance",
+    "concept": "equilateral-triangle-interior-perpendicular-distance-sum",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "viviani-distance",
+    "source": {
+      "url": "https://www.cut-the-knot.org/Curriculum/Geometry/Viviani.shtml",
+      "en": "Alexander Bogomolny · Viviani's theorem",
+      "zh": "Alexander Bogomolny · 维维亚尼定理"
+    },
+    "en": "Three distances, one altitude",
+    "zh": "三段距离，一条高",
+    "descriptionEn": "For a point inside an equilateral triangle, the three perpendicular distances to the sides sum to its altitude \\(h\\). Join the point to the vertices: the three smaller triangle areas add to the original area, and all three bases have the same length.",
+    "descriptionZh": "等边三角形内一点到三边的垂直距离之和，等于三角形的高 \\(h\\)。连接该点与三个顶点，得到的三个小三角形面积之和不变；它们的底边等长，因此三条高的和也不变。",
+    "formula": "d_1+d_2+d_3=h",
+    "readingEn": "Three colored perpendiculars follow the interior point. On the right, their lengths are stacked at the same scale as the triangle and compared with the fixed altitude \\(h\\); the top of the stack stays level.",
+    "readingZh": "内部光点移动时，三条彩色垂线随之变化。右侧按与三角形相同的比例，把三段距离首尾叠放，再与固定的高 \\(h\\) 比较；叠放后的顶端始终不动。"
+  },
+  {
+    "id": "secant-root",
+    "concept": "secant-two-point-derivative-free-rootfinding",
+    "en": "Finding a root with two points",
+    "zh": "用两个点逼近零点",
+    "descriptionEn": "The secant method replaces the derivative in Newton’s step with the slope through the two most recent function values. Its intersection with the horizontal axis supplies the next estimate. No derivative is required, but a nearly zero difference between the two function values can make the step unreliable.",
+    "descriptionZh": "割线法取最近两个点，用它们之间的斜率代替牛顿法中的导数，再把割线与横轴的交点作为下一次估计。它不需要计算导数，但若两次函数值几乎相等，分母过小就可能使迭代步失控。",
+    "formula": "x_{k+1}=x_k-\\frac{f(x_k)(x_k-x_{k-1})}{f(x_k)-f(x_{k-1})}",
+    "readingEn": "Starting at 1 and 2 to find the zero \\(\\sqrt{2}\\) of \\(f(x)=x^2-2\\), each stage draws the gold secant and its cyan root estimate \\(x_+\\). The moving cyan dot follows the straight-line prediction. The view zooms between iterations; \\(W\\) gives its horizontal width, so visually similar steps need not have equal numerical size.",
+    "readingZh": "以 1 和 2 为初值，求 \\(f(x)=x^2-2\\) 的零点 \\(\\sqrt{2}\\)。每一轮画出金色割线及青色零点估计 \\(x_+\\)，移动青点沿割线检查线性预测。各轮会放大观察范围；\\(W\\) 表示当前视窗的横坐标跨度，因此画面上大小相近的步长，实际数值可能相差很大。",
+    "source": {
+      "url": "https://fncbook.com/secant/",
+      "en": "Driscoll & Braun · The secant method",
+      "zh": "Driscoll 与 Braun · 割线法"
+    },
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "secant-root"
+  },
+  {
+    "id": "covariance-correlation",
+    "concept": "correlation-as-standardized-covariance",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "covariance-correlation",
+    "source": {
+      "url": "https://www.probabilitycourse.com/chapter5/5_3_1_covariance_correlation.php",
+      "en": "Pishro-Nik · Covariance and correlation",
+      "zh": "Pishro-Nik · 协方差与相关系数"
+    },
+    "en": "Units change; correlation stays",
+    "zh": "单位变了，相关性不变",
+    "descriptionEn": "Covariance measures the average product of centered deviations and carries the units of both variables. Dividing by their positive standard deviations gives dimensionless correlation. Positive rescaling changes covariance but preserves correlation; zero correlation alone does not imply independence.",
+    "descriptionZh": "协方差是两个变量相对各自均值的偏差之积的平均，带有两者的单位。除以各自正的标准差，就得到无量纲的相关系数。正比例缩放会改变协方差，却不改变相关系数；相关系数为零也不一定意味着独立。",
+    "formula": "\\rho_{XY}=\\frac{\\operatorname{Cov}(X,Y)}{\\sigma_X\\sigma_Y},\\qquad\\rho_{aX,Y}=\\rho_{XY}\\ (a>0)",
+    "readingEn": "The left cloud stretches horizontally as \\(a\\) changes. The right cloud subtracts each mean and divides by its standard deviation, so it keeps the same shape and \\(\\rho=0.65\\). These equally weighted constructed points illustrate normalization; the moving gold markers connect corresponding positions.",
+    "readingZh": "左侧点集随 \\(a\\) 改变而横向伸缩；右侧减去各自均值、再除以标准差，形状和 \\(\\rho=0.65\\) 因而保持不变。这里使用等权重的构造点集演示标准化，移动金点标出两边的对应位置。",
+    "compactFormula": "\\begin{aligned}\\rho_{XY}&=\\frac{\\operatorname{Cov}(X,Y)}{\\sigma_X\\sigma_Y}\\\\\\rho_{aX,Y}&=\\rho_{XY}\\quad(a>0)\\end{aligned}"
+  },
+  {
+    "id": "triangle-euler-line",
+    "concept": "circumcenter-centroid-orthocenter-collinearity-one-to-two",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "triangle-euler-line",
+    "source": {
+      "url": "https://mathworld.wolfram.com/EulerLine.html",
+      "en": "MathWorld · Euler line",
+      "zh": "MathWorld · 欧拉线"
+    },
+    "en": "Three centers on one line",
+    "zh": "三心共线",
+    "descriptionEn": "In a non-equilateral triangle, circumcenter \\(O\\), centroid \\(G\\) and orthocenter \\(H\\) lie on the Euler line. \\(G\\) divides \\(OH\\) in the ratio \\(1:2\\). For an equilateral triangle the three centers coincide, so they no longer determine a unique line.",
+    "descriptionZh": "非等边三角形的外心 \\(O\\)、重心 \\(G\\)、垂心 \\(H\\) 位于同一条欧拉线上，\\(G\\) 把 \\(OH\\) 分成 \\(1:2\\)。等边三角形的三心重合，因而不能由它们确定唯一的直线。",
+    "formula": "G=\\frac{2O+H}{3},\\qquad OG:GH=1:2",
+    "compactFormula": "\\begin{aligned}G&=\\frac{2O+H}{3}\\\\OG:GH&=1:2\\end{aligned}",
+    "readingEn": "One vertex moves around the circle. \\(O\\) remains its center; the faint medians meet at \\(G\\), and \\(H\\) is the intersection of the altitudes. The gold segment joins the three centers. The enlarged ruler on the right shows their fixed division ratio.",
+    "readingZh": "一个顶点沿圆周移动。\\(O\\) 始终是圆心，浅色中线交于 \\(G\\)，\\(H\\) 是三条高的交点。金线连起三心，右侧放大的比例尺显示它们不变的分段比例。"
+  },
+  {
+    "id": "lagrange-interpolation",
+    "concept": "lagrange-interpolation-uniqueness",
+    "en": "One polynomial through all the nodes",
+    "zh": "穿过所有节点的唯一多项式",
+    "descriptionEn": "For \\(n+1\\) distinct horizontal coordinates, exactly one polynomial of degree at most \\(n\\) passes through the given values. Lagrange basis polynomials construct it: each basis is one at its own node and zero at every other node. Uniqueness does not by itself guarantee accurate values between nodes.",
+    "descriptionZh": "给定 \\(n+1\\) 个横坐标互不相同的节点，恰有一条次数不超过 \\(n\\) 的多项式曲线穿过全部指定值。拉格朗日基函数给出构造方法：每个基函数在自己的节点等于一，在其他节点等于零。不过，插值唯一并不等于节点之间的估计一定准确。",
+    "formula": "p_n(x)=\\sum_{k=0}^n y_k\\ell_k(x),\\qquad \\ell_k(x)=\\prod_{j\\ne k}\\frac{x-x_j}{x_k-x_j}",
+    "compactFormula": "\\begin{aligned}p_n(x)&=\\sum_{k=0}^n y_k\\ell_k(x)\\\\ \\ell_k(x)&=\\prod_{j\\ne k}\\frac{x-x_j}{x_k-x_j}\\end{aligned}",
+    "readingEn": "The two cyan endpoints stay fixed while the gold middle value moves. At every instant the green quadratic passes through all three points. Moving one value alters the curve across the interval, even though its other two prescribed values remain fixed.",
+    "readingZh": "两个青色端点固定，金色中点的纵坐标持续变化。每一时刻，绿色二次曲线都经过全部三个节点。只改变一个指定值，也会影响整个区间内的曲线；另外两个节点的指定值则始终保持不变。",
+    "source": {
+      "url": "https://fncbook.com/polynomial/",
+      "en": "Driscoll & Braun · Polynomial interpolation",
+      "zh": "Driscoll 与 Braun · 多项式插值"
+    },
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "lagrange-interpolation"
+  },
+  {
+    "id": "mixture-density",
+    "concept": "weighted-density-mixtures-and-modes",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "mixture-density",
+    "source": {
+      "url": "https://labs.acme.byu.edu/Volume3/GMM/GMM.html",
+      "en": "BYU ACME · Gaussian mixture models",
+      "zh": "杨百翰大学 ACME · 高斯混合模型"
+    },
+    "en": "Two groups, one density",
+    "zh": "两个群体，一条密度",
+    "descriptionEn": "A mixture first chooses a component with probability \\(w\\), then draws from that component. Its density is the weighted sum of component densities, with total area one. Two Gaussian components can produce one peak or two; averaging their means does not recover this shape. Here \\(\\phi_\\sigma\\) denotes the centered Gaussian density with standard deviation \\(\\sigma\\).",
+    "descriptionZh": "混合分布先按概率 \\(w\\) 选择一个成分，再从该成分中抽样。总密度是各成分密度的加权和，曲线下面积仍为一。两个高斯成分可以形成单峰，也可以形成双峰；仅对均值求平均，无法保留这种形状。 这里的 \\(\\phi_\\sigma\\) 表示均值为零、标准差为 \\(\\sigma\\) 的高斯密度。",
+    "formula": "f(x)=w\\phi_\\sigma(x+d)+(1-w)\\phi_\\sigma(x-d),\\quad 0\\le w\\le1",
+    "readingEn": "Cyan and gold are the two weighted densities, each with area \\(1/2\\); green is their pointwise sum. Their means move from \\(\\pm0.2\\) to \\(\\pm1.75\\), while \\(\\sigma=0.65\\) stays fixed. Separation changes the number of peaks. The finite window omits small Gaussian tails outside the frame.",
+    "readingZh": "青线和金线分别是面积为 \\(1/2\\) 的加权密度，绿线是它们逐点相加的结果。均值从 \\(\\pm0.2\\) 移至 \\(\\pm1.75\\)，而 \\(\\sigma=0.65\\) 不变，峰的数量随间距改变。画面只截取有限区间，框外仍有很小的高斯尾部。",
+    "compactFormula": "\\begin{aligned}f(x)&=w\\phi_\\sigma(x+d)\\\\&\\quad+(1-w)\\phi_\\sigma(x-d)\\\\&\\quad 0\\le w\\le1\\end{aligned}"
+  },
+  {
+    "id": "parabola-focus",
+    "concept": "parabola-equal-focus-and-directrix-distance-locus",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "parabola-focus",
+    "source": {
+      "url": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/12-3-the-parabola",
+      "en": "OpenStax · The parabola",
+      "zh": "OpenStax · 抛物线"
+    },
+    "en": "A point and a line define a parabola",
+    "zh": "一个点和一条线定义抛物线",
+    "descriptionEn": "A parabola contains the points equally far from a focus and a directrix. With the vertex as origin, focus \\(F=(p,0)\\), and directrix \\(x=-p\\), equating the distances and squaring gives \\(y^2=4px\\), for \\(p>0\\).",
+    "descriptionZh": "抛物线上的点到焦点和准线的距离相等。以顶点为原点，令焦点为 \\(F=(p,0)\\)、准线为 \\(x=-p\\)，且 \\(p>0\\)；把两段距离相等的式子平方并化简，就得到 \\(y^2=4px\\)。",
+    "formula": "\\sqrt{(x-p)^2+y^2}=x+p\\quad\\Longleftrightarrow\\quad y^2=4px",
+    "compactFormula": "\\begin{aligned}\\sqrt{(x-p)^2+y^2}&=x+p\\\\y^2&=4px\\end{aligned}",
+    "readingEn": "\\(P\\) moves along the cyan parabola. The green segment reaches the focus \\(F\\); the gold segment reaches the perpendicular foot \\(D\\) on the vertical directrix. Their length bars on the right always match.",
+    "readingZh": "\\(P\\) 沿青色抛物线移动。绿线连向焦点 \\(F\\)，金线连向竖直准线上的垂足 \\(D\\)；右侧按长度画出的两条横线始终一样长。"
+  },
+  {
+    "id": "chebyshev-nodes",
+    "concept": "runge-phenomenon-chebyshev-node-placement",
+    "en": "Why interpolation nodes cluster at the ends",
+    "zh": "插值节点为何向两端聚集",
+    "descriptionEn": "More equally spaced samples need not improve high-degree polynomial interpolation: Runge’s function develops large endpoint oscillations. Chebyshev nodes place more samples near both ends. For this analytic function, that redistribution controls the endpoint problem and produces convergent polynomial approximations.",
+    "descriptionZh": "高次多项式插值中，等距样本增加不一定让近似更准：龙格函数的插值曲线会在区间两端产生明显振荡。切比雪夫节点将更多样本布置在两端。对于图中这样的解析函数，这种重新分配能抑制端部问题，使插值逐步收敛。",
+    "formula": "f(x)=\\frac1{1+25x^2},\\qquad x_k=-\\cos\\frac{k\\pi}{n},\\quad k=0,\\ldots,n",
+    "compactFormula": "\\begin{aligned}f(x)&=\\frac1{1+25x^2}\\\\ x_k&=-\\cos\\frac{k\\pi}{n},\\quad k=0,\\ldots,n\\end{aligned}",
+    "readingEn": "Green is the exact function. Gold uses equal nodes; cyan uses Chebyshev nodes, shown in matching rows below. Degrees 6, 8 and 10 share one unclipped scale. Moving markers compare both approximations with the true value, especially near the endpoints.",
+    "readingZh": "绿线是真实函数，金线使用等距节点，青线使用切比雪夫节点；底部两排同色圆点列出节点位置。6、8、10 次插值共用同一尺度，曲线没有裁剪。移动标记比较两种插值与真值的偏差，尤其留意区间两端。",
+    "source": {
+      "url": "https://fncbook.com/stability-1/",
+      "en": "Driscoll & Braun · Stability of polynomial interpolation",
+      "zh": "Driscoll 与 Braun · 多项式插值的稳定性"
+    },
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "chebyshev-nodes"
+  },
+  {
+    "id": "uniform-maximum",
+    "concept": "cdf-of-independent-uniform-sample-maximum",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "uniform-maximum",
+    "source": {
+      "url": "https://www.randomservices.org/random/sample/OrderStatistics.html",
+      "en": "Siegrist · Order statistics",
+      "zh": "Siegrist · 次序统计量"
+    },
+    "en": "Where the largest sample lands",
+    "zh": "最大样本落在哪里",
+    "descriptionEn": "For \\(n\\) independent draws from \\(U[0,1]\\), the maximum is at most \\(x\\) only when every draw is at most \\(x\\). Independence multiplies those probabilities, giving \\(x^n\\). More draws push the maximum toward one, even though each individual draw stays uniform.",
+    "descriptionZh": "独立地从 \\(U[0,1]\\) 抽取 \\(n\\) 个数，只有每个数都不超过 \\(x\\)，最大值才不超过 \\(x\\)。独立性让这些概率相乘，得到 \\(x^n\\)。抽样次数越多，最大值越靠近一，但单次抽样仍然是均匀的。",
+    "formula": "\\Pr(M_n\\le x)=x^n,\\quad M_n=\\max_i U_i,\\quad 0\\le x\\le1",
+    "readingEn": "The curves show cumulative probabilities for \\(n=1,2,4,8\\), all on the same axes. Green highlights \\(n=4\\). At the moving threshold \\(x\\), the gold height gives the probability that all four draws stay to its left. These are exact distributions, not simulated frequencies.",
+    "readingZh": "四条曲线在相同坐标轴上给出 \\(n=1,2,4,8\\) 时的累积概率，绿色突出 \\(n=4\\)。阈值 \\(x\\) 移动时，金点高度表示四个样本都落在其左侧的概率。曲线来自精确分布，并非模拟频数。",
+    "compactFormula": "\\begin{aligned}M_n&=\\max_i U_i\\\\\\Pr(M_n\\le x)&=x^n\\quad(0\\le x\\le1)\\end{aligned}"
+  },
+  {
+    "id": "hyperbola-foci",
+    "concept": "hyperbola-constant-absolute-focal-distance-difference",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "hyperbola-foci",
+    "source": {
+      "url": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/12-2-the-hyperbola",
+      "en": "OpenStax · The hyperbola",
+      "zh": "OpenStax · 双曲线"
+    },
+    "en": "A fixed difference makes a hyperbola",
+    "zh": "距离之差画出双曲线",
+    "descriptionEn": "For a hyperbola, the absolute difference between distances to two fixed foci is \\(2a\\). With \\(a,b>0\\), center at the origin and foci \\((\\pm c,0)\\), the parameters satisfy \\(c^2=a^2+b^2\\). Fixing the difference produces two unbounded branches. Switching branches reverses the signed difference but preserves its magnitude.",
+    "descriptionZh": "双曲线上的点到两个固定焦点的距离之差，绝对值恒为 \\(2a\\)。取 \\(a,b>0\\)，以中心为原点，焦点为 \\((\\pm c,0)\\)，参数满足 \\(c^2=a^2+b^2\\)。固定距离之差，会形成两条向外延伸的分支；换到另一支，差的符号改变，绝对值不变。",
+    "formula": "|PF_1-PF_2|=2a,\\qquad \\frac{x^2}{a^2}-\\frac{y^2}{b^2}=1",
+    "compactFormula": "\\begin{aligned}|PF_1-PF_2|&=2a\\\\\\frac{x^2}{a^2}-\\frac{y^2}{b^2}&=1\\end{aligned}",
+    "readingEn": "\\(P\\) travels along the right branch. Green and gold segments join it to the foci; matching bars below show both lengths. The cyan remainder between the bar endpoints stays fixed even as both bars change.",
+    "readingZh": "\\(P\\) 在右支上往复移动，绿色和金色线段分别连向两个焦点。下方同色横线表示这两段长度；两条横线都在伸缩，端点之间的青色差值却保持不变。"
+  },
+  {
+    "id": "osculating-circle",
+    "concept": "parabola-local-osculating-circle-curvature",
+    "en": "The circle that matches a curve’s bend",
+    "zh": "与曲线弯曲程度相同的圆",
+    "descriptionEn": "An osculating circle shares a curve’s tangent and curvature at one point. Its center lies along the principal normal and its radius is the reciprocal of curvature. On a parabola, the circle changes size as the contact point moves: a larger radius means a gentler local bend.",
+    "descriptionZh": "密切圆在接触点与曲线具有相同的切线和曲率，圆心位于该点的主法线方向，半径等于曲率的倒数。沿抛物线移动时，密切圆随位置改变大小；半径越大，表示该处转弯越平缓。",
+    "formula": "y=x^2,\\qquad \\kappa(x)=\\frac{2}{(1+4x^2)^{3/2}},\\qquad R=\\frac1\\kappa",
+    "compactFormula": "\\begin{aligned}\\kappa(x)&=\\frac{2}{(1+4x^2)^{3/2}}\\\\ R&=\\frac1\\kappa\\qquad (y=x^2)\\end{aligned}",
+    "readingEn": "The green point moves along the parabola. The gold circle touches it with the same local bend; the cyan radius is perpendicular to the faint tangent. The radius and curvature shown below always have product one. This is local contact, not a circle fitting the whole parabola.",
+    "readingZh": "绿点沿抛物线移动，金色圆在该点与曲线相切，弯曲程度也相同；青色半径垂直于淡色切线。底部显示的半径与曲率之积始终为一。这个圆描述接触点附近的形状，并不拟合整条抛物线。",
+    "source": {
+      "url": "https://openstax.org/books/calculus-volume-3/pages/3-3-arc-length-and-curvature",
+      "en": "OpenStax · Curvature and osculating circles",
+      "zh": "OpenStax · 曲率与密切圆"
+    },
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "osculating-circle"
+  },
+  {
+    "id": "inverse-cdf",
+    "concept": "uniform-sampling-through-inverse-cdf",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "inverse-cdf",
+    "source": {
+      "url": "https://www.cs.cmu.edu/~harchol/Probability/chapters/chpt13.pdf",
+      "en": "Harchol-Balter · Inverse transform method",
+      "zh": "Harchol-Balter · 逆变换抽样法"
+    },
+    "en": "Turn uniform draws into a shape",
+    "zh": "把均匀抽样变成目标分布",
+    "descriptionEn": "A continuous strictly increasing CDF turns a probability level into a quantile through its inverse. If \\(U\\) is uniform on \\([0,1]\\), then \\(X=F^{-1}(U)\\) has CDF \\(F\\). For \\(F(x)=x^2\\) on \\([0,1]\\), taking \\(\\sqrt U\\) produces density \\(2x\\).",
+    "descriptionZh": "连续且严格递增的累积分布函数，可以通过反函数将概率水平映射为分位数。如果 \\(U\\) 在 \\([0,1]\\) 上均匀分布，那么 \\(X=F^{-1}(U)\\) 的累积分布就是 \\(F\\)。当 \\([0,1]\\) 上的 \\(F(x)=x^2\\) 时，对 \\(U\\) 开平方就得到密度 \\(2x\\)。",
+    "formula": "X=\\sqrt U,\\ U\\sim U[0,1],\\qquad\\Pr(X\\le x)=x^2\\quad(0\\le x\\le1)",
+    "readingEn": "Start at probability \\(u\\) on the vertical axis, move horizontally to the green CDF, then down to \\(x=\\sqrt u\\). Equally spaced probability guides land closer together near one, where density is higher. The gold guide sweeps through quantiles; its animation speed is not a random-sampling frequency.",
+    "readingZh": "从纵轴的概率 \\(u\\) 出发，水平移到绿色累积分布曲线，再向下读出 \\(x=\\sqrt u\\)。等间距的概率线在接近一时落得更密，那里密度更高。金线依次扫过分位数，其动画速度不代表随机抽样的频率。",
+    "compactFormula": "\\begin{aligned}X&=\\sqrt U,\\quad U\\sim U[0,1]\\\\\\Pr(X\\le x)&=x^2\\quad(0\\le x\\le1)\\end{aligned}"
+  },
+  {
+    "id": "sine-rule",
+    "concept": "triangle-side-angle-sine-ratio-equals-circumdiameter",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "sine-rule",
+    "source": {
+      "url": "https://mathworld.wolfram.com/LawofSines.html",
+      "en": "MathWorld · Law of sines",
+      "zh": "MathWorld · 正弦定理"
+    },
+    "en": "The sine rule measures a circle",
+    "zh": "正弦定理量出外接圆",
+    "descriptionEn": "Divide each side of a triangle by the sine of its opposite angle: all three ratios equal its circumcircle's diameter \\(2R\\). Moving a vertex changes side lengths and angles together while the common ratio stays fixed if the circle does.",
+    "descriptionZh": "三角形的每条边除以对角的正弦，三个比值都等于外接圆的直径 \\(2R\\)。顶点移动时，边长与角度一同变化；只要外接圆不变，这个共同的比值就不变。",
+    "formula": "\\frac{a}{\\sin A}=\\frac{b}{\\sin B}=\\frac{c}{\\sin C}=2R",
+    "compactFormula": "\\begin{aligned}\\frac{a}{\\sin A}&=\\frac{b}{\\sin B}\\\\&=\\frac{c}{\\sin C}=2R\\end{aligned}",
+    "readingEn": "\\(A\\) moves along the fixed circumcircle while \\(B\\) and \\(C\\) remain still. Each colored side lies opposite the angle of the same color. The three numerical ratios on the right all remain equal to \\(2R\\).",
+    "readingZh": "\\(A\\) 沿固定的外接圆移动，\\(B\\)、\\(C\\) 保持不动。每条彩色边对应同色的对角，右侧三个数值比始终等于 \\(2R\\)。"
+  },
+  {
+    "id": "arc-length",
+    "concept": "polygonal-length-convergence-to-arc-integral",
+    "en": "Measuring a curve with shorter chords",
+    "zh": "用越来越短的弦测量曲线",
+    "descriptionEn": "A straight chord is shorter than the curved segment joining the same endpoints. Refining nested partitions adds polygonal length, and for a continuously differentiable graph the limit is the integral of \\(\\sqrt{1+(f^{\\prime})^2}\\). The extra derivative term accounts for vertical travel as well as horizontal travel.",
+    "descriptionZh": "连接相同端点时，直线弦段比弯曲路径短。不断细分已有分段，折线总长度随之增加；对连续可微的函数曲线，其极限就是弧长积分。根号里的导数平方把竖直位移也计入路程，而不只计算横向距离。",
+    "formula": "L=\\int_{-3/2}^{3/2}\\sqrt{1+x^2}\\,dx=\\frac32\\sqrt{\\frac{13}{4}}+\\operatorname{arsinh}\\frac32",
+    "compactFormula": "\\begin{aligned}L&=\\int_{-3/2}^{3/2}\\sqrt{1+x^2}\\,dx\\\\ &=\\frac{3\\sqrt{13}}4+\\operatorname{arsinh}\\frac32\\end{aligned}",
+    "readingEn": "Green is \\(y=x^2/2\\), gold is the inscribed polygon, and cyan highlights the chord under the moving point. The partition doubles from 2 to 32 segments. Its total length \\(L_n\\) approaches the fixed exact length \\(L\\) from below; the same scale is used on both axes.",
+    "readingZh": "绿线是抛物线 \\(y=x^2/2\\)，金线是连接分点的内接折线，青色线段标出移动绿点所在的分段。分段数从 2 逐次加倍至 32，折线长度 \\(L_n\\) 从下方接近固定的精确弧长 \\(L\\)；横纵坐标保持相同尺度。",
+    "source": {
+      "url": "https://openstax.org/books/calculus-volume-2/pages/2-4-arc-length-of-a-curve-and-surface-area",
+      "en": "OpenStax · Arc length of a curve",
+      "zh": "OpenStax · 曲线的弧长"
+    },
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "arc-length"
+  },
+  {
+    "id": "kl-divergence",
+    "concept": "bernoulli-directed-relative-entropy",
+    "status": "ready",
+    "reviewedOn": "2026-11-09",
+    "renderer": "kl-divergence",
+    "source": {
+      "url": "https://www.cs.cmu.edu/afs/cs/user/dwoodruf/www/teaching/15859-fall17/scribe18.pdf",
+      "en": "CMU · Kullback–Leibler divergence",
+      "zh": "卡内基梅隆大学 · KL 散度"
+    },
+    "en": "A directed mismatch",
+    "zh": "有方向的分布差异",
+    "descriptionEn": "KL divergence averages the log probability ratio under the first distribution. It is nonnegative and zero when the distributions match, but exchanging their roles generally changes the result. Here \\(p\\) and \\(q\\) are Bernoulli success probabilities; natural logarithms give units of nats.",
+    "descriptionZh": "KL 散度按第一个分布，对两者概率之比的对数取平均。它非负，两分布相同时为零，但交换两者通常会得到不同结果。这里的 \\(p\\) 和 \\(q\\) 是伯努利分布的成功概率，使用自然对数，单位为 nat。",
+    "formula": "D(p\\Vert q)=p\\ln\\frac pq+(1-p)\\ln\\frac{1-p}{1-q}",
+    "readingEn": "Keep \\(p=0.30\\) fixed and move \\(q\\). Green is \\(D(p\\Vert q)\\), cyan is \\(D(q\\Vert p)\\); both meet zero at \\(q=p\\). Their different heights show why KL is not a symmetric distance. Only \\(0.04\\le q\\le0.96\\) is plotted, avoiding infinite divergences at unsupported outcomes.",
+    "readingZh": "固定 \\(p=0.30\\)，改变 \\(q\\)。绿色表示 \\(D(p\\Vert q)\\)，青色表示 \\(D(q\\Vert p)\\)，两者都在 \\(q=p\\) 时降至零。不同的高度说明 KL 不是对称距离。图中只画 \\(0.04\\le q\\le0.96\\)，避开对某个可能结果赋零概率而产生的无穷散度。",
+    "compactFormula": "\\begin{aligned}D(p\\Vert q)&=p\\ln\\frac pq\\\\&\\quad+(1-p)\\ln\\frac{1-p}{1-q}\\end{aligned}"
   }
 ]
